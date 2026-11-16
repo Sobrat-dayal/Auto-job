@@ -131,3 +131,47 @@ Support both Windows toolchains transparently:
 
 - Enables immediate compilation on standard Windows developer environments without requiring 5+ GB Visual Studio installation.
 - Preserves native Win32 API access and Tauri 2 WebView2 integration.
+
+---
+
+## ADR-0007: In-Memory Async Pub/Sub EventBus & SSE Protocol
+
+### Context
+
+Desktop frontend clients require real-time visibility into asynchronous worker task progress, state transitions, and background agent operations. Using external brokers (Redis, RabbitMQ, Kafka) introduces heavy background service requirements inappropriate for a lightweight desktop app. Furthermore, standard bidirectional WebSockets introduce framing and reconnection complexity when client-to-server traffic is predominantly standard REST RPC.
+
+### Decision
+
+Implement an internal in-process asynchronous `EventBus` (`asyncio`) paired with Server-Sent Events (SSE) over HTTP (`GET /api/v1/events/stream`).
+
+1. Publishers broadcast events non-blockingly (`put_nowait`).
+2. Slow subscribers drop laggy frames rather than backpressuring active task workers.
+3. An in-memory ring buffer retains the most recent 200 events for newly connected views.
+4. SSE stream includes 15-second heartbeat pings and clean subscriber queue teardown on client disconnect.
+
+### Consequences
+
+- Zero external infrastructure dependencies or memory footprint.
+- Built-in browser `EventSource` API handles auto-reconnect effortlessly.
+- Full real-time diagnostic stream available to frontend clients without polling.
+
+---
+
+## ADR-0008: Cooperative Task Cancellation & Bounded Worker Concurrency
+
+### Context
+
+Long-running automation tasks (such as browser driving, computer control, or multi-step calculations) must be abortable by the user immediately. Thread termination or killing processes leaves unmanaged side effects, dangling browser windows, or corrupted state.
+
+### Decision
+
+Adopt cooperative cancellation mediated by `TaskExecutionContext`:
+
+1. Tasks receive a context token and must routinely check `ctx.raise_if_cancelled()` or `ctx.is_cancelled()`.
+2. Cancellation triggers a clean rollback in handlers before transitioning to `cancelled`.
+3. Worker concurrency is strictly bounded (default 4 workers, 50 queue capacity) with immediate HTTP 429 backpressure rejection when saturated.
+
+### Consequences
+
+- Predictable, deterministic resource consumption aligned with the RTX 4050 / 16GB RAM budget.
+- Clean resource cleanup on user abort without orphaned background operations.

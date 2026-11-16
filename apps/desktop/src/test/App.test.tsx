@@ -21,8 +21,9 @@ describe('App Component', () => {
     expect(screen.getByText('Stage 02 Active')).toBeInTheDocument();
   });
 
-  it('renders navigation sidebar items', () => {
+  it('renders navigation sidebar items including Diagnostics', () => {
     render(<App />);
+    expect(screen.getByText('Diagnostics & Tasks')).toBeInTheDocument();
     expect(screen.getByText('Jobs & Applications')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });

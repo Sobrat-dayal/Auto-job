@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Overview } from '@/pages/Overview';
+import { Diagnostics } from '@/pages/Diagnostics';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +24,7 @@ export const App: React.FC = () => {
         <div className="flex flex-1 overflow-hidden">
           <Sidebar activeModule={activeModule} onSelectModule={setActiveModule} />
           <main className="flex-1 overflow-y-auto bg-background">
-            <Overview />
+            {activeModule === 'diagnostics' ? <Diagnostics /> : <Overview />}
           </main>
         </div>
       </div>

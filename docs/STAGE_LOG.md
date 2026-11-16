@@ -153,4 +153,72 @@ This document records the chronological development, verification, test outcomes
   - Windows MSIX/NSIS packaging will be finalized in Stage 50; Stage 02 produces portable `.exe` and web distribution.
 - **Stage 03 Readiness**:
   - The development foundation is completely configured, executable, and passing all quality and test gates.
-  - The project is fully prepared to begin **Stage 03: Design System, Core UI Shell, and Navigation Framework**.
+  - The project is fully prepared to begin **Stage 03: Backend Service Architecture, Real-Time Communication, Task Execution Infrastructure, and Service Lifecycle**.
+
+---
+
+## Stage 03: Backend Service Architecture, Real-Time Communication, Task Execution Infrastructure, and Service Lifecycle
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-16T19:00:00Z
+- **Completed**: 2026-11-16T19:58:00Z
+
+### 1. Objectives & Scope
+
+1. Implement layered backend service architecture without heavyweight external dependencies (no Docker, Redis, Celery, or RabbitMQ).
+2. Establish in-memory asynchronous publish/subscribe Event Bus with non-blocking fan-out, slow-subscriber isolation, and ring buffer history.
+3. Implement Server-Sent Events (SSE) streaming endpoint (`/api/v1/events/stream`) with 15-second keep-alive heartbeats and graceful subscriber queue teardown.
+4. Implement deterministic 11-state task state machine enforcing valid transitions and terminal state immutability.
+5. Implement asynchronous Worker Pool manager with configurable concurrency (4 workers), bounded queue (50 capacity), backpressure rejection (HTTP 429), and worker status tracking.
+6. Implement Task Execution Manager with handler registry, cooperative cancellation protocol (`TaskExecutionContext`), and execution timeout enforcement.
+7. Create domain exception hierarchy mapped to structured JSON error responses with retryable flags.
+8. Establish shared TypeScript definitions for tasks, events, workers, and system metrics in `@autonom/shared-types`.
+9. Build interactive **Backend Diagnostics & Real-Time Tasks** view in the desktop client (`Diagnostics.tsx`) with live SSE stream table, worker pool metrics, task dispatcher for `compute.echo` and `test.sleep_progress`, live progress bars, cooperative cancellation, and result previews.
+10. Author architectural documentation:
+    - `docs/BACKEND_SERVICES.md`
+    - `docs/TASK_EXECUTION.md`
+    - `docs/EVENT_SYSTEM.md`
+    - `docs/FAILURE_RECOVERY.md`
+
+### 2. Implementation Checklist
+
+- [x] Configure backend settings, security tokens, and lifespan context manager (`app/core/config.py`, `app/core/security.py`, `app/core/lifespan.py`).
+- [x] Implement domain exception hierarchy and error mappings (`app/core/exceptions.py`, `app/api/errors.py`).
+- [x] Implement Pydantic v2 schemas for tasks, events, workers, and system status (`app/schemas/`).
+- [x] Implement `EventBus` pub/sub and SSE generator (`app/events/bus.py`, `app/events/streaming.py`, `app/events/models.py`).
+- [x] Implement 11-state `TaskStateMachine` (`app/execution/state_machine.py`).
+- [x] Implement `TaskExecutionContext` and `HandlerRegistry` with `compute.echo` and `test.sleep_progress` (`app/execution/`).
+- [x] Implement `TaskExecutionManager` with timeout enforcement, validation, and event publishing (`app/execution/manager.py`).
+- [x] Implement `WorkerManager` with bounded queue and concurrency pool (`app/workers/manager.py`).
+- [x] Implement `ServiceContainer` and FastAPI dependency injection providers (`app/services/service_container.py`, `app/api/dependencies.py`).
+- [x] Implement versioned API endpoints in `app/api/v1/endpoints/` (`health`, `ready`, `version`, `tasks`, `workers`, `system`, `events`).
+- [x] Write 29 unit and integration tests across 11 test files in `services/api/tests/` (100% pass in 1.16s).
+- [x] Extend `@autonom/shared-types` with task execution, real-time events, and system/worker status definitions.
+- [x] Update typed `ApiClient` in `apps/desktop/src/lib/api-client.ts`.
+- [x] Build `Diagnostics.tsx` page and wire routing in `Sidebar.tsx` and `App.tsx`.
+- [x] Create Stage 03 documentation (`docs/BACKEND_SERVICES.md`, `docs/TASK_EXECUTION.md`, `docs/EVENT_SYSTEM.md`, `docs/FAILURE_RECOVERY.md`).
+- [x] Update `docs/API_CONTRACTS.md`, `docs/DECISIONS.md`, and record ADR-0007.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Unit & Integration Test Suite (`pytest services/api/tests`)**:
+   - `29 passed in 1.16s`
+   - Validated: Settings and token authentication, loopback isolation, `/api/v1/health`, `/api/v1/ready`, `/api/v1/version`, `/api/v1/system/status`, `/api/v1/workers`, `/api/v1/tasks` (create, get, list, cancel, execute), `TaskStateMachine` (valid transitions and rejection of invalid/terminal transitions), `EventBus` (non-blocking broadcast, slow subscriber drop, ring buffer), `WorkerManager` (concurrency limits, queue saturation HTTP 429), and SSE event generator.
+2. **Frontend Vitest Test Suite (`pnpm --filter @autonom/desktop test`)**:
+   - `Test Files: 2 passed (2) | Tests: 4 passed (4)`
+   - Validated: Typed HTTP client, navigation sidebar with Diagnostics item, App shell rendering.
+3. **TypeScript Monorepo Compilation (`pnpm -r typecheck`)**:
+   - Clean pass across `@autonom/shared-types`, `@autonom/shared`, and `@autonom/desktop`.
+4. **Python Linting (`ruff check services/api`)**:
+   - Clean pass, zero errors or warnings.
+5. **Frontend Production Build (`pnpm --filter @autonom/desktop build`)**:
+   - Vite bundle built in 4.62s (`dist/index.html`, `dist/assets/`).
+
+### 4. Known Limitations & Stage 04 Hand-off
+
+- **Known Limitations**:
+  - Tasks and workers currently manage in-memory queues and ring buffers; durable SQLite persistence for tasks and execution history will be connected in Stage 04.
+  - LLM model invocation handlers (Ollama / Gemini / Anthropic) will be integrated in Stage 07.
+- **Stage 04 Readiness**:
+  - All Stage 03 requirements and acceptance criteria are satisfied.
+  - The project is prepared to proceed to **Stage 04: SQLite Database Engine, Migrations, and Persistent Task State**.

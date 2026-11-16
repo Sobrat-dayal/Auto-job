@@ -1,5 +1,5 @@
 /**
- * Durable Task & Workflow State Machine
+ * Durable Task & Workflow State Machine and Task Execution API schemas.
  */
 
 export type TaskStatus =
@@ -14,6 +14,63 @@ export type TaskStatus =
   | 'Completed'
   | 'Failed'
   | 'Cancelled';
+
+export type TaskExecutionState =
+  | 'created'
+  | 'queued'
+  | 'planning'
+  | 'waiting_dependencies'
+  | 'running'
+  | 'waiting_auth'
+  | 'paused'
+  | 'retrying'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+
+export type TaskExecutionPriority = 'critical' | 'high' | 'normal' | 'low' | 'batch';
+
+export interface TaskCreateRequest {
+  task_type: string;
+  payload?: Record<string, unknown>;
+  priority?: TaskExecutionPriority;
+  timeout_seconds?: number;
+  correlation_id?: string | null;
+}
+
+export interface TaskResponse {
+  task_id: string;
+  task_type: string;
+  state: TaskExecutionState;
+  priority: TaskExecutionPriority;
+  progress: number;
+  message?: string | null;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  error?: string | null;
+  correlation_id?: string | null;
+}
+
+export interface TaskListResponse {
+  tasks: TaskResponse[];
+  total: number;
+}
+
+export interface TaskResultResponse {
+  task_id: string;
+  state: TaskExecutionState;
+  result?: Record<string, unknown> | null;
+  error?: string | null;
+  completed_at?: string | null;
+}
+
+export interface TaskCancelResponse {
+  task_id: string;
+  state: TaskExecutionState;
+  cancelled: boolean;
+  message: string;
+}
 
 export type TaskPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // 1 is highest
 

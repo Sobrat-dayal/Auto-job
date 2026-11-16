@@ -2,6 +2,18 @@
  * Typed API Client for AUTONOM Backend Service
  */
 
+import type {
+  EventEnvelope,
+  SystemCapabilitiesResponse,
+  SystemStatusResponse,
+  TaskCancelResponse,
+  TaskCreateRequest,
+  TaskListResponse,
+  TaskResponse,
+  TaskResultResponse,
+  WorkerListResponse,
+} from '@autonom/shared-types';
+
 export interface ApiClientConfig {
   baseUrl: string;
   timeoutMs: number;
@@ -100,6 +112,7 @@ export class ApiClient {
     }
   }
 
+  // System & Health Endpoints
   async getHealth(): Promise<BackendHealth> {
     return this.request<BackendHealth>('/api/v1/health');
   }
@@ -110,6 +123,54 @@ export class ApiClient {
 
   async getReadiness(): Promise<BackendReadiness> {
     return this.request<BackendReadiness>('/api/v1/ready');
+  }
+
+  async getSystemStatus(): Promise<SystemStatusResponse> {
+    return this.request<SystemStatusResponse>('/api/v1/system/status');
+  }
+
+  async getSystemCapabilities(): Promise<SystemCapabilitiesResponse> {
+    return this.request<SystemCapabilitiesResponse>('/api/v1/system/capabilities');
+  }
+
+  // Worker Management
+  async getWorkers(): Promise<WorkerListResponse> {
+    return this.request<WorkerListResponse>('/api/v1/workers');
+  }
+
+  // Task Execution Endpoints
+  async listTasks(): Promise<TaskListResponse> {
+    return this.request<TaskListResponse>('/api/v1/tasks');
+  }
+
+  async createTask(request: TaskCreateRequest): Promise<TaskResponse> {
+    return this.request<TaskResponse>('/api/v1/tasks', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getTask(taskId: string): Promise<TaskResponse> {
+    return this.request<TaskResponse>(`/api/v1/tasks/${taskId}`);
+  }
+
+  async getTaskResult(taskId: string): Promise<TaskResultResponse> {
+    return this.request<TaskResultResponse>(`/api/v1/tasks/${taskId}/result`);
+  }
+
+  async cancelTask(taskId: string): Promise<TaskCancelResponse> {
+    return this.request<TaskCancelResponse>(`/api/v1/tasks/${taskId}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  // Event System
+  async getRecentEvents(limit: number = 50): Promise<EventEnvelope[]> {
+    return this.request<EventEnvelope[]>(`/api/v1/events/recent?limit=${limit}`);
+  }
+
+  getEventStreamUrl(): string {
+    return `${this.config.baseUrl}/api/v1/events/stream`;
   }
 }
 

@@ -97,7 +97,52 @@ Returns real-time hardware telemetry and OS metrics.
 }
 ```
 
-### 1.2 Agent Swarm Management
+### 1.2 Task Execution & Worker Management (Stage 03)
+
+#### `GET /api/v1/system/status`
+
+Returns real-time backend service status, worker pool utilization, task queue counts, and uptime.
+
+#### `GET /api/v1/system/capabilities`
+
+Returns supported task handler types (`compute.echo`, `test.sleep_progress`), concurrency bounds, and queue capacities.
+
+#### `GET /api/v1/workers`
+
+Returns real-time status of all asynchronous worker coroutines, including active tasks and processed task totals.
+
+#### `POST /api/v1/tasks`
+
+Creates and enqueues a new background task for execution.
+
+- **Request**: `TaskCreateRequest` (`task_type`, `payload`, `priority`, `timeout_seconds`, `correlation_id`)
+- **Response**: `TaskResponse` (`task_id`, `state`, `progress`, `created_at`)
+
+#### `GET /api/v1/tasks`
+
+Lists all active and recently executed tasks.
+
+#### `GET /api/v1/tasks/{task_id}`
+
+Returns the current execution state and progress of a specific task.
+
+#### `GET /api/v1/tasks/{task_id}/result`
+
+Returns the final output or error for a completed, failed, or cancelled task.
+
+#### `POST /api/v1/tasks/{task_id}/cancel`
+
+Requests cooperative cancellation of a queued or running task.
+
+#### `GET /api/v1/events/stream`
+
+Server-Sent Events (SSE) streaming endpoint delivering live system, worker, and task events.
+
+#### `GET /api/v1/events/recent`
+
+Returns diagnostic event history from the in-memory ring buffer (up to 200 events).
+
+### 1.3 Agent Swarm Management
 
 #### `GET /api/agents`
 
