@@ -616,3 +616,100 @@ Implement optimized multi-window aggregation in `services/api/app/api/v1/endpoin
 
 - Instant chart rendering with zero main-thread blocking.
 - Reliable historical performance tracking across workstation reboots.
+
+---
+
+## ADR-0029: Multi-Module Workspace Layout and Route Code-Splitting
+
+### Context
+
+AUTONOM is an autonomous multi-agent assistant with 13 core operational modules (Agents, Recruitment, Computer Control, Communications, Interviews, Documents, Coding, Creative, Research, Workflows, Analytics, Activity, Integrations) and over 50 sub-paths. Loading all module bundles synchronously at startup would inflate the initial bundle size and degrade desktop cold-start times.
+
+### Decision
+
+Implement route-level dynamic code-splitting using `React.lazy()` and `Suspense` wrapped around a centralized `<Routes>` architecture in `App.tsx`:
+
+1. Every workspace is authored as a self-contained feature component in `apps/desktop/src/features/<module>/<Module>Workspace.tsx`.
+2. Asynchronous chunks are created by Vite Rollup bundler (e.g., `AgentsWorkspace-*.js`, `RecruitmentWorkspace-*.js`).
+3. An accessible fallback (`WorkspaceSuspenseFallback`) displays a subtle spinner during chunk streaming.
+4. Wildcard child routes (`/agents/*`, `/recruitment/*`) route directly to the parent workspace, which synchronizes active tabs with `location.pathname`.
+
+### Consequences
+
+- Initial bundle size remains compact (<305 kB gzip).
+- Each workspace loads on demand when navigated to by the operator.
+- Sub-routes and deep links seamlessly render their respective sub-tabs without page reloads.
+
+---
+
+## ADR-0030: Shared Workspace Primitives and State Synchronization
+
+### Context
+
+Without standardized layout primitives, individual workspaces would suffer from inconsistent headers, varied empty states, mismatched loading skeletons, and fragmented toolbar controls.
+
+### Decision
+
+Create a unified shared primitive library in `apps/desktop/src/components/module/`:
+
+- `ModulePage`: Base responsive container with optional right-hand inspector drawer (`ModuleDetailPanel`).
+- `ModuleHeader`: Unified title, description, category icon, roadmap stage tag, and header action buttons.
+- `ModuleToolbar`: Standardized search input, status/role filter chips, view switcher, and refresh controls.
+- `ModuleTabs`: Route-synced tab strip rendering item count badges.
+- `ModuleEmptyState`: Honest zero-data fallback message with contextual action buttons.
+- `ModuleUnavailableState`: Roadmap stage attribution explaining future autonomous engine activations.
+- `ModuleLoadingState`: Responsive skeleton loaders for cards and tables.
+- `ModuleErrorState`: Actionable error boundary fallback with connection retry button.
+- `ModuleDetailPanel`: Collapsible 384px slide-over inspector for deep-dive object analysis.
+
+### Consequences
+
+- 100% visual and interactive consistency across all 13 modules.
+- Fast, accessible keyboard navigation adhering to WCAG 2.1 AA.
+- Modular maintainability and simplified unit testing.
+
+---
+
+## ADR-0031: Honest Roadmap Stage Attribution and Zero-Fake-Data UI Pattern
+
+### Context
+
+AUTONOM follows a strict Zero-Fake-Data rule: no synthetic job postings, artificial applications, fake recruiter emails, or fabricated agent performance metrics may be rendered in the production UI. However, modules whose autonomous engines belong to future stages (e.g., Stage 12 Swarm, Stage 16 Browser, Stage 26 Scraper, Stage 31 Application Tailor, Stage 36 Communications, Stage 41 Coding, Stage 42 Docs, Stage 43 Creative, Stage 44 Research, Stage 45 MCP) must still provide a functional UI workspace.
+
+### Decision
+
+Implement the `ModuleUnavailableState` and `ModuleEmptyState` pattern:
+
+1. When genuine data exists (e.g. SQLite job listings, applications, tasks, artifacts), render real data cards with accurate statuses.
+2. When autonomous generation engines are scheduled for future roadmap stages, display a prominent `ModuleUnavailableState` banner specifying the exact roadmap stage, scheduled activation purpose, planned capabilities, and architecture readiness.
+3. When database tables are legitimately empty, render `ModuleEmptyState` explaining that no records exist yet.
+
+### Consequences
+
+- Absolute truth in telemetry and interface state.
+- Zero leftover mock data or synthetic stubs to delete in future stages.
+- Users always understand the current operational boundary of the autonomous assistant.
+
+---
+
+## ADR-0032: REST Data Contracts for Jobs, Applications, and Persistent Artifacts
+
+### Context
+
+The Recruitment and Documents workspaces require typed REST API endpoints to read real persistent records stored in the SQLite database (`job_listings`, `applications`, `application_attempts`, and `artifacts`).
+
+### Decision
+
+Add versioned REST endpoints under `/api/v1` in FastAPI:
+
+1. `GET /api/v1/jobs` & `GET /api/v1/jobs/{job_id}`: Paged listings with status and company filtering.
+2. `GET /api/v1/applications` & `GET /api/v1/applications/{application_id}`: Paged applications enriched with job metadata and nested execution attempts.
+3. `GET /api/v1/artifacts` & `GET /api/v1/artifacts/{artifact_id}`: Paged artifacts with file size, checksum, and retention class.
+4. Enforce Bearer token loopback authentication across all endpoints.
+5. Create shared TypeScript contracts in `apps/desktop/src/types/modules.ts` and client helper methods in `apps/desktop/src/lib/api-client.ts`.
+
+### Consequences
+
+- Full full-stack integration between React frontend and SQLite database.
+- Sub-second local response times with async SQLAlchemy queries.
+- Clean separation between durable persistence models and client response schemas.

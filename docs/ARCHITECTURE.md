@@ -71,7 +71,9 @@ flowchart TD
 
 - **Technologies**: React 19, TypeScript (strict), Vite, Tailwind CSS, Lucide icons, Zustand, TanStack Query.
 - **Responsibilities**:
-  - Information-dense command center and operational dashboards.
+  - Information-dense command center and operational dashboards (Stage 08).
+  - 13 self-contained operational workspaces with route-level lazy-loading and sub-route synchronization (Stage 09).
+  - Shared workspace primitive architecture (`ModulePage`, `ModuleHeader`, `ModuleToolbar`, `ModuleTabs`, `ModuleDetailPanel`).
   - Collapsible vertical navigation sidebar (expanded 240px and compact 60px icon rail).
   - Real-time agent thought streaming and tool execution cards.
   - Interactive approval modals displaying action diffs for human-in-the-loop governance.

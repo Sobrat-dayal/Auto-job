@@ -29,7 +29,9 @@ async def test_backup_and_restore_cycle(tmp_path: Path, monkeypatch):
 
     async with session_factory() as session:
         await session.execute(
-            text("INSERT INTO app_settings (key, value_json, schema_version, updated_at, scope) VALUES (:k, :v, 1, CURRENT_TIMESTAMP, 'system')"),
+            text(
+                "INSERT INTO app_settings (key, value_json, schema_version, updated_at, scope) VALUES (:k, :v, 1, CURRENT_TIMESTAMP, 'system')"
+            ),
             {"k": "backup_test_key", "v": json.dumps({"value": 42})},
         )
         await session.commit()

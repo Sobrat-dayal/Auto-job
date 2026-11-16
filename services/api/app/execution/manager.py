@@ -91,7 +91,9 @@ class TaskExecutionManager:
                     self._tasks[t.id] = resp
 
                 if interrupted:
-                    logger.warning(f"Reconciled {len(interrupted)} interrupted tasks from prior run: {[i.id for i in interrupted]}")
+                    logger.warning(
+                        f"Reconciled {len(interrupted)} interrupted tasks from prior run: {[i.id for i in interrupted]}"
+                    )
                 logger.info(f"Loaded {len(self._tasks)} persisted tasks into manager cache.")
         except Exception as exc:
             logger.warning(f"Could not load persisted tasks from database: {exc}")
@@ -565,7 +567,9 @@ class TaskExecutionManager:
         try:
             async with get_db_session() as session:
                 task_repo = TaskRepository(session)
-                await task_repo.update_task_state(task_id, task.state.value, progress=progress, progress_message=message)
+                await task_repo.update_task_state(
+                    task_id, task.state.value, progress=progress, progress_message=message
+                )
         except Exception as db_exc:
             logger.error(f"Failed to update progress in DB for {task_id}: {db_exc}")
 

@@ -52,6 +52,12 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Dashboard Metrics & Calculation Rules](file:///e:/proooo/AUTO%20JOB/docs/DASHBOARD_METRICS.md)
 - [Real-Time SSE Event Streaming & Deduplication](file:///e:/proooo/AUTO%20JOB/docs/DASHBOARD_EVENTS.md)
 - [Dashboard Automated Testing Report](file:///e:/proooo/AUTO%20JOB/docs/DASHBOARD_TESTING.md)
+- [Module Architecture & Workspace Layout](file:///e:/proooo/AUTO%20JOB/docs/MODULE_ARCHITECTURE.md)
+- [Workspace Navigation & Route Integration](file:///e:/proooo/AUTO%20JOB/docs/WORKSPACE_NAVIGATION.md)
+- [Module Capabilities & Roadmap Activation Matrix](file:///e:/proooo/AUTO%20JOB/docs/MODULE_CAPABILITIES.md)
+- [Module Data Contracts & REST APIs](file:///e:/proooo/AUTO%20JOB/docs/MODULE_DATA_CONTRACTS.md)
+- [Cross-Module Autonomous Workflows](file:///e:/proooo/AUTO%20JOB/docs/CROSS_MODULE_WORKFLOWS.md)
+- [Module Automated Testing Report](file:///e:/proooo/AUTO%20JOB/docs/MODULE_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

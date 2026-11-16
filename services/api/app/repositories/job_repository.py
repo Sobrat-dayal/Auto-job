@@ -1,6 +1,6 @@
 """Repository for job sources, job listings, and job matches."""
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import JobListing, JobSource
@@ -89,3 +89,21 @@ class JobRepository(BaseRepository[JobListing]):
         query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
         return list(result.scalars().all())
+
+    async def get_listing_by_id(self, listing_id: str) -> JobListing | None:
+        query = select(JobListing).where(JobListing.id == listing_id)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
+    async def count_listings(
+        self,
+        status: str | None = None,
+        company: str | None = None,
+    ) -> int:
+        query = select(func.count(JobListing.id))
+        if status:
+            query = query.where(JobListing.status == status)
+        if company:
+            query = query.where(JobListing.company.ilike(f"%{company}%"))
+        result = await self.session.execute(query)
+        return int(result.scalar() or 0)

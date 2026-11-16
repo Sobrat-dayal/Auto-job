@@ -51,9 +51,7 @@ async def test_sse_event_generator_yields_events():
 async def test_recent_events_endpoint(async_client: AsyncClient, auth_headers: dict[str, str]):
     """Verifies the /api/v1/events/recent endpoint retrieves stored diagnostic events."""
     container = get_container()
-    await container.event_bus.publish(
-        EventEnvelope(event_type=EventType.SYSTEM_STARTED, payload={"status": "ok"})
-    )
+    await container.event_bus.publish(EventEnvelope(event_type=EventType.SYSTEM_STARTED, payload={"status": "ok"}))
 
     response = await async_client.get("/api/v1/events/recent?limit=10", headers=auth_headers)
     assert response.status_code == 200

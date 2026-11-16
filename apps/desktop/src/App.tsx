@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/design-system/ThemeContext';
@@ -14,6 +14,27 @@ import { Storage } from '@/pages/Storage';
 import { DesignSystemShowcase } from '@/pages/DesignSystemShowcase';
 import { ModulePlaceholder } from '@/pages/ModulePlaceholder';
 
+// Lazy-loaded Stage 09 Workspace Modules
+const AgentsWorkspace = React.lazy(() => import('@/features/agents/AgentsWorkspace'));
+const RecruitmentWorkspace = React.lazy(
+  () => import('@/features/recruitment/RecruitmentWorkspace')
+);
+const ComputerWorkspace = React.lazy(() => import('@/features/computer/ComputerWorkspace'));
+const CommunicationsWorkspace = React.lazy(
+  () => import('@/features/communications/CommunicationsWorkspace')
+);
+const InterviewsWorkspace = React.lazy(() => import('@/features/interviews/InterviewsWorkspace'));
+const DocumentsWorkspace = React.lazy(() => import('@/features/documents/DocumentsWorkspace'));
+const CodingWorkspace = React.lazy(() => import('@/features/coding/CodingWorkspace'));
+const CreativeWorkspace = React.lazy(() => import('@/features/creative/CreativeWorkspace'));
+const ResearchWorkspace = React.lazy(() => import('@/features/research/ResearchWorkspace'));
+const WorkflowsWorkspace = React.lazy(() => import('@/features/workflows/WorkflowsWorkspace'));
+const AnalyticsWorkspace = React.lazy(() => import('@/features/analytics/AnalyticsWorkspace'));
+const ActivityWorkspace = React.lazy(() => import('@/features/activity/ActivityWorkspace'));
+const IntegrationsWorkspace = React.lazy(
+  () => import('@/features/integrations/IntegrationsWorkspace')
+);
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,6 +44,15 @@ const queryClient = new QueryClient({
   },
 });
 
+export const WorkspaceSuspenseFallback = () => (
+  <div className="flex h-full w-full items-center justify-center p-12 text-muted-foreground">
+    <div className="flex flex-col items-center gap-3">
+      <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <span className="text-xs font-medium">Loading workspace module...</span>
+    </div>
+  </div>
+);
+
 export const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col h-screen w-screen bg-background overflow-hidden text-foreground font-sans">
@@ -30,20 +60,65 @@ export const AppContent: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
         <main className="flex-1 overflow-y-auto bg-background">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Overview />} />
-            <Route path="/diagnostics" element={<Diagnostics />} />
-            <Route path="/desktop-diagnostics" element={<DesktopDiagnostics />} />
-            <Route path="/storage" element={<Storage />} />
-            <Route path="/design-system" element={<DesignSystemShowcase />} />
-            <Route path="/settings/diagnostics" element={<Diagnostics />} />
-            <Route path="/settings/desktop" element={<DesktopDiagnostics />} />
-            <Route path="/settings/desktop-diagnostics" element={<DesktopDiagnostics />} />
-            <Route path="/settings/storage" element={<Storage />} />
-            {/* All other routes render the honest ModulePlaceholder */}
-            <Route path="*" element={<ModulePlaceholder />} />
-          </Routes>
+          <Suspense fallback={<WorkspaceSuspenseFallback />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Overview />} />
+
+              {/* 13 Core Stage 09 Workspace Modules */}
+              <Route path="/agents" element={<AgentsWorkspace />} />
+              <Route path="/agents/*" element={<AgentsWorkspace />} />
+
+              <Route path="/recruitment" element={<RecruitmentWorkspace />} />
+              <Route path="/recruitment/*" element={<RecruitmentWorkspace />} />
+
+              <Route path="/computer" element={<ComputerWorkspace />} />
+              <Route path="/computer/*" element={<ComputerWorkspace />} />
+
+              <Route path="/communications" element={<CommunicationsWorkspace />} />
+              <Route path="/communications/*" element={<CommunicationsWorkspace />} />
+
+              <Route path="/interviews" element={<InterviewsWorkspace />} />
+              <Route path="/interviews/*" element={<InterviewsWorkspace />} />
+
+              <Route path="/documents" element={<DocumentsWorkspace />} />
+              <Route path="/documents/*" element={<DocumentsWorkspace />} />
+
+              <Route path="/coding" element={<CodingWorkspace />} />
+              <Route path="/coding/*" element={<CodingWorkspace />} />
+
+              <Route path="/creative" element={<CreativeWorkspace />} />
+              <Route path="/creative/*" element={<CreativeWorkspace />} />
+
+              <Route path="/research" element={<ResearchWorkspace />} />
+              <Route path="/research/*" element={<ResearchWorkspace />} />
+
+              <Route path="/workflows" element={<WorkflowsWorkspace />} />
+              <Route path="/workflows/*" element={<WorkflowsWorkspace />} />
+
+              <Route path="/analytics" element={<AnalyticsWorkspace />} />
+              <Route path="/analytics/*" element={<AnalyticsWorkspace />} />
+
+              <Route path="/activity" element={<ActivityWorkspace />} />
+              <Route path="/activity/*" element={<ActivityWorkspace />} />
+
+              <Route path="/integrations" element={<IntegrationsWorkspace />} />
+              <Route path="/integrations/*" element={<IntegrationsWorkspace />} />
+
+              {/* System & Diagnostics */}
+              <Route path="/diagnostics" element={<Diagnostics />} />
+              <Route path="/desktop-diagnostics" element={<DesktopDiagnostics />} />
+              <Route path="/storage" element={<Storage />} />
+              <Route path="/design-system" element={<DesignSystemShowcase />} />
+              <Route path="/settings/diagnostics" element={<Diagnostics />} />
+              <Route path="/settings/desktop" element={<DesktopDiagnostics />} />
+              <Route path="/settings/desktop-diagnostics" element={<DesktopDiagnostics />} />
+              <Route path="/settings/storage" element={<Storage />} />
+
+              {/* Fallback */}
+              <Route path="*" element={<ModulePlaceholder />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
       <CommandPalette />

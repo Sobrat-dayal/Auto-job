@@ -1,0 +1,177 @@
+import * as React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Monitor, ShieldCheck, Video } from 'lucide-react';
+import {
+  ModulePage,
+  ModuleHeader,
+  ModuleTabs,
+  ModuleUnavailableState,
+  ModuleEmptyState,
+} from '@/components/module';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+export const ComputerWorkspace: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getInitialTab = (): string => {
+    if (location.pathname.includes('/computer/tasks')) return 'tasks';
+    if (location.pathname.includes('/computer/browser')) return 'browser';
+    if (location.pathname.includes('/computer/history')) return 'history';
+    if (location.pathname.includes('/computer/permissions')) return 'permissions';
+    return 'live';
+  };
+
+  const [activeTab, setActiveTab] = React.useState<string>(getInitialTab());
+
+  React.useEffect(() => {
+    setActiveTab(getInitialTab());
+  }, [location.pathname]);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId === 'live') navigate('/computer/live');
+    else navigate(`/computer/${tabId}`);
+  };
+
+  const tabs = [
+    { id: 'live', label: 'Live Desktop Viewport' },
+    { id: 'tasks', label: 'Computer Tasks', badge: 0 },
+    { id: 'browser', label: 'Chromium Browser Automation' },
+    { id: 'history', label: 'Action & Keystroke Logs' },
+    { id: 'permissions', label: 'Safety Boundaries & Killswitch' },
+  ];
+
+  return (
+    <ModulePage>
+      <ModuleHeader
+        title="Computer Control & Automation"
+        description="Dual-modality computer interaction: Visual Grounding perception and native Windows UI Automation."
+        icon={Monitor}
+        stageTag="Stage 16-18 Planned"
+        badgeLabel="Safety Gate Active"
+        badgeVariant="outline"
+        actions={
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-amber-500/30 bg-amber-500/10 text-xs font-mono text-amber-400"
+            >
+              Killswitch: Pause / Break
+            </Badge>
+          </div>
+        }
+      />
+
+      <ModuleUnavailableState
+        moduleName="Dual-Modality Computer Interaction"
+        stageTag="Stage 16, 17 & 18"
+        stageName="Desktop Perception & Action Drivers"
+        description="Autonomous mouse clicks, keystrokes, and accessibility tree traversal will activate in Stages 16–18. The system combines coordinate vision models with sub-millisecond Windows UI Automation. All computer actions operate under strict safety boundaries."
+        plannedCapabilities={[
+          'Chromium CDP browser automation & form filling (Stage 16)',
+          'Visual grounding screen perception with coordinate masks (Stage 17)',
+          'Sub-millisecond Windows UI Automation (UIA) tree traversal (Stage 18)',
+          'Hardware-level panic abort hotkey and human gatekeeping (Stage 19)',
+        ]}
+      />
+
+      <ModuleTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {activeTab === 'live' && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <Card className="border-border/60 bg-card/60">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <Video className="h-4 w-4 text-primary" />
+                      Visual Grounding Canvas Viewport
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Simulated screen capture preview with element bounding boxes
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="text-xs font-mono">
+                    1920x1080 • Primary Monitor
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/80 bg-background/90 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground ring-1 ring-border">
+                    <Monitor className="h-6 w-6" />
+                  </div>
+                  <h4 className="mt-3 text-sm font-semibold text-foreground">
+                    Viewport Inactive (Stage 17)
+                  </h4>
+                  <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                    Direct screen stream and action bounding box overlays will render here once the
+                    Stage 17 visual perception engine is initialized.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Card className="border-border/60 bg-card/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-status-success" />
+                  Safety & Guardrail Controls
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Physical limits and authorization boundaries
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-xs">
+                <div className="rounded-lg border border-border/40 bg-background/50 p-3">
+                  <span className="font-semibold text-foreground">Global Panic Killswitch</span>
+                  <p className="mt-0.5 text-muted-foreground">
+                    Pressing{' '}
+                    <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                      Pause
+                    </kbd>{' '}
+                    or{' '}
+                    <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                      Ctrl+Alt+Esc
+                    </kbd>{' '}
+                    immediately detaches OS input hooks.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border/40 bg-background/50 p-3">
+                  <span className="font-semibold text-foreground">
+                    Human-in-the-Loop Intercepts
+                  </span>
+                  <p className="mt-0.5 text-muted-foreground">
+                    Financial transactions, credential reveals, and irreversible deletions require
+                    explicit UI confirmation.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border/40 bg-background/50 p-3">
+                  <span className="font-semibold text-foreground">Dual-Modality Arbitration</span>
+                  <p className="mt-0.5 text-muted-foreground">
+                    Prefers UIA accessibility tree selectors for deterministic precision; falls back
+                    to visual vision models.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {activeTab !== 'live' && (
+        <ModuleEmptyState
+          title={`No active ${activeTab} data`}
+          description={`Computer control ${activeTab} capabilities will become fully interactive when Stage 16-18 engines are operational.`}
+        />
+      )}
+    </ModulePage>
+  );
+};
+
+export default ComputerWorkspace;

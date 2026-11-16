@@ -152,9 +152,7 @@ class TaskRepository(BaseRepository[TaskModel]):
 
     async def reconcile_interrupted_tasks(self) -> list[TaskModel]:
         """Identifies tasks that were active (Running/Planning) when backend previously stopped."""
-        query = select(TaskModel).where(
-            TaskModel.status.in_([TaskState.RUNNING.value, TaskState.PLANNING.value])
-        )
+        query = select(TaskModel).where(TaskModel.status.in_([TaskState.RUNNING.value, TaskState.PLANNING.value]))
         result = await self.session.execute(query)
         interrupted = list(result.scalars().all())
 

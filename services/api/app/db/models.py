@@ -58,16 +58,24 @@ class ApplicantProfile(Base):
     career_preferences_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
-    skills: Mapped[list["VerifiedSkill"]] = relationship("VerifiedSkill", back_populates="profile", cascade="all, delete-orphan")
-    evidence: Mapped[list["ProfileEvidence"]] = relationship("ProfileEvidence", back_populates="profile", cascade="all, delete-orphan")
-    resumes: Mapped[list["ResumeVersion"]] = relationship("ResumeVersion", back_populates="profile", cascade="all, delete-orphan")
+    skills: Mapped[list["VerifiedSkill"]] = relationship(
+        "VerifiedSkill", back_populates="profile", cascade="all, delete-orphan"
+    )
+    evidence: Mapped[list["ProfileEvidence"]] = relationship(
+        "ProfileEvidence", back_populates="profile", cascade="all, delete-orphan"
+    )
+    resumes: Mapped[list["ResumeVersion"]] = relationship(
+        "ResumeVersion", back_populates="profile", cascade="all, delete-orphan"
+    )
 
 
 class VerifiedSkill(Base):
     __tablename__ = "verified_skills"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    profile_id: Mapped[str] = mapped_column(String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     skill_name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     category: Mapped[str] = mapped_column(String(64), default="technical", nullable=False)
     evidence_ref: Mapped[str | None] = mapped_column(String(256), nullable=True)
@@ -81,7 +89,9 @@ class ProfileEvidence(Base):
     __tablename__ = "profile_evidence"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    profile_id: Mapped[str] = mapped_column(String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     evidence_type: Mapped[str] = mapped_column(String(64), nullable=False)  # github_commit, diploma, cert, doc
     project_ref: Mapped[str | None] = mapped_column(String(256), nullable=True)
     source_info: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -95,7 +105,9 @@ class ResumeVersion(Base):
     __tablename__ = "resume_versions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    profile_id: Mapped[str] = mapped_column(String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     version_tag: Mapped[str] = mapped_column(String(64), nullable=False)
     template_id: Mapped[str] = mapped_column(String(64), default="standard_ats", nullable=False)
     artifact_ref: Mapped[str | None] = mapped_column(String(256), nullable=True)
@@ -121,14 +133,18 @@ class JobSource(Base):
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     error_status: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
-    listings: Mapped[list["JobListing"]] = relationship("JobListing", back_populates="source", cascade="all, delete-orphan")
+    listings: Mapped[list["JobListing"]] = relationship(
+        "JobListing", back_populates="source", cascade="all, delete-orphan"
+    )
 
 
 class JobListing(Base):
     __tablename__ = "job_listings"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    source_id: Mapped[str] = mapped_column(String(36), ForeignKey("job_sources.id", ondelete="CASCADE"), nullable=False, index=True)
+    source_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_sources.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     external_id: Mapped[str] = mapped_column(String(128), nullable=False)
     company: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
@@ -143,21 +159,25 @@ class JobListing(Base):
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="active", nullable=False, index=True)
 
-    __table_args__ = (
-        UniqueConstraint("source_id", "external_id", name="uq_job_listings_source_external_id"),
-    )
+    __table_args__ = (UniqueConstraint("source_id", "external_id", name="uq_job_listings_source_external_id"),)
 
     source: Mapped["JobSource"] = relationship("JobSource", back_populates="listings")
     matches: Mapped[list["JobMatch"]] = relationship("JobMatch", back_populates="job", cascade="all, delete-orphan")
-    applications: Mapped[list["Application"]] = relationship("Application", back_populates="job", cascade="all, delete-orphan")
+    applications: Mapped[list["Application"]] = relationship(
+        "Application", back_populates="job", cascade="all, delete-orphan"
+    )
 
 
 class JobMatch(Base):
     __tablename__ = "job_matches"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    job_id: Mapped[str] = mapped_column(String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True)
-    profile_id: Mapped[str] = mapped_column(String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     score: Mapped[float] = mapped_column(Float, nullable=False, index=True)  # 0.0 - 1.0
     matching_factors_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
     missing_requirements_json: Mapped[list[str] | None] = mapped_column(JSON, default=list)
@@ -172,10 +192,18 @@ class Application(Base):
     __tablename__ = "applications"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    job_id: Mapped[str] = mapped_column(String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True)
-    profile_id: Mapped[str] = mapped_column(String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
-    resume_version_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("resume_versions.id", ondelete="SET NULL"), nullable=True)
-    status: Mapped[str] = mapped_column(String(32), default="draft", nullable=False, index=True)  # draft, ready, submitted, rejected, interviewing, offered
+    job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    resume_version_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("resume_versions.id", ondelete="SET NULL"), nullable=True
+    )
+    status: Mapped[str] = mapped_column(
+        String(32), default="draft", nullable=False, index=True
+    )  # draft, ready, submitted, rejected, interviewing, offered
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
     confirmation_ref: Mapped[str | None] = mapped_column(String(256), nullable=True)
@@ -183,14 +211,18 @@ class Application(Base):
     authorization_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     job: Mapped["JobListing"] = relationship("JobListing", back_populates="applications")
-    attempts: Mapped[list["ApplicationAttempt"]] = relationship("ApplicationAttempt", back_populates="application", cascade="all, delete-orphan")
+    attempts: Mapped[list["ApplicationAttempt"]] = relationship(
+        "ApplicationAttempt", back_populates="application", cascade="all, delete-orphan"
+    )
 
 
 class ApplicationAttempt(Base):
     __tablename__ = "application_attempts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    application_id: Mapped[str] = mapped_column(String(36), ForeignKey("applications.id", ondelete="CASCADE"), nullable=False, index=True)
+    application_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applications.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     attempted_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
     execution_status: Mapped[str] = mapped_column(String(32), nullable=False)  # pending, submitted, failed, interrupted
     failure_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -227,15 +259,21 @@ class TaskModel(Base):
     error_info_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
-    events: Mapped[list["TaskEventModel"]] = relationship("TaskEventModel", back_populates="task", cascade="all, delete-orphan")
-    worker_runs: Mapped[list["WorkerRunModel"]] = relationship("WorkerRunModel", back_populates="task", cascade="all, delete-orphan")
+    events: Mapped[list["TaskEventModel"]] = relationship(
+        "TaskEventModel", back_populates="task", cascade="all, delete-orphan"
+    )
+    worker_runs: Mapped[list["WorkerRunModel"]] = relationship(
+        "WorkerRunModel", back_populates="task", cascade="all, delete-orphan"
+    )
 
 
 class TaskEventModel(Base):
     __tablename__ = "task_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    task_id: Mapped[str] = mapped_column(String(64), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    task_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
     state_transition: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -250,7 +288,9 @@ class WorkerRunModel(Base):
     __tablename__ = "worker_runs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    task_id: Mapped[str] = mapped_column(String(64), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    task_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     worker_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     start_time: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
     end_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

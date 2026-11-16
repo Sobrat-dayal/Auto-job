@@ -35,6 +35,7 @@ async def test_task_persistence_across_restart(tmp_path: Path, monkeypatch):
 
         # Wait a moment for execution to complete
         import asyncio
+
         await asyncio.sleep(0.3)
 
         res = await client.get(f"/api/v1/tasks/{task_id}", headers=headers)

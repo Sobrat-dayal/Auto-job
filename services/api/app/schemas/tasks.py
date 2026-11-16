@@ -48,7 +48,9 @@ class TaskPriority(str, Enum):
 
 
 class TaskCreateRequest(BaseModel):
-    task_type: str = Field(..., description="Registered task handler identifier (e.g. compute.echo, test.sleep_progress)")
+    task_type: str = Field(
+        ..., description="Registered task handler identifier (e.g. compute.echo, test.sleep_progress)"
+    )
     payload: dict[str, Any] = Field(default_factory=dict, description="Input parameters passed to the task handler")
     priority: TaskPriority = Field(default=TaskPriority.NORMAL, description="Execution priority")
     timeout_seconds: float | None = Field(default=None, description="Optional custom timeout in seconds")

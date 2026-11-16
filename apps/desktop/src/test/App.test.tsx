@@ -41,4 +41,32 @@ describe('App Component', () => {
       expect(screen.getByText(/UI\/UX Design System/)).toBeInTheDocument();
     });
   });
+
+  it('navigates to Agents workspace when clicked', async () => {
+    render(<App />);
+    const agentsNav = screen.getByText('Agents');
+    fireEvent.click(agentsNav);
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Autonomous Agent Swarm'
+        );
+      },
+      { timeout: 5000 }
+    );
+  });
+
+  it('navigates to Jobs & Applications workspace when clicked', async () => {
+    render(<App />);
+    const recruitmentNav = screen.getByText('Jobs & Applications');
+    fireEvent.click(recruitmentNav);
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Jobs & Application Pipeline'
+        );
+      },
+      { timeout: 5000 }
+    );
+  });
 });

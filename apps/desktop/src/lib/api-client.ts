@@ -25,6 +25,14 @@ import type {
   DashboardTaskTrendsResponse,
   TaskHistoryEvent,
 } from '@/types/dashboard';
+import type {
+  ApplicationItem,
+  ApplicationListResponse,
+  ArtifactItem,
+  ArtifactListResponse,
+  JobListingItem,
+  JobListResponse,
+} from '@/types/modules';
 
 export interface ApiClientConfig {
   baseUrl: string;
@@ -240,6 +248,68 @@ export class ApiClient {
 
   async getTaskHistory(taskId: string): Promise<TaskHistoryEvent[]> {
     return this.request<TaskHistoryEvent[]>(`/api/v1/tasks/${taskId}/history`);
+  }
+
+  // Jobs & Applications (Stage 09 Module Endpoints)
+  async listJobs(
+    params: {
+      status?: string;
+      company?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<JobListResponse> {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.company) query.set('company', params.company);
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.offset) query.set('offset', String(params.offset));
+    const qs = query.toString();
+    return this.request<JobListResponse>(`/api/v1/jobs${qs ? `?${qs}` : ''}`);
+  }
+
+  async getJob(jobId: string): Promise<JobListingItem> {
+    return this.request<JobListingItem>(`/api/v1/jobs/${jobId}`);
+  }
+
+  async listApplications(
+    params: {
+      status?: string;
+      profileId?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<ApplicationListResponse> {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.profileId) query.set('profile_id', params.profileId);
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.offset) query.set('offset', String(params.offset));
+    const qs = query.toString();
+    return this.request<ApplicationListResponse>(`/api/v1/applications${qs ? `?${qs}` : ''}`);
+  }
+
+  async getApplication(applicationId: string): Promise<ApplicationItem> {
+    return this.request<ApplicationItem>(`/api/v1/applications/${applicationId}`);
+  }
+
+  async listArtifacts(
+    params: {
+      artifactType?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<ArtifactListResponse> {
+    const query = new URLSearchParams();
+    if (params.artifactType) query.set('artifact_type', params.artifactType);
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.offset) query.set('offset', String(params.offset));
+    const qs = query.toString();
+    return this.request<ArtifactListResponse>(`/api/v1/artifacts${qs ? `?${qs}` : ''}`);
+  }
+
+  async getArtifact(artifactId: string): Promise<ArtifactItem> {
+    return this.request<ArtifactItem>(`/api/v1/artifacts/${artifactId}`);
   }
 }
 

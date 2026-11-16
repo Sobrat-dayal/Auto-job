@@ -1,6 +1,6 @@
 """Repository for artifact metadata storage and path validation."""
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import ArtifactModel
@@ -39,3 +39,24 @@ class ArtifactRepository(BaseRepository[ArtifactModel]):
     async def get_artifact(self, artifact_id: str) -> ArtifactModel | None:
         result = await self.session.execute(select(ArtifactModel).where(ArtifactModel.id == artifact_id))
         return result.scalar_one_or_none()
+
+    async def list_artifacts(
+        self,
+        artifact_type: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[ArtifactModel]:
+        query = select(ArtifactModel).order_by(ArtifactModel.created_at.desc())
+        if artifact_type:
+            query = query.where(ArtifactModel.artifact_type == artifact_type)
+
+        query = query.limit(limit).offset(offset)
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
+    async def count_artifacts(self, artifact_type: str | None = None) -> int:
+        query = select(func.count(ArtifactModel.id))
+        if artifact_type:
+            query = query.where(ArtifactModel.artifact_type == artifact_type)
+        result = await self.session.execute(query)
+        return int(result.scalar() or 0)

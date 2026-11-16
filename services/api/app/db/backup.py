@@ -85,7 +85,9 @@ async def create_database_backup(destination_dir: Path | None = None, reason: st
     }
 
     manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    logger.info(f"Created database backup {backup_id} (size: {file_size} bytes, reason: {reason}, integrity: {integrity_ok})")
+    logger.info(
+        f"Created database backup {backup_id} (size: {file_size} bytes, reason: {reason}, integrity: {integrity_ok})"
+    )
 
     # Prune old backups exceeding retention count
     prune_old_backups(dest_dir, retain_count=settings.backup_retention_count)

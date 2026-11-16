@@ -38,11 +38,13 @@ async def cmd_status(args: argparse.Namespace) -> int:
     status = await get_storage_status()
     version = await get_current_schema_version(engine)
     print(f"  Database Path:        {status['database_path']}")
-    print(f"  Database Size:        {status['database_size_bytes']} bytes ({status['database_size_bytes'] / (1024*1024):.2f} MB)")
+    print(
+        f"  Database Size:        {status['database_size_bytes']} bytes ({status['database_size_bytes'] / (1024 * 1024):.2f} MB)"
+    )
     print(f"  WAL Size:             {status['wal_size_bytes']} bytes")
     print(f"  Artifacts Size:       {status['artifacts_size_bytes']} bytes")
     print(f"  Backups Total Size:   {status['backups_size_bytes']} bytes ({status['total_backups_count']} backups)")
-    print(f"  Disk Free Space:      {status['disk_free_bytes'] / (1024*1024*1024):.2f} GB")
+    print(f"  Disk Free Space:      {status['disk_free_bytes'] / (1024 * 1024 * 1024):.2f} GB")
     print(f"  Schema Revision:      {version}")
     return 0
 

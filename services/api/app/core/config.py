@@ -31,35 +31,21 @@ class Settings(BaseSettings):
     )
 
     # Task Execution & Workers
-    max_concurrent_workers: int = Field(
-        default=4, description="Maximum concurrent asynchronous task workers"
-    )
-    max_queued_tasks: int = Field(
-        default=50, description="Maximum bounded queue capacity for pending tasks"
-    )
-    task_default_timeout_seconds: float = Field(
-        default=60.0, description="Default task execution timeout in seconds"
-    )
+    max_concurrent_workers: int = Field(default=4, description="Maximum concurrent asynchronous task workers")
+    max_queued_tasks: int = Field(default=50, description="Maximum bounded queue capacity for pending tasks")
+    task_default_timeout_seconds: float = Field(default=60.0, description="Default task execution timeout in seconds")
 
     # Real-time Events
-    event_buffer_size: int = Field(
-        default=200, description="Maximum in-memory events retained in ring buffer"
-    )
+    event_buffer_size: int = Field(default=200, description="Maximum in-memory events retained in ring buffer")
 
     # Local storage & Database
     data_dir: Path = Field(
         default_factory=default_data_dir,
         description="Root application data directory (Windows %LOCALAPPDATA%/AUTONOM)",
     )
-    database_busy_timeout_ms: int = Field(
-        default=10000, description="SQLite busy timeout in milliseconds"
-    )
-    backup_retention_count: int = Field(
-        default=10, description="Number of database backups to retain"
-    )
-    data_retention_days: int = Field(
-        default=90, description="Default retention days for transient diagnostic records"
-    )
+    database_busy_timeout_ms: int = Field(default=10000, description="SQLite busy timeout in milliseconds")
+    backup_retention_count: int = Field(default=10, description="Number of database backups to retain")
+    data_retention_days: int = Field(default=90, description="Default retention days for transient diagnostic records")
 
     # CORS origins
     cors_origins: list[str] = [

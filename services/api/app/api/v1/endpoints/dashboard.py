@@ -73,9 +73,7 @@ async def get_dashboard_overview(
         )
         jobs_today = jobs_today_res.scalar_one_or_none() or 0
 
-        active_jobs_res = await session.execute(
-            select(func.count(JobListing.id)).where(JobListing.status == "active")
-        )
+        active_jobs_res = await session.execute(select(func.count(JobListing.id)).where(JobListing.status == "active"))
         active_jobs = active_jobs_res.scalar_one_or_none() or 0
 
         # 3. Aggregate Application Pipeline Stages

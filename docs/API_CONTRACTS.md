@@ -390,3 +390,33 @@ Authenticated HTTP endpoints under `/api/v1/dashboard/`:
 | `GET`  | `/api/v1/dashboard/activity`      | Returns recent durable task state transition events recorded in the SQLite audit ledger.                                                                 |
 | `GET`  | `/api/v1/tasks/{task_id}/history` | Returns state transition history for a specific task.                                                                                                    |
 | `POST` | `/api/v1/tasks/{task_id}/cancel`  | Cooperatively cancels a queued or executing background task.                                                                                             |
+
+---
+
+## 5. Module Workspace Endpoints (Stage 09)
+
+Authenticated HTTP endpoints under `/api/v1/jobs`, `/api/v1/applications`, and `/api/v1/artifacts`:
+
+| Method | Endpoint                          | Description                                                                                         |
+| :----- | :-------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/v1/jobs`                    | Lists persistent job listings from SQLite with optional `status`, `company`, `limit`, and `offset`. |
+| `GET`  | `/api/v1/jobs/{job_id}`           | Retrieves complete details of a specific job listing.                                               |
+| `GET`  | `/api/v1/applications`            | Lists job applications with nested attempt histories, job metadata, and status filtering.           |
+| `GET`  | `/api/v1/applications/{app_id}`   | Retrieves full details and execution attempt logs for a specific application.                       |
+| `GET`  | `/api/v1/artifacts`               | Lists persisted artifacts with file size, SHA-256 checksums, and retention classes.                 |
+| `GET`  | `/api/v1/artifacts/{artifact_id}` | Retrieves metadata for a specific persistent artifact.                                              |
+
+---
+
+## 5. Module Workspace Endpoints (Stage 09)
+
+Authenticated HTTP endpoints under `/api/v1/jobs`, `/api/v1/applications`, and `/api/v1/artifacts`:
+
+| Method | Endpoint                          | Description                                                                                         |
+| :----- | :-------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/v1/jobs`                    | Lists persistent job listings from SQLite with optional `status`, `company`, `limit`, and `offset`. |
+| `GET`  | `/api/v1/jobs/{job_id}`           | Retrieves complete details of a specific job listing.                                               |
+| `GET`  | `/api/v1/applications`            | Lists job applications with nested attempt histories, job metadata, and status filtering.           |
+| `GET`  | `/api/v1/applications/{app_id}`   | Retrieves full details and execution attempt logs for a specific application.                       |
+| `GET`  | `/api/v1/artifacts`               | Lists persisted artifacts with file size, SHA-256 checksums, and retention classes.                 |
+| `GET`  | `/api/v1/artifacts/{artifact_id}` | Retrieves metadata for a specific persistent artifact.                                              |

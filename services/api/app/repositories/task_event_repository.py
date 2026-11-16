@@ -41,9 +41,7 @@ class TaskEventRepository(BaseRepository[TaskEventModel]):
 
     async def list_events_for_task(self, task_id: str) -> list[TaskEventModel]:
         query = (
-            select(TaskEventModel)
-            .where(TaskEventModel.task_id == task_id)
-            .order_by(TaskEventModel.sequence_num.asc())
+            select(TaskEventModel).where(TaskEventModel.task_id == task_id).order_by(TaskEventModel.sequence_num.asc())
         )
         result = await self.session.execute(query)
         return list(result.scalars().all())
