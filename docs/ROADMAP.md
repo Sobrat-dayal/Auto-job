@@ -95,14 +95,24 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Complete migration of all existing screens (`Overview`, `Diagnostics`, `Storage`, `DesktopDiagnostics`, `Header`, `Sidebar`).
 - **Acceptance Criteria**: All 9 test files / 30 tests pass, clean TypeScript compilation, WCAG 2.2 AA contrast and keyboard accessibility verified, zero breaking changes to existing backend sidecar, SSE, or storage workflows.
 
-#### Stage 07: Configuration Management & System Telemetry Diagnostic System
+#### Stage 07: Advanced Expandable and Collapsible Sidebar, Navigation Architecture, Nested Menus, Flyouts, Keyboard Shortcuts, and Persistent UI State (Completed)
 
-- **Goal**: Unified configuration system supporting environment overrides, schema validation, and real-time hardware/OS telemetry.
+- **Status**: COMPLETE (2026-11-16)
+- **Goal**: Implement the complete Windows desktop navigation architecture using a dual-mode expandable and collapsible sidebar, typed routing across 16 top-level modules and 50+ child sub-routes, accessible portalled flyout menus for collapsed icon-rail mode, hierarchical breadcrumbs, modal Command Palette (`Ctrl+K`), global keyboard shortcuts (`Ctrl+B`), durable Zustand state persistence, and honest roadmap module placeholders with zero fabricated business data.
 - **Key Deliverables**:
-  - Pydantic-based configuration model with validation and defaults.
-  - OS diagnostic probe (CPU load, memory footprint, GPU availability, display DPI).
-  - Diagnostics screen in desktop UI with real-time hardware telemetry.
-- **Acceptance Criteria**: Config changes persist reliably; diagnostic telemetry accurately reports Windows 11 system metrics and display configurations.
+  - Typed navigation contracts: `apps/desktop/src/config/navigation-types.ts` (`NavigationGroup`, `NavigationItem`, `NavigationChildItem`, `BreadcrumbItem`, `NavigationAvailability`).
+  - Comprehensive navigation registry: `apps/desktop/src/config/navigation.ts` covering 5 functional groups (`MAIN`, `RECRUITMENT`, `WORKSPACE`, `MANAGEMENT`, `DEVELOPMENT`), 16 top-level modules, and 50+ sub-routes with roadmap stage attribution.
+  - Persistent sidebar state store: `apps/desktop/src/stores/sidebarStore.ts` with Zustand `persist` middleware, localStorage persistence (`autonom_sidebar_state`), and transient state isolation (`activeFlyout`, `isCommandPaletteOpen`).
+  - Dual-mode sidebar implementation: `AppSidebar.tsx` switching between 240px expanded mode (`w-60`) and 56px collapsed rail (`w-14`) with smooth CSS transitions.
+  - Header & footer regions: `SidebarHeader.tsx` (brand, logo, collapse button), `SidebarFooter.tsx` (real FastAPI backend status dot, port 8765, settings shortcut, uptime counter).
+  - Nested menus & disclosures: Accordion sub-menus with chevron indicators, active route highlighting, and active parent indicators.
+  - Portalled flyout menus: `SidebarFlyout.tsx` leveraging Radix Popover portalled to `document.body` for zero clipping in collapsed rail mode, with keyboard Escape dismissal.
+  - Breadcrumbs component: `NavigationBreadcrumbs.tsx` automatically deriving route hierarchy via `getBreadcrumbsForPath()`.
+  - Global Command Palette: `CommandPalette.tsx` accessible via `Ctrl+K` with real-time search filtering, arrow key navigation, and instant Enter route selection.
+  - Honest roadmap placeholder: `ModulePlaceholder.tsx` surfacing target roadmap stages and planned capabilities without fabricating business mock data.
+  - Desktop routing refactoring: `App.tsx` wrapped in `HashRouter` with route protection and integration across existing screens and placeholders.
+  - Complete navigation test suite: 4 new test files covering sidebar rendering, flyouts, keyboard shortcuts, and state persistence (46 total desktop tests passing).
+- **Acceptance Criteria**: 100% test pass rate (13 test files / 46 tests), zero TypeScript compilation errors, smooth mode toggling, persistent user preferences, full WCAG 2.2 AA keyboard accessibility, and production build succeeded.
 
 #### Stage 08: Autonomy Governance Engine & Advance Permission Matrix
 

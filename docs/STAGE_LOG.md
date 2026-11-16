@@ -430,3 +430,107 @@ This document records the chronological development, verification, test outcomes
 - **Stage 07 Readiness**:
   - Complete UI/UX design system, design tokens, React component library, accessibility foundations, and layout primitives are 100% operational, fully integrated, and verified.
   - The project is fully prepared for **Stage 07** when requested. DO NOT proceed to Stage 07 until instructed.
+
+---
+
+## Stage 07: Advanced Expandable and Collapsible Sidebar, Navigation Architecture, Nested Menus, Flyouts, Keyboard Shortcuts, and Persistent UI State
+
+- **Date**: 2026-11-16
+- **Status**: COMPLETE
+- **Lead Roles**: Principal Frontend Architect, Senior React Engineer, TypeScript Expert, Windows Desktop UI Engineer, Accessibility Specialist, QA Lead
+
+### 1. Deliverables Summary
+
+Stage 07 delivers the complete Windows 11 desktop navigation architecture for AUTONOM, enabling fluid supervision over 16 top-level functional modules and 50+ child sub-routes:
+
+1. **Dual-Mode Navigation Sidebar (`AppSidebar.tsx`)**:
+   - **Mode A (Expanded, 240px)**: Full brand header, collapsible category groups (`MAIN`, `RECRUITMENT`, `WORKSPACE`, `MANAGEMENT`, `DEVELOPMENT`), item titles, status badges, accordion child disclosures, and persistent engine connection footer.
+   - **Mode B (Collapsed Rail, 56px)**: Minimalist icon rail with 36x36px touch targets, active route indicator bars, tooltips, and accessible popover flyouts for multi-child modules.
+   - Smooth CSS transitions (`duration-200 ease-in-out`).
+2. **Typed Navigation Information Architecture**:
+   - Navigation contracts: `apps/desktop/src/config/navigation-types.ts` (`NavigationGroup`, `NavigationItem`, `NavigationChildItem`, `BreadcrumbItem`, `NavigationAvailability`).
+   - Central registry: `apps/desktop/src/config/navigation.ts` defining 5 functional groups, 16 top-level modules, 50+ child sub-routes, route matching, and breadcrumb derivation.
+3. **Persistent Navigation State (`sidebarStore.ts`)**:
+   - Zustand store with `persist` middleware saving to `localStorage` key `autonom_sidebar_state`.
+   - Durable persistence: `isExpanded`, `expandedGroups`, `expandedItems`.
+   - Transient isolation: `activeFlyout` and `isCommandPaletteOpen` are explicitly excluded from persistence.
+   - Resilient error handling: Corrupted storage entries safely fall back to system defaults.
+4. **Portalled Flyout Menus (`SidebarFlyout.tsx`)**:
+   - Built on Radix Popover (`@radix-ui/react-popover`) portalled to `document.body` for zero clipping.
+   - Positioned with `side="right" align="start" sideOffset={8} avoidCollisions={true}`.
+   - Displays module header, roadmap stage badge, capability description, and direct links to child routes.
+   - Full keyboard accessibility with Escape key dismissal and auto-close upon navigation.
+5. **Hierarchical Breadcrumbs (`NavigationBreadcrumbs.tsx`)**:
+   - Automatic route-aware breadcrumb trail derived from `getBreadcrumbsForPath(location.pathname)`.
+   - Accessible landmark `<nav aria-label="Breadcrumb">` with interactive parent links and current page indication.
+6. **Global Command Palette (`CommandPalette.tsx`)**:
+   - Modal search overlay triggered by `Ctrl + K` or header search pill.
+   - Real-time search across all 16 modules and child sub-routes (matching title, category, description, stage, and route).
+   - Keyboard arrow navigation (`ArrowDown`/`ArrowUp`), selection with `Enter`, and dismissal with `Escape`.
+7. **Honest Roadmap Module Placeholders (`ModulePlaceholder.tsx`)**:
+   - Zero fabricated business data (no fake jobs, fake applications, or artificial agent logs).
+   - Explicitly displays target roadmap stage (e.g. `Stage 26`), category, capability summary, planned sub-capabilities, and quick links to Command Center and live diagnostics.
+8. **Application Shell Refactoring (`App.tsx`)**:
+   - Full integration with React Router (`HashRouter`), rendering `Header` (with breadcrumbs and `Ctrl+K` search pill), `AppSidebar`, `CommandPalette`, and route views.
+9. **Documentation Suite**:
+   - `docs/NAVIGATION_ARCHITECTURE.md`: Complete navigation map and information architecture.
+   - `docs/SIDEBAR_DESIGN.md`: Detailed layout modes, physical geometry, flyouts, and persistence.
+   - `docs/NAVIGATION_ACCESSIBILITY.md`: WCAG 2.2 AA accessibility, landmarks, and keyboard shortcuts.
+   - `docs/NAVIGATION_TESTING.md`: Test plan, automated test suite results, and verification metrics.
+   - Recorded ADR-0021 through ADR-0024 in `docs/DECISIONS.md`.
+
+### 2. Implementation Checklist
+
+- [x] Define typed navigation contracts in `apps/desktop/src/config/navigation-types.ts`.
+- [x] Implement complete navigation registry with 5 groups and 50+ child routes in `apps/desktop/src/config/navigation.ts`.
+- [x] Implement persistent Zustand store with transient isolation in `apps/desktop/src/stores/sidebarStore.ts`.
+- [x] Implement accessible Radix Popover UI primitive in `apps/desktop/src/components/ui/popover.tsx`.
+- [x] Implement Card primitive in `apps/desktop/src/components/ui/card.tsx`.
+- [x] Implement `SidebarHeader.tsx` with logo, brand, and collapse toggle.
+- [x] Implement `SidebarFooter.tsx` with live backend status dot, uptime, and settings shortcut.
+- [x] Implement `SidebarItem.tsx` supporting expanded accordion and collapsed rail modes.
+- [x] Implement `SidebarFlyout.tsx` with Radix Popover portalled to `document.body`.
+- [x] Implement `NavigationBreadcrumbs.tsx` with route-aware hierarchy.
+- [x] Implement `CommandPalette.tsx` with `Ctrl+K`, query filtering, and keyboard navigation.
+- [x] Implement `AppSidebar.tsx` with `w-60` vs `w-14` CSS transitions and `Ctrl+B` toggle.
+- [x] Implement `ModulePlaceholder.tsx` enforcing the zero fabricated data policy.
+- [x] Update `Header.tsx` to embed `NavigationBreadcrumbs` and Command Palette search trigger.
+- [x] Update `App.tsx` with `HashRouter`, route table, and `TooltipProvider` at application root.
+- [x] Author comprehensive navigation test suites in `apps/desktop/src/test/navigation/`.
+- [x] Verify all 46 desktop tests pass with 100% success rate.
+- [x] Verify clean TypeScript compilation (`pnpm.cmd --filter @autonom/desktop typecheck`).
+- [x] Verify production desktop build (`pnpm.cmd --filter @autonom/desktop build`).
+- [x] Author architecture documentation (`docs/NAVIGATION_ARCHITECTURE.md`, `docs/SIDEBAR_DESIGN.md`, `docs/NAVIGATION_ACCESSIBILITY.md`, `docs/NAVIGATION_TESTING.md`).
+- [x] Record ADR-0021 through ADR-0024 in `docs/DECISIONS.md`.
+- [x] Update `docs/ROADMAP.md` marking Stage 07 complete.
+
+### 3. Verification & Test Evidence
+
+1. **Frontend Vitest Test Suite (`pnpm --filter @autonom/desktop test`)**:
+   - `13 passed (13 test files) | 46 passed (46 tests) in 15.26s`:
+     - `src/test/navigation/sidebar.test.tsx` (5 tests): Expanded rendering, collapse button, group accordion, nested item sub-menus, active page indicator.
+     - `src/test/navigation/sidebar-flyout.test.tsx` (4 tests): Collapsed rail rendering, popover trigger, child item rendering, Escape dismissal, child click navigation.
+     - `src/test/navigation/sidebar-keyboard.test.tsx` (4 tests): `Ctrl+B` sidebar toggle, `Ctrl+K` command palette, query filtering, `ArrowDown`/`Enter` selection, `Escape` dismissal.
+     - `src/test/navigation/sidebar-persistence.test.tsx` (3 tests): `localStorage` persistence under `autonom_sidebar_state`, transient state exclusion, corrupted JSON fallback.
+     - `src/test/App.test.tsx` (3 tests): Full application shell mounting, navigation routing, Design System showcase rendering.
+     - `src/test/api-client.test.ts` (2 tests): REST client authentication & error handling.
+     - `src/test/DesktopDiagnostics.test.tsx` (1 test): Desktop shell overview, supervisor controls, live sidecar status rendering.
+     - `src/test/design-system/badge.test.tsx` (4 tests): Semantic badge variants, dot indicators, pulse animation, size classes.
+     - `src/test/design-system/button.test.tsx` (6 tests): Default variant, semantic colors, sizes, loading spinners, disabled states, click handlers.
+     - `src/test/design-system/dialog.test.tsx` (2 tests): Trigger opening, accessible dialog roles, backdrop blur, close button dismissal.
+     - `src/test/design-system/input.test.tsx` (5 tests): Text input, left/right icon slots, error states, `aria-invalid`, user typing.
+     - `src/test/design-system/table.test.tsx` (4 tests): TanStack Table v8 rendering, global search filtering, empty states, pagination.
+     - `src/test/design-system/theme.test.tsx` (3 tests): Comfortable vs compact density switching, DOM attribute reflection, localStorage persistence.
+2. **TypeScript Monorepo Compilation (`pnpm.cmd --filter @autonom/desktop typecheck`)**:
+   - Clean pass with zero errors (`tsc --noEmit` exited with code 0).
+3. **Production Build (`pnpm.cmd --filter @autonom/desktop build`)**:
+   - `tsc && vite build`: built in 7.15s with gzip size of 291 kB.
+
+### 4. Known Limitations & Stage 08 Hand-off
+
+- **Known Limitations**:
+  - Downstream modules (autonomous job scouting, multi-agent swarm orchestration, computer control, resume generation) are routed to `ModulePlaceholder.tsx` as planned, awaiting implementation in Stages 08–50.
+  - Autonomy governance policy engine and advance permission matrix will be introduced in Stage 08.
+- **Stage 08 Readiness**:
+  - Desktop navigation, expandable/collapsible sidebar, nested menus, flyout popovers, breadcrumbs, Command Palette, and keyboard shortcuts are 100% operational, fully verified, and production-ready.
+  - The project is fully prepared for **Stage 08** when requested. DO NOT proceed to Stage 08 until instructed.

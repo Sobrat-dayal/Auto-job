@@ -432,3 +432,87 @@ Implement a dynamic density system driven by `data-density="comfortable"` and `d
 
 - Seamless transition between comfortable laptop mode and compact multi-agent workstation mode.
 - User preference persists across application restarts.
+
+---
+
+## ADR-0021: Dual-Mode Expandable & Collapsible Desktop Navigation Architecture
+
+### Context
+
+AUTONOM is an autonomous multi-agent platform where operators primarily supervise background tasks rather than conducting manual data entry. The desktop navigation must allow rapid context-switching between 16 top-level functional modules and 50+ child sub-routes without permanently sacrificing horizontal viewport space on laptops or compact windows.
+
+### Decision
+
+Implement a dual-mode expandable and collapsible sidebar (`AppSidebar.tsx`):
+
+1. **Mode A (Expanded)**: Fixed width `240px` (`w-60 min-w-[240px]`), showing full brand header, 5 category groups (`MAIN`, `RECRUITMENT`, `WORKSPACE`, `MANAGEMENT`, `DEVELOPMENT`), item titles, status badges, child accordions, and persistent engine connection footer.
+2. **Mode B (Collapsed)**: Fixed width `56px` (`w-14 min-w-[56px]`), showing compact icon rail with 36x36px centered targets, tooltips, active indicator bars, and accessible flyout menus for multi-child modules.
+3. Smooth CSS transition (`duration-200 ease-in-out`) between modes.
+
+### Consequences
+
+- Operators on laptops can collapse the sidebar to maximize operational workspace.
+- Operators on ultrawide multi-monitor workstations can keep the sidebar fully expanded with all category groups visible.
+
+---
+
+## ADR-0022: Radix Popover Portalling for Accessible Collapsed Rail Flyouts
+
+### Context
+
+When the sidebar is collapsed into a 56px icon rail, modules with child pages (e.g. `Jobs & Applications`, `Agents`, `Settings`) must allow the user to inspect and navigate to child destinations without requiring the user to first re-expand the entire sidebar. Rendering flyouts inside an `overflow-y-auto` sidebar container results in severe CSS clipping and z-index ordering bugs.
+
+### Decision
+
+Implement `SidebarFlyout.tsx` using Radix Popover (`@radix-ui/react-popover`) portalled directly to `document.body`:
+
+1. Use `side="right" align="start" sideOffset={8} avoidCollisions={true}` to dock alongside the rail while auto-adjusting to viewport bounds.
+2. Render module header, roadmap stage badge, capability description, and direct links to child routes.
+3. Support keyboard `Escape` dismissal and auto-close upon navigation.
+
+### Consequences
+
+- Zero CSS clipping or overflow issues.
+- Full keyboard and screen reader accessibility with automatic focus management and backdrop dismiss.
+
+---
+
+## ADR-0023: Zustand LocalStorage Persistence with Transient State Isolation
+
+### Context
+
+Operators customize their navigation view by collapsing specific category groups or collapsing the entire sidebar rail. These layout preferences must persist across application restarts, but transient states such as open modal dialogs or active flyouts must not persist (which would cause confusing floating overlays upon fresh startup).
+
+### Decision
+
+Use Zustand with `persist` middleware configured with custom `partialize`:
+
+1. Persisted durable state: `isExpanded` (boolean), `expandedGroups` (`string[]`), `expandedItems` (`string[]`).
+2. Isolated transient state: `activeFlyout` (`string | null`), `isCommandPaletteOpen` (`boolean`).
+3. Resilient JSON error handling: corrupted `localStorage` entries fallback safely to sensible defaults without throwing runtime exceptions.
+
+### Consequences
+
+- Instant layout restoration on launch with zero layout flash.
+- Zero risk of orphan popups or modal overlays persisting across application restarts.
+
+---
+
+## ADR-0024: Honest Roadmap Module Placeholders and Zero Fabricated Business Data Policy
+
+### Context
+
+In a 50-stage engineering roadmap, certain downstream capabilities (e.g., job scraping, automated application submissions, interview calendars) are scheduled for subsequent stages. Demonstrating complete desktop navigation across all planned routes without implementing the underlying domain logic risks misleading users or introducing fragile fake mocks that pollute testing environments.
+
+### Decision
+
+Enforce the AUTONOM Honest Roadmap Policy:
+
+1. No fabricated business data (no mock jobs, fake recruiter emails, or artificial application submissions).
+2. All non-implemented routes resolve to `ModulePlaceholder.tsx`.
+3. The placeholder clearly displays the target roadmap stage (e.g., `Stage 26`), category, capability summary, planned sub-capabilities, and quick links back to Command Center or live system diagnostics.
+
+### Consequences
+
+- Clean architectural integrity and transparent progress tracking across all 50 roadmap stages.
+- No technical debt from cleaning up fake data generators in future stages.
