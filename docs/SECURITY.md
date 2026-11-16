@@ -140,3 +140,20 @@ flowchart TD
   3. Displays an emergency banner across the desktop UI.
   4. Releases all mouse cursor locks and keyboard modifiers.
   5. Latency to full disconnect: **< 50 milliseconds**.
+
+---
+
+## 8. Settings & Credential Protection Architecture (Stage 10)
+
+1. **Decoupled Key Storage**:
+   - The `app_settings` SQLite table stores operational preferences, timeouts, model selections, and non-sensitive options only.
+   - External API keys (Anthropic, OpenAI, DeepSeek, Google, GitHub, ATS platforms) are **never written to `app_settings`** or logged in telemetry.
+   - Credentials are stored exclusively via Windows DPAPI (`credential_references` with AES-256-GCM). Settings pages reference credentials using opaque vault IDs (`vault:anthropic_api_key`).
+2. **Sanitized Settings Export/Import**:
+   - `GET /api/v1/settings/export` dumps system preferences while systematically stripping all credentials, tokens, and personal secrets.
+   - `POST /api/v1/settings/import` validates the structure via Pydantic v2 schemas and rejects payloads containing unauthorized secret keys.
+3. **14-Category Action Permission Matrix**:
+   - System actions are mapped across 14 categories (`job_discovery`, `job_application`, `email_drafting`, `email_sending`, `fs_read`, `fs_write`, `shell_execution`, `browser_nav`, `input_simulation`, `screen_capture`, `network_egress`, `vault_access`, `settings_modify`, `background_auto`).
+   - Every category enforces one of three tiers: `always_allow`, `require_approval`, or `never_allow`.
+4. **Physical Emergency Killswitch**:
+   - Windows global hotkey (`Pause` or `Ctrl+Alt+Esc`) triggers instantaneous child process halt and drains background worker queues.

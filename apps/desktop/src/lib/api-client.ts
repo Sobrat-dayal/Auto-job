@@ -3,11 +3,16 @@
  */
 
 import type {
+  AllSettingsResponse,
   BackupManifest,
   CredentialStatus,
   EventEnvelope,
+  IntegrationConfigurationResponse,
   ProfileSummary,
   RestoreResponse,
+  SettingsExportPayload,
+  SettingsImportPayload,
+  SettingsSchemaMetadataResponse,
   StorageHealth,
   StorageStatus,
   SystemCapabilitiesResponse,
@@ -310,6 +315,78 @@ export class ApiClient {
 
   async getArtifact(artifactId: string): Promise<ArtifactItem> {
     return this.request<ArtifactItem>(`/api/v1/artifacts/${artifactId}`);
+  }
+
+  // Centralized Settings (Stage 10)
+  async getAllSettings(): Promise<AllSettingsResponse> {
+    return this.request<AllSettingsResponse>('/api/v1/settings/all');
+  }
+
+  async getSettingCategory<T>(category: string): Promise<T> {
+    const res = await this.request<{ category: string; value: T }>(`/api/v1/settings/${category}`);
+    return res.value;
+  }
+
+  async updateSettingCategory<T>(category: string, value: Partial<T>): Promise<T> {
+    const res = await this.request<{ category: string; value: T }>(`/api/v1/settings/${category}`, {
+      method: 'PATCH',
+      body: JSON.stringify(value),
+    });
+    return res.value;
+  }
+
+  async resetSettingCategory<T>(category: string): Promise<T> {
+    const res = await this.request<{ reset: boolean; category: string; defaults: T }>(
+      `/api/v1/settings/${category}/reset`,
+      { method: 'POST' }
+    );
+    return res.defaults;
+  }
+
+  async exportSettings(): Promise<SettingsExportPayload> {
+    return this.request<SettingsExportPayload>('/api/v1/settings/export');
+  }
+
+  async importSettings(
+    payload: SettingsImportPayload
+  ): Promise<{ success: boolean; imported_categories: string[]; total_categories: number }> {
+    return this.request<{
+      success: boolean;
+      imported_categories: string[];
+      total_categories: number;
+    }>('/api/v1/settings/import', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getSettingsSchema(): Promise<SettingsSchemaMetadataResponse> {
+    return this.request<SettingsSchemaMetadataResponse>('/api/v1/settings/schema');
+  }
+
+  async getIntegrationConfigurations(): Promise<IntegrationConfigurationResponse> {
+    return this.request<IntegrationConfigurationResponse>('/api/v1/integrations/configurations');
+  }
+
+  async storeCredential(
+    provider: string,
+    secretValue: string,
+    credentialType: string = 'api_key'
+  ): Promise<unknown> {
+    return this.request('/api/v1/integrations/credentials', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider,
+        secret_value: secretValue,
+        credential_type: credentialType,
+      }),
+    });
+  }
+
+  async deleteCredential(provider: string): Promise<unknown> {
+    return this.request(`/api/v1/integrations/credentials/${provider}`, {
+      method: 'DELETE',
+    });
   }
 }
 

@@ -748,3 +748,81 @@ Stage 09 transforms the AUTONOM desktop UI into a complete, organized, multi-mod
 - **Stage 10 Readiness**:
   - The desktop workspace architecture, all 13 module screens, shared primitives, router code-splitting, REST data contracts, and SQLite storage are 100% operational, fully verified, and production-ready.
   - The project is fully prepared for **Stage 10** when requested. DO NOT proceed to Stage 10 until instructed.
+
+---
+
+## Stage 10: Advanced Settings, Integration Configuration, Security Controls, Agent Preferences, Windows Operations, and Unified Application Management
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-16T22:30:00Z
+- **Completed**: 2026-11-17T00:15:00Z
+
+### 1. Objectives & Scope
+
+1. Conclude **Phase 2 (Frontend & User Experience)** by establishing a comprehensive, centralized, strongly-typed settings and operational control system for AUTONOM.
+2. Build 13 comprehensive Pydantic v2 schemas in `services/api/app/schemas/settings.py` covering General, Appearance, AI Providers, Agent Preferences, Automation & Tasks, Permissions & Autonomy, Computer Control, Connected Integrations, Recruitment Preferences, Storage & Data, Notifications, Desktop & Startup, and Security & Privacy.
+3. Establish strong, synchronized TypeScript interfaces in `packages/shared-types/src/settings.ts` mirrored 1:1 with backend models.
+4. Implement atomic CRUD, schema validation, reset fallbacks, and safe export/import in `services/api/app/repositories/settings_repository.py`.
+5. Expose REST endpoints in `services/api/app/api/v1/endpoints/settings.py` (`GET /all`, `GET /{cat}`, `PATCH /{cat}`, `POST /{cat}/reset`, `POST /reset`, `GET /schema`, `GET /export`, `POST /import`) and `services/api/app/api/v1/endpoints/integrations.py` (`GET /configurations`).
+6. Build a responsive, accessible two-pane desktop Settings workspace with 15 dedicated category pages in `apps/desktop/src/features/settings/`:
+   - Primitives: `SettingsLayout`, `SettingsNavigation`, `SettingsSection`, `SettingsField`, `SettingsToggle`, `SettingsSaveBar`, `SettingsRestartNotice`, `SettingsUnavailableState`, `SettingsConfirmationDialog`.
+   - 15 Category Pages: General, Appearance, AI Providers (RTX 4050 6GB VRAM bounds), Agent Preferences (24 profiles), Automation Controls (worker pool 1–8), Permissions Matrix (14 categories & killswitch), Computer Control (UIA/Visual), Connected Integrations (MCP/DPAPI), Recruitment (ATS thresholds), Storage (SQLite snapshots), Notifications, Desktop (Win32 startup/tray), Security (DPAPI vault), Diagnostics (probes/export bundle), About (versions/update status).
+7. Connect frontend settings to actual backend and native capabilities with strict Zero-Fake-Data compliance, truthful status attribution, and DPAPI credential protection.
+8. Validate the complete implementation across Pytest, Vitest, Rust Cargo, TypeScript compilers, linters, and production packaging.
+
+### 2. Implementation Checklist
+
+- [x] Create Pydantic v2 schemas in `services/api/app/schemas/settings.py` for all 13 categories, schema metadata, and export/import payloads.
+- [x] Implement atomic settings CRUD, validation, reset, and export/import in `SettingsRepository`.
+- [x] Implement settings REST endpoints in `settings.py` and `integrations.py` and register in `router.py`.
+- [x] Author pytest suite `test_api_settings.py` (9 tests) verifying all REST verbs, partial updates, error codes, and exports.
+- [x] Mirror schemas in TypeScript (`packages/shared-types/src/settings.ts`) and verify with `tsc --noEmit`.
+- [x] Update frontend API client (`api-client.ts`) with settings query/mutation methods.
+- [x] Update navigation registry (`navigation.ts`) marking all 15 settings sub-routes as implemented.
+- [x] Implement shared settings primitives (`SettingsLayout`, `SettingsNavigation`, `SettingsSection`, `SettingsField`, `SettingsToggle`, `SettingsSaveBar`, etc.).
+- [x] Implement all 15 category pages in `features/settings/pages/`.
+- [x] Connect master `SettingsWorkspace` in `App.tsx` with dynamic lazy-loading.
+- [x] Author frontend Vitest test suites: `settings-workspace.test.tsx` (5 tests), `settings-categories.test.tsx` (6 tests), `settings-export-import.test.tsx` (3 tests).
+- [x] Validate Rust native host commands (`cargo test`, `cargo clippy`).
+- [x] Validate full production build (`tsc && vite build`).
+- [x] Author complete documentation suite (`SETTINGS_ARCHITECTURE.md`, `SETTINGS_SCHEMA.md`, `AI_PROVIDER_CONFIGURATION.md`, `AGENT_CONFIGURATION.md`, `AUTOMATION_CONTROLS.md`, `PERMISSIONS_UI.md`, `SETTINGS_TESTING.md`).
+- [x] Record ADR-0033 through ADR-0036 in `docs/DECISIONS.md`.
+- [x] Update `docs/ROADMAP.md` and conclude Phase 2.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `services/api/.venv/Scripts/python.exe -m pytest services/api/tests -v`
+   - **66 passed in 5.51s** (100% pass rate).
+   - `test_api_settings.py`: 9 passed in 0.52s.
+   - All regressions clean (storage, tasks, events, dashboard, worker manager, DPAPI vault, migrations).
+   - Ruff linter: `ruff check services/api` passed with zero errors or warnings.
+2. **Frontend Vitest Test Suite (`apps/desktop/src/test`)**:
+   - `pnpm --filter @autonom/desktop test`
+   - **29 test files passed | 104 tests passed in 20.35s** (100% pass rate).
+   - `settings-workspace.test.tsx` (5 tests): Layout rendering, category navigation, search filtering, dirty badge tracking, discard flow.
+   - `settings-categories.test.tsx` (6 tests): General, Appearance, AI Providers, Permissions, Storage, Diagnostics rendering & controls.
+   - `settings-export-import.test.tsx` (3 tests): Download export JSON, valid upload import, invalid upload rejection banner.
+3. **Rust Native Host Suite (`apps/desktop/src-tauri`)**:
+   - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml`: **6 passed in 0.96s**.
+   - `cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml -- -D warnings`: **Clean (0 errors, 0 warnings)**.
+4. **TypeScript & Production Bundle Compilation**:
+   - `pnpm --filter @autonom/shared-types typecheck`: Exit code 0.
+   - `pnpm --filter @autonom/desktop typecheck`: Exit code 0.
+   - `pnpm --filter @autonom/desktop build`: Built in 2.65s (Settings chunk: 106.41 kB / gzip 24.80 kB).
+5. **Full Multi-Suite Test Script**:
+   - `.\scripts\test.ps1`: ALL 3 TEST SUITES PASSED (Vitest, Pytest, Cargo).
+6. **Data Integrity & Security Audit**:
+   - Strict Zero-Fake-Data compliance: Honest roadmap attribution across all future engine controls.
+   - Windows DPAPI credential isolation: Zero plaintext API keys or credentials stored in SQLite WAL or settings exports.
+   - Hardware guardrails: RTX 4050 6GB VRAM budget (5.0 GB limit) and single active model policy strictly enforced.
+
+### 4. Known Limitations & Phase 2 Concluding Hand-off
+
+- **Known Limitations**:
+  - Live AI model inference dispatch, streaming token generation, and multi-provider fallback routing are scheduled for implementation in **Stage 11 (Unified AI Model Gateway)**.
+  - Multi-agent swarm runtime lifecycle management, inter-agent messaging, and consensus voting are scheduled for **Stage 12 (Multi-Agent Swarm Orchestration)**.
+- **Stage 11 Readiness**:
+  - Phase 2 (Frontend and User Experience) is officially concluded.
+  - All settings contracts, persistence layers, validation models, and desktop UI screens are 100% operational, fully verified, and production-ready.
+  - The project is fully prepared for **Stage 11: Unified AI Model Gateway**. DO NOT proceed to Stage 11 until instructed.

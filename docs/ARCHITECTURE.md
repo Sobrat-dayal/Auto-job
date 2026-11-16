@@ -73,6 +73,7 @@ flowchart TD
 - **Responsibilities**:
   - Information-dense command center and operational dashboards (Stage 08).
   - 13 self-contained operational workspaces with route-level lazy-loading and sub-route synchronization (Stage 09).
+  - Centralized Settings & Operational Controls workspace across 15 categories with two-pane layout, dirty-state tracking, and schema validation (Stage 10).
   - Shared workspace primitive architecture (`ModulePage`, `ModuleHeader`, `ModuleToolbar`, `ModuleTabs`, `ModuleDetailPanel`).
   - Collapsible vertical navigation sidebar (expanded 240px and compact 60px icon rail).
   - Real-time agent thought streaming and tool execution cards.
@@ -96,8 +97,9 @@ flowchart TD
 - **Technologies**: Python 3.11+, FastAPI, Uvicorn, Pydantic v2, `asyncio`.
 - **Responsibilities**:
   - Data validation, request parsing, and error schema normalization.
-  - REST API routing (`/api/health`, `/api/system`, `/api/agents`, `/api/jobs`, `/api/governance`).
+  - REST API routing (`/api/health`, `/api/system`, `/api/agents`, `/api/jobs`, `/api/governance`, `/api/v1/settings`, `/api/v1/integrations`).
   - High-throughput WebSocket server (`/ws/events`) for streaming agent thoughts and telemetry to the UI.
+  - Settings management with atomic SQLite WAL serialization, Pydantic v2 validation, and sanitized export/import.
   - Enforcing authorization tiers and permission boundaries before delegating to orchestration.
 - **Boundaries**: The network and communication interface for the agent runtime. Bound to `127.0.0.1` only.
 
@@ -127,10 +129,11 @@ flowchart TD
 
 - **Technologies**: SQLite 3, `aiosqlite`, FTS5, Windows Data Protection API (DPAPI), AES-256-GCM.
 - **Responsibilities**:
-  - Persistent application state (ApplicantProfile, VerifiedSkill, JobListing, Application).
+  - Persistent application state (ApplicantProfile, VerifiedSkill, JobListing, Application, AppSettings).
   - Full-text search over job listings and resume texts using SQLite FTS5.
   - Machine-bound cryptographic secret storage for credentials, OAuth tokens, and API keys.
   - Durable task execution queues, checkpoints, and immutable audit logs.
+  - Atomic settings persistence across 13 categories under `settings:<category>`.
 - **Boundaries**: The single source of durable truth for AUTONOM. Independent of external database servers.
 
 ---

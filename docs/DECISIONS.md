@@ -713,3 +713,97 @@ Add versioned REST endpoints under `/api/v1` in FastAPI:
 - Full full-stack integration between React frontend and SQLite database.
 - Sub-second local response times with async SQLAlchemy queries.
 - Clean separation between durable persistence models and client response schemas.
+
+---
+
+## ADR-0033: Centralized Strongly-Typed Settings Architecture & Persistence Plane
+
+### Context
+
+Prior to Stage 10, desktop preferences were fragmented across ad-hoc React state, partial local storage keys, and incomplete backend stubs. As the system scales to autonomous multi-agent orchestration (Stage 12), a unified, strongly-typed, atomic settings architecture is required across 13 distinct functional categories.
+
+### Decision
+
+Implement a centralized configuration plane:
+
+1. Declare 13 comprehensive Pydantic v2 schemas in `services/api/app/schemas/settings.py` covering General, Appearance, AI, Agents, Automation, Permissions, Computer Control, Integrations, Recruitment, Storage, Notifications, Desktop, and Security.
+2. Mirror all schemas 1:1 in TypeScript under `packages/shared-types/src/settings.ts`.
+3. Persist settings as atomic JSON documents in SQLite WAL `app_settings` (`key = "settings:<category>"`).
+4. Provide REST endpoints under `/api/v1/settings` (`GET /all`, `GET /{cat}`, `PATCH /{cat}`, `POST /{cat}/reset`, `POST /reset`).
+5. Track dirty state, restart-required tags, and validation errors in a unified React workspace layout.
+
+### Consequences
+
+- Single source of truth for all system preferences and agent boundaries.
+- Type-safe contract across Python backend, TypeScript frontend, and persistent storage.
+- Immediate rollback capability via atomic category reset endpoints.
+
+---
+
+## ADR-0034: Strict DPAPI Vault Isolation for Third-Party Secrets and API Credentials
+
+### Context
+
+AUTONOM integrates with external cloud LLMs (Anthropic, OpenAI, DeepSeek), recruitment portals, and MCP servers requiring secret credentials. Storing credentials in plain JSON configuration or SQLite columns violates the core security policy.
+
+### Decision
+
+Enforce strict credential isolation:
+
+1. Settings payloads and database records in `app_settings` store non-sensitive configuration options and DPAPI reference handles only.
+2. Actual secret values (API keys, OAuth tokens) are sent directly to the DPAPI vault endpoint (`/api/v1/auth/credentials`) or native Tauri Windows DPAPI keystore (`credential_references`).
+3. Settings exports (`GET /api/v1/settings/export`) strictly omit all credentials and secrets.
+4. UI forms display masked indicators (`••••••••sk-ant...`) and vault connection health status rather than unencrypted keys.
+
+### Consequences
+
+- Zero plaintext credentials stored in SQLite WAL or export bundles.
+- Hardened protection against unauthorized process memory dumps or file inspection.
+- Full compliance with enterprise Windows desktop security guidelines.
+
+---
+
+## ADR-0035: Hardware Guardrails and Single Active Model Constraint for 6GB VRAM (RTX 4050)
+
+### Context
+
+AUTONOM targets modern laptop workstations equipped with an NVIDIA GeForce RTX 4050 Mobile GPU with 6GB VRAM. Running local LLMs alongside Windows DWM, display compositing, and multi-agent loops risks CUDA Out-Of-Memory (OOM) crashes and system instability if multiple models or unquantized weights are loaded simultaneously.
+
+### Decision
+
+Implement physical hardware bounds in `AISettings`:
+
+1. Cap the local model VRAM budget to 5.0 GB (`vram_budget_gb = 5.0`), reserving a 1.0 GB buffer for Windows DWM and host graphics.
+2. Enforce `single_active_model = true` by default, forbidding concurrent loading of separate local model weights.
+3. Bound local context window tokens to 8,192 tokens max, preventing KV-cache memory explosions.
+4. Mandate Q4_K_M or Q5_K_M quantizations for 7B/8B local models (Llama 3.1 8B, Mistral 7B).
+5. Display live VRAM budget allocation and OS reserve cards in the UI (`/settings/ai`).
+
+### Consequences
+
+- Rock-solid stability on 6GB VRAM hardware without desktop freezing or driver crashes.
+- Clear user visibility into local inference capacity vs. cloud offloading.
+- Predictable token throughput and thermal behavior.
+
+---
+
+## ADR-0036: Sanitized Non-Sensitive Settings Export and Schema-Validated Import
+
+### Context
+
+Users need the ability to back up, restore, and transfer application configurations between workstations without inadvertently leaking sensitive API tokens, passwords, or personal credentials.
+
+### Decision
+
+Implement structured export/import contracts in `SettingsRepository`:
+
+1. `GET /api/v1/settings/export` dumps all 13 categories enriched with metadata (`exported_at`, `version`, `app_version`), stripping all vault secrets.
+2. `POST /api/v1/settings/import` validates the payload structure against Pydantic schema contracts, rejecting malformed, unrecognized, or corrupted JSON with HTTP 422.
+3. Successful import executes inside an atomic SQLite transaction, updating all categories simultaneously or rolling back entirely on failure.
+4. The frontend requires two-step modal confirmation before importing or resetting settings.
+
+### Consequences
+
+- Safe, portable configuration backups across machines.
+- Prevention of configuration corruption via strict schema validation.
+- Clear audit logging of all administrative restore actions.

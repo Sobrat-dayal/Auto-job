@@ -393,30 +393,38 @@ Authenticated HTTP endpoints under `/api/v1/dashboard/`:
 
 ---
 
-## 5. Module Workspace Endpoints (Stage 09)
+## 6. Settings & Operational Controls Endpoints (Stage 10)
 
-Authenticated HTTP endpoints under `/api/v1/jobs`, `/api/v1/applications`, and `/api/v1/artifacts`:
+Authenticated HTTP endpoints under `/api/v1/settings/` and `/api/v1/integrations/`:
 
-| Method | Endpoint                          | Description                                                                                         |
-| :----- | :-------------------------------- | :-------------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/v1/jobs`                    | Lists persistent job listings from SQLite with optional `status`, `company`, `limit`, and `offset`. |
-| `GET`  | `/api/v1/jobs/{job_id}`           | Retrieves complete details of a specific job listing.                                               |
-| `GET`  | `/api/v1/applications`            | Lists job applications with nested attempt histories, job metadata, and status filtering.           |
-| `GET`  | `/api/v1/applications/{app_id}`   | Retrieves full details and execution attempt logs for a specific application.                       |
-| `GET`  | `/api/v1/artifacts`               | Lists persisted artifacts with file size, SHA-256 checksums, and retention classes.                 |
-| `GET`  | `/api/v1/artifacts/{artifact_id}` | Retrieves metadata for a specific persistent artifact.                                              |
+| Method  | Endpoint                             | Description                                                                                               |
+| :------ | :----------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/api/v1/settings/all`               | Retrieves all 13 settings categories in a single strongly-typed payload.                                 |
+| `GET`   | `/api/v1/settings/{category}`        | Retrieves a single settings category by name (e.g. `general`, `ai`, `permissions`, `automation`).        |
+| `PATCH` | `/api/v1/settings/{category}`        | Performs atomic partial update for a specific category, validating against Pydantic models.              |
+| `POST`  | `/api/v1/settings/{category}/reset`  | Restores factory default configuration for a single category.                                            |
+| `POST`  | `/api/v1/settings/reset`             | Restores factory default configuration across all 13 categories simultaneously.                           |
+| `GET`   | `/api/v1/settings/schema`            | Returns JSON schema definitions, field types, and restart-required flags for all settings properties.     |
+| `GET`   | `/api/v1/settings/export`            | Exports complete system settings bundle as a sanitized JSON document (DPAPI secrets excluded).          |
+| `POST`  | `/api/v1/settings/import`            | Validates and atomically imports a settings JSON bundle, rejecting malformed payloads with HTTP 422.       |
+| `GET`   | `/api/v1/integrations/configurations`| Returns registered integrations, MCP servers, and DPAPI keystore reference statuses.                     |
+
 
 ---
 
-## 5. Module Workspace Endpoints (Stage 09)
+## 6. Settings & Operational Controls Endpoints (Stage 10)
 
-Authenticated HTTP endpoints under `/api/v1/jobs`, `/api/v1/applications`, and `/api/v1/artifacts`:
+Authenticated HTTP endpoints under `/api/v1/settings/` and `/api/v1/integrations/`:
 
-| Method | Endpoint                          | Description                                                                                         |
-| :----- | :-------------------------------- | :-------------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/v1/jobs`                    | Lists persistent job listings from SQLite with optional `status`, `company`, `limit`, and `offset`. |
-| `GET`  | `/api/v1/jobs/{job_id}`           | Retrieves complete details of a specific job listing.                                               |
-| `GET`  | `/api/v1/applications`            | Lists job applications with nested attempt histories, job metadata, and status filtering.           |
-| `GET`  | `/api/v1/applications/{app_id}`   | Retrieves full details and execution attempt logs for a specific application.                       |
-| `GET`  | `/api/v1/artifacts`               | Lists persisted artifacts with file size, SHA-256 checksums, and retention classes.                 |
-| `GET`  | `/api/v1/artifacts/{artifact_id}` | Retrieves metadata for a specific persistent artifact.                                              |
+| Method  | Endpoint                             | Description                                                                                               |
+| :------ | :----------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/api/v1/settings/all`               | Retrieves all 13 settings categories in a single strongly-typed payload.                                 |
+| `GET`   | `/api/v1/settings/{category}`        | Retrieves a single settings category by name (e.g. `general`, `ai`, `permissions`, `automation`).        |
+| `PATCH` | `/api/v1/settings/{category}`        | Performs atomic partial update for a specific category, validating against Pydantic models.              |
+| `POST`  | `/api/v1/settings/{category}/reset`  | Restores factory default configuration for a single category.                                            |
+| `POST`  | `/api/v1/settings/reset`             | Restores factory default configuration across all 13 categories simultaneously.                           |
+| `GET`   | `/api/v1/settings/schema`            | Returns JSON schema definitions, field types, and restart-required flags for all settings properties.     |
+| `GET`   | `/api/v1/settings/export`            | Exports complete system settings bundle as a sanitized JSON document (DPAPI secrets excluded).          |
+| `POST`  | `/api/v1/settings/import`            | Validates and atomically imports a settings JSON bundle, rejecting malformed payloads with HTTP 422.       |
+| `GET`   | `/api/v1/integrations/configurations`| Returns registered integrations, MCP servers, and DPAPI keystore reference statuses.                     |
+

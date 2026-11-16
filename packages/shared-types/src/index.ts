@@ -10,3 +10,4 @@ export * from './config';
 export * from './events';
 export * from './system';
 export * from './storage';
+export * from './settings';

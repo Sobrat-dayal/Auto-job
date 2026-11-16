@@ -34,6 +34,7 @@ const ActivityWorkspace = React.lazy(() => import('@/features/activity/ActivityW
 const IntegrationsWorkspace = React.lazy(
   () => import('@/features/integrations/IntegrationsWorkspace')
 );
+const SettingsWorkspace = React.lazy(() => import('@/features/settings/SettingsWorkspace'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,15 +106,15 @@ export const AppContent: React.FC = () => {
               <Route path="/integrations" element={<IntegrationsWorkspace />} />
               <Route path="/integrations/*" element={<IntegrationsWorkspace />} />
 
-              {/* System & Diagnostics */}
+              {/* Centralized Settings Workspace (Stage 10) */}
+              <Route path="/settings" element={<SettingsWorkspace />} />
+              <Route path="/settings/*" element={<SettingsWorkspace />} />
+
+              {/* Standalone System Diagnostics & Development Tools */}
               <Route path="/diagnostics" element={<Diagnostics />} />
               <Route path="/desktop-diagnostics" element={<DesktopDiagnostics />} />
               <Route path="/storage" element={<Storage />} />
               <Route path="/design-system" element={<DesignSystemShowcase />} />
-              <Route path="/settings/diagnostics" element={<Diagnostics />} />
-              <Route path="/settings/desktop" element={<DesktopDiagnostics />} />
-              <Route path="/settings/desktop-diagnostics" element={<DesktopDiagnostics />} />
-              <Route path="/settings/storage" element={<Storage />} />
 
               {/* Fallback */}
               <Route path="*" element={<ModulePlaceholder />} />

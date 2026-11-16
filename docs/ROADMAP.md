@@ -180,16 +180,48 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
     - Zero TypeScript errors (`tsc --noEmit` and `vite build` clean exit 0).
 - **Acceptance Criteria**: All 13 modules accessible, Zero-Fake-Data compliance strictly enforced, honest roadmap stage attribution, sub-routes synchronized, and full production build passing.
 
-#### Stage 10: System Tray, Windows Notifications & Window State Management
+#### Stage 10: Advanced Settings, Integration Configuration, Security Controls, Agent Preferences, Windows Operations, and Unified Application Management [COMPLETED]
 
-#### Stage 10: Multi-Process Health Monitoring, Auto-Recovery & Crash Resilience
-
-- **Goal**: Enterprise supervision architecture monitoring UI, native layer, and Python workers with automatic crash detection and state recovery.
+- **Status**: COMPLETE (Stage 10 of 50 — 2026-11-17)
+- **Goal**: Implement the centralized, strongly-typed settings and operational control plane for AUTONOM across 15 categories, connecting frontend controls to real backend Pydantic models, SQLite WAL persistence, Windows DPAPI vault references, and native desktop capabilities with Zero-Fake-Data compliance.
 - **Key Deliverables**:
-  - Health check ping loop across all subsystems.
-  - State snapshotting to SQLite prior to complex task execution.
-  - Recovery manager restoring in-flight task state after process crashes.
-- **Acceptance Criteria**: Forced termination of backend worker causes supervisor to restart backend within 2 seconds and resume pending queue tasks.
+  - **Backend Settings Architecture & REST Endpoints** (`services/api/app/schemas/settings.py`, `services/api/app/repositories/settings_repository.py`, `services/api/app/api/v1/endpoints/settings.py`):
+    - 13 comprehensive Pydantic v2 schemas: General, Appearance, AI, Agents, Automation, Permissions, Computer Control, Integrations, Recruitment, Storage, Notifications, Desktop, Security & Privacy.
+    - Full REST CRUD API: `GET /settings/all`, `GET /settings/{cat}`, `PATCH /settings/{cat}`, `POST /settings/{cat}/reset`, `POST /settings/reset`, `GET /settings/schema`, `GET /settings/export`, `POST /settings/import`.
+    - Integration configurations endpoint: `GET /api/v1/integrations/configurations`.
+    - 9 backend pytest integration tests in `test_api_settings.py` (66 total backend tests passing, 100% pass rate).
+  - **Shared TypeScript Type Contracts** (`packages/shared-types/src/settings.ts`, `packages/shared-types/src/index.ts`):
+    - Strongly typed interfaces mirroring backend Pydantic models 1:1.
+    - Verified with `pnpm --filter @autonom/shared-types typecheck`.
+  - **Frontend Client & Navigation Integration** (`apps/desktop/src/lib/api-client.ts`, `apps/desktop/src/config/navigation.ts`, `apps/desktop/src/App.tsx`):
+    - Complete API client methods for settings operations, credential vaulting, and export/import.
+    - Updated navigation registry with all 15 settings sub-routes marked as `implemented`.
+    - Route-level lazy loading (`React.lazy()`) for `SettingsWorkspace` in `App.tsx`.
+  - **Settings Shared Primitives & 15 Category Pages** (`apps/desktop/src/features/settings/`):
+    - Primitives: `SettingsLayout`, `SettingsNavigation`, `SettingsSection`, `SettingsField`, `SettingsToggle`, `SettingsSaveBar`, `SettingsRestartNotice`, `SettingsUnavailableState`, `SettingsConfirmationDialog`.
+    - 15 Category Pages:
+      1. `GeneralSettingsPage.tsx` (`/settings/general`)
+      2. `AppearanceSettingsPage.tsx` (`/settings/appearance`)
+      3. `AIProviderSettingsPage.tsx` (`/settings/ai` — RTX 4050 6GB VRAM bounds, single active model)
+      4. `AgentPreferencesPage.tsx` (`/settings/agents` — 24 agent profiles, approval tiers)
+      5. `AutomationSettingsPage.tsx` (`/settings/automation` — worker concurrency 1-8, queue depth, timeouts)
+      6. `PermissionSettingsPage.tsx` (`/settings/permissions` — 14-category action matrix, `Pause` hotkey)
+      7. `ComputerControlSettingsPage.tsx` (`/settings/computer` — structural vs visual, process boundaries)
+      8. `IntegrationSettingsPage.tsx` (`/settings/integrations` — MCP tool servers, DPAPI status)
+      9. `RecruitmentSettingsPage.tsx` (`/settings/recruitment` — ATS thresholds, salary, quotas)
+      10. `StorageSettingsPage.tsx` (`/settings/storage` — live SQLite stats, backup snapshots, restore)
+      11. `NotificationSettingsPage.tsx` (`/settings/notifications` — toast routing, test notification action)
+      12. `DesktopSettingsPage.tsx` (`/settings/desktop` — Windows startup, tray, backend restart action)
+      13. `SecuritySettingsPage.tsx` (`/settings/security` — DPAPI vault health, store secret modal, revoke)
+      14. `DiagnosticsSettingsPage.tsx` (`/settings/diagnostics` — live process probes, export bundle)
+      15. `AboutSettingsPage.tsx` (`/settings/about` — app/backend/Tauri versions, update attribution)
+  - **Automated Verification**:
+    - 14 new frontend Vitest tests across 3 files (`settings-workspace.test.tsx`, `settings-categories.test.tsx`, `settings-export-import.test.tsx`).
+    - Full desktop test suite passed: **29 test files, 104 tests passing (100% pass rate in 20.35s)**.
+    - Full backend test suite passed: **66 pytest tests passing in 5.51s**.
+    - Rust native suite passed: **6 tests passing, clippy clean**.
+    - Production Vite build passed (Settings chunk: 106.41 kB).
+- **Acceptance Criteria**: 100% test pass rate across all 3 suites, strict Zero-Fake-Data compliance, truthful roadmap attribution, DPAPI credential safety, and persistent SQLite WAL configuration. Phase 2 (Frontend & User Experience) officially concluded. Ready for Stage 11 (Unified AI Model Gateway).
 
 ---
 

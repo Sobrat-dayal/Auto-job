@@ -8,6 +8,7 @@ from app.api.v1.endpoints.credentials import router as credentials_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.events import router as events_router
 from app.api.v1.endpoints.health import router as health_router
+from app.api.v1.endpoints.integrations import router as integrations_router
 from app.api.v1.endpoints.jobs import router as jobs_router
 from app.api.v1.endpoints.profiles import router as profiles_router
 from app.api.v1.endpoints.ready import router as ready_router
@@ -34,6 +35,7 @@ api_v1_router.include_router(storage_router)
 api_v1_router.include_router(settings_router)
 api_v1_router.include_router(profiles_router)
 api_v1_router.include_router(credentials_router)
+api_v1_router.include_router(integrations_router)
 api_v1_router.include_router(dashboard_router)
 api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(applications_router)

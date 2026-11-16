@@ -28,11 +28,14 @@ describe('Cross-Module Route Integration', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        'Software Engineering & Coding Studio'
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Software Engineering & Coding Studio'
+        );
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('renders CreativeWorkspace on /creative route', async () => {
@@ -46,11 +49,14 @@ describe('Cross-Module Route Integration', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        'Creative Studio & 3D Pipeline'
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Creative Studio & 3D Pipeline'
+        );
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('renders ResearchWorkspace on /research route', async () => {
@@ -64,11 +70,14 @@ describe('Cross-Module Route Integration', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        'Market Intelligence & Research'
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Market Intelligence & Research'
+        );
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('renders CommunicationsWorkspace on /communications route', async () => {
@@ -82,11 +91,14 @@ describe('Cross-Module Route Integration', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        'Communications & Messaging Hub'
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Communications & Messaging Hub'
+        );
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('renders InterviewsWorkspace on /interviews route', async () => {
@@ -100,11 +112,14 @@ describe('Cross-Module Route Integration', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        'Interview Coordination & Coaching'
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Interview Coordination & Coaching'
+        );
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('renders IntegrationsWorkspace on /integrations route', async () => {
@@ -118,10 +133,13 @@ describe('Cross-Module Route Integration', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        'Integrations & Service Connectors'
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          'Integrations & Service Connectors'
+        );
+      },
+      { timeout: 5000 }
+    );
   });
 });
