@@ -19,17 +19,17 @@ describe('App Component', () => {
     expect(screen.getAllByText(/AUTONOM/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Command Center').length).toBeGreaterThanOrEqual(1);
     await waitFor(() => {
-      expect(screen.getByText('Stage 06 Active')).toBeInTheDocument();
+      expect(screen.getByText('Stage 08 Active')).toBeInTheDocument();
     });
   });
 
   it('renders navigation sidebar items including Design System', () => {
     render(<App />);
-    expect(screen.getByText('Diagnostics & Tasks')).toBeInTheDocument();
-    expect(screen.getByText('Desktop Shell')).toBeInTheDocument();
-    expect(screen.getByText('Storage & Database')).toBeInTheDocument();
-    expect(screen.getByText('Design System')).toBeInTheDocument();
-    expect(screen.getByText('Jobs & Applications')).toBeInTheDocument();
+    expect(screen.getAllByText('Diagnostics & Tasks').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Desktop Shell').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Storage & Database').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Design System').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Jobs & Applications').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
   });
 

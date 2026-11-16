@@ -516,3 +516,103 @@ Enforce the AUTONOM Honest Roadmap Policy:
 
 - Clean architectural integrity and transparent progress tracking across all 50 roadmap stages.
 - No technical debt from cleaning up fake data generators in future stages.
+
+---
+
+## ADR-0025: Unified Command Center Operational Dashboard Architecture
+
+### Context
+
+AUTONOM is an autonomous multi-agent desktop application where the operator acts as an executive supervisor rather than a manual form-filler. The primary interface must consolidate background execution queues, worker concurrency, recruitment pipelines, system health, and live telemetry without fragmenting into disconnected screens or confusing multi-window interfaces.
+
+### Decision
+
+Implement the Command Center dashboard (`apps/desktop/src/features/dashboard/DashboardView.tsx`) as a 7-tier operational interface:
+
+1. **Dashboard Header**: Real-time service status, loopback HTTP port 8765, uptime counter, dispatch status indicator, and manual sync action.
+2. **KPI Metrics Grid**: 4 primary KPI cards (Running, Queued, Jobs Discovered [Stage 26], Applications Submitted [Stage 31]) + 4 secondary supporting metrics (Completed, Failed, Pending Approvals [Stage 14], Worker Threads).
+3. **Autonomous Agent Fleet & Worker Pool**: 3 prominent upcoming agent cards (Job Discovery, Application Tailor, Supervisor Swarm) + 1 real Worker Thread Pool card (Stage 03 backend executor).
+4. **Recruitment Overview**: Real-time SQLite `job_listings` counts and a 10-stage application pipeline bar (`discovered` through `rejected`).
+5. **Live Task Queue & Event Stream**: Interactive task table with state tabs, cooperative cancellation, task inspection dialog, alongside a live SSE event feed.
+6. **Analytics, Subsystem Health & Operator Gates**: Recharts task trends over Today, 7 Days, and 30 Days; 4-subsystem health cards; and an actionable failed-tasks review panel.
+7. **Quick Operations**: Direct test task dispatcher and one-click navigation shortcuts.
+
+### Consequences
+
+- Operators gain comprehensive, single-screen situational awareness over all autonomous workflows.
+- Seamless integration with the Stage 07 expandable/collapsible sidebar without layout disruption.
+
+---
+
+## ADR-0026: Strict Zero-Fake Data & Honest Roadmap Release Attribution Policy
+
+### Context
+
+In an autonomous AI platform, displaying fabricated agent metrics, fake job listings, or artificial application submissions undermines operator trust, compromises debugging accuracy, and introduces technical debt from maintaining dummy data generators.
+
+### Decision
+
+Enforce a strict **Zero-Fake Data Integrity Policy** across the entire Command Center:
+
+1. Real database records: All counts for tasks, jobs, and applications strictly derive from the durable SQLite database (`tasks`, `job_listings`, `applications`).
+2. Honest zero state: When no records exist in the database, genuine `0` values are displayed.
+3. Explicit roadmap attribution: Capabilities scheduled for future stages explicitly display their release stage badge and explanatory note:
+   - Job Discovery Agent: `Roadmap: Stage 26`
+   - Application Tailor Agent: `Roadmap: Stage 30`
+   - Supervisor Swarm Lead: `Roadmap: Stage 12`
+   - Autonomous Submissions: `Roadmap: Stage 31`
+   - Advance Permissions Gate: `Roadmap: Stage 14`
+4. Distinction between real thread pool (4 active concurrent workers) and future AI agent swarm (Stage 12).
+
+### Consequences
+
+- Absolute truth in telemetry: The operator always knows exactly what code is executing vs what is scheduled.
+- Zero leftover mock logic to delete when implementing subsequent stages.
+
+---
+
+## ADR-0027: Hybrid Real-Time Synchronization (SSE Event Stream with Reactive Cache Invalidation)
+
+### Context
+
+Autonomous tasks produce frequent status updates (queued, running, progress, completion, failure). Relying exclusively on high-frequency polling consumes excessive CPU and disk I/O, while relying solely on SSE can lead to desynchronization if events are dropped or client reconnects.
+
+### Decision
+
+Adopt a **Hybrid Real-Time Synchronization Architecture**:
+
+1. **Server-Sent Events (`GET /api/v1/events/stream`)**: Pushes instant lifecycle events directly from the backend `EventBus` to the desktop client.
+2. **Client-Side Deduplication**: `useLiveEventStream` maintains a bounded LRU-style set of event IDs (max 500) to prevent duplicate event cards.
+3. **Targeted Cache Invalidation**: SSE task transition events immediately invalidate TanStack Query keys (`['dashboard-overview']`, `['dashboard-tasks']`), triggering a focused background fetch.
+4. **Reconnection Reconciliation**: When the SSE connection is re-established, all dashboard queries are automatically refetched to synchronize any state accumulated while offline.
+
+### Consequences
+
+- Zero visual latency for task state changes.
+- Minimal bandwidth and zero unnecessary CPU spinning.
+- 100% state consistency even across network hiccups or application restarts.
+
+---
+
+## ADR-0028: Multi-Window Task Trend Derivation from Durable SQLite State Ledger
+
+### Context
+
+Operators require visibility into recent system productivity and task reliability across multiple time horizons (today, past week, past month). Computing these metrics dynamically on each request without proper indexing could cause database locking in SQLite.
+
+### Decision
+
+Implement optimized multi-window aggregation in `services/api/app/api/v1/endpoints/dashboard.py`:
+
+1. Windows:
+   - `today`: 24 hourly buckets (`HH:00`).
+   - `7d`: 7 daily buckets (`YYYY-MM-DD`).
+   - `30d`: 30 daily buckets (`YYYY-MM-DD`).
+2. Queries aggregate SQLite `tasks` filtering on `created_at` with SQLite WAL mode concurrency.
+3. Computes derived totals and `overall_success_rate = (completed / (completed + failed)) * 100`.
+4. Cached with TanStack Query stale time of 5000ms.
+
+### Consequences
+
+- Instant chart rendering with zero main-thread blocking.
+- Reliable historical performance tracking across workstation reboots.

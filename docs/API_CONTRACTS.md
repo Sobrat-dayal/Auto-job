@@ -376,3 +376,17 @@ The Tauri frontend communicates directly with the Rust native layer via `invoke(
 | `get_window_preferences`    | None                                | `DesktopSettings`                      | Retrieves persistent preferences from `%LOCALAPPDATA%\AUTONOM\config\desktop_settings.json`.                |
 | `set_window_preferences`    | `payload: UpdatePreferencesPayload` | `Result<DesktopSettings, string>`      | Updates preferences (close-to-tray, start-at-login, notifications, window bounds).                          |
 | `save_current_window_state` | None                                | `Result<(), string>`                   | Queries active window position and size, clamping coordinates and persisting to disk.                       |
+
+---
+
+## 4. Command Center Dashboard Endpoints (Stage 08)
+
+Authenticated HTTP endpoints under `/api/v1/dashboard/`:
+
+| Method | Endpoint                          | Description                                                                                                                                              |
+| :----- | :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/v1/dashboard/overview`      | Returns system status, uptime, task summaries, agent operation statuses, recruitment pipeline histogram, worker pool capacity, and pending action items. |
+| `GET`  | `/api/v1/dashboard/task-trends`   | Returns task creation, completion, and failure counts bucketed by time (`today`, `7d`, `30d`) with derived success rates.                                |
+| `GET`  | `/api/v1/dashboard/activity`      | Returns recent durable task state transition events recorded in the SQLite audit ledger.                                                                 |
+| `GET`  | `/api/v1/tasks/{task_id}/history` | Returns state transition history for a specific task.                                                                                                    |
+| `POST` | `/api/v1/tasks/{task_id}/cancel`  | Cooperatively cancels a queued or executing background task.                                                                                             |

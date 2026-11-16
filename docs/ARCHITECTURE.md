@@ -188,3 +188,14 @@ AUTONOM employs an autonomous supervision tree:
 1. **Tool-Level Failures**: Transient exceptions (e.g., HTTP 429, element momentarily detached) are handled locally by retry decorators with exponential backoff.
 2. **Step-Level Failures**: If a step fails post-action verification, the Verification Agent halts the branch and activates the **Recovery Agent**. The Recovery Agent consults past failure memory, clears corrupted session cookies, or attempts an alternative interaction modality (e.g., falling back from structural UIA to visual grounding).
 3. **Subprocess-Level Failures**: If the Python backend process terminates unexpectedly, the Tauri child process supervisor detects the loss of heartbeat, captures exit telemetry, relaunches the Python backend within 2 seconds, and restores in-flight tasks from the durable SQLite state checkpoint.
+
+---
+
+## 5. Command Center Supervision Architecture (Stage 08)
+
+The Stage 08 Command Center implements an executive supervision layer connecting the operator directly to the underlying autonomous systems:
+
+1. **Reactive Telemetry Bridge**: Server-Sent Events (`/api/v1/events/stream`) push lifecycle updates from the backend `EventBus` to the desktop client.
+2. **Client-Side Deduplication & Query Cache Reconciliation**: `useLiveEventStream` maintains an LRU-style set of event IDs to eliminate duplicate messages, triggering selective invalidation of TanStack Query keys (`['dashboard-overview']`, `['dashboard-tasks']`) for instantaneous updates without polling loops.
+3. **Data Integrity & Zero-Fake Data Enforcement**: Real counts derive from SQLite tables (`tasks`, `job_listings`, `applications`). Capabilities awaiting subsequent roadmap stages (Stage 12 Swarm, Stage 14 Approvals, Stage 26 Job Discovery, Stage 30 Resume Tailoring, Stage 31 Submissions) are strictly rendered with honest zeros and roadmap attribution badges.
+4. **Cooperative Task Control**: The Command Center enables direct cooperative task cancellation, parameter inspection, and state transition ledger examination without terminating worker threads.

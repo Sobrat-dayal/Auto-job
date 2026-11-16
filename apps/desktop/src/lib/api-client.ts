@@ -19,6 +19,12 @@ import type {
   TaskResultResponse,
   WorkerListResponse,
 } from '@autonom/shared-types';
+import type {
+  DashboardActivityEvent,
+  DashboardOverviewResponse,
+  DashboardTaskTrendsResponse,
+  TaskHistoryEvent,
+} from '@/types/dashboard';
 
 export interface ApiClientConfig {
   baseUrl: string;
@@ -213,6 +219,27 @@ export class ApiClient {
 
   async getCredentialStatus(): Promise<CredentialStatus[]> {
     return this.request<CredentialStatus[]>('/api/v1/integrations/credentials/status');
+  }
+
+  // Dashboard Aggregates (Stage 08)
+  async getDashboardOverview(): Promise<DashboardOverviewResponse> {
+    return this.request<DashboardOverviewResponse>('/api/v1/dashboard/overview');
+  }
+
+  async getDashboardTaskTrends(
+    window: 'today' | '7d' | '30d' = '7d'
+  ): Promise<DashboardTaskTrendsResponse> {
+    return this.request<DashboardTaskTrendsResponse>(
+      `/api/v1/dashboard/task-trends?window=${window}`
+    );
+  }
+
+  async getDashboardActivity(limit: number = 50): Promise<DashboardActivityEvent[]> {
+    return this.request<DashboardActivityEvent[]>(`/api/v1/dashboard/activity?limit=${limit}`);
+  }
+
+  async getTaskHistory(taskId: string): Promise<TaskHistoryEvent[]> {
+    return this.request<TaskHistoryEvent[]>(`/api/v1/tasks/${taskId}/history`);
   }
 }
 

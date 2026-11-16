@@ -534,3 +534,113 @@ Stage 07 delivers the complete Windows 11 desktop navigation architecture for AU
 - **Stage 08 Readiness**:
   - Desktop navigation, expandable/collapsible sidebar, nested menus, flyout popovers, breadcrumbs, Command Palette, and keyboard shortcuts are 100% operational, fully verified, and production-ready.
   - The project is fully prepared for **Stage 08** when requested. DO NOT proceed to Stage 08 until instructed.
+
+---
+
+## Stage 08: Complete Command Center Dashboard, Real-Time Agent Monitoring, Job Pipeline Visualization, Task Management, Live Activity, and Operational Analytics
+
+- **Date**: 2026-11-16
+- **Status**: COMPLETE
+- **Lead Roles**: Principal Frontend Architect, Senior React Engineer, Tauri Desktop Engineer, UI/UX Design Lead, Backend Integration Engineer, Real-Time Systems Engineer, QA Lead
+
+### 1. Deliverables Summary
+
+Stage 08 delivers the primary operational Command Center dashboard for AUTONOM, serving as the central supervision interface over background workers, autonomous AI agent states, recruitment pipelines, durable task queues, live telemetry, and system diagnostics:
+
+1. **Backend Dashboard Telemetry Endpoints (`services/api/app/api/v1/endpoints/dashboard.py`)**:
+   - `GET /api/v1/dashboard/overview`: Aggregates real SQLite task state counts (`tasks`), active in-memory task counts, SQLite `job_listings` counts, SQLite `applications` pipeline stages, 3 prominent agent states, worker thread pool capacity, and pending action items.
+   - `GET /api/v1/dashboard/task-trends`: Dynamic time-windowed task execution metrics (`today` in hourly buckets, `7d` in daily buckets, `30d` in daily buckets) derived from SQLite with overall success rate calculations.
+   - `GET /api/v1/dashboard/activity`: Recent durable task transition events from SQLite `task_events`.
+   - `GET /api/v1/tasks/{task_id}/history`: SQLite state transition audit ledger for the task details inspector modal.
+   - Registered under FastAPI `api_v1_router` in `services/api/app/api/v1/router.py`.
+2. **Frontend Typed Contracts & Client (`apps/desktop/src/types/dashboard.ts`, `apps/desktop/src/lib/api-client.ts`)**:
+   - Comprehensive TypeScript interfaces: `DashboardTasksSummary`, `AgentOperationStatus`, `RecruitmentSummary`, `DashboardWorkersStatus`, `DashboardOverviewResponse`, `TaskTrendDataPoint`, `DashboardTaskTrendsResponse`, `TaskHistoryEvent`.
+   - API client methods: `getDashboardOverview()`, `getDashboardTaskTrends(window)`, `getDashboardActivity(limit)`, `getTaskHistory(taskId)`.
+3. **React Query Hooks & SSE Streaming (`apps/desktop/src/hooks/use-dashboard.ts`)**:
+   - `useDashboardOverview(options)`: Automated telemetry polling with configurable intervals.
+   - `useDashboardTaskTrends(window)`: Trend data caching with window selector.
+   - `useDashboardTasks(options)`: Real-time task queue derivation.
+   - `useLiveEventStream(maxEvents)`: Server-Sent Events client connected to `/api/v1/events/stream` featuring client-side deduplication (bounded LRU 500 IDs), targeted TanStack Query invalidation on task lifecycle changes, and automatic reconnection reconciliation.
+4. **Command Center Dashboard Feature Components (`apps/desktop/src/features/dashboard/`)**:
+   - `DashboardView.tsx`: Comprehensive 7-tier operational supervisor grid assembling all sub-panels.
+   - `DashboardHeader.tsx`: System status (operational/degraded/disconnected), loopback HTTP 8765 indicator, uptime counter, active task dispatch pill, Stage 12 Swarm attribution, and sync button.
+   - `DashboardKpiGrid.tsx`: 4 primary KPI cards (Running Tasks, Queued Tasks, Jobs Discovered [Stage 26], Applications Submitted [Stage 31]) + 4 secondary supporting metrics (Completed Tasks, Failed Tasks, Pending Approvals [Stage 14], Worker Threads).
+   - `AgentOperationsPanel.tsx`: 3 prominent swarm agent status cards (Job Discovery Agent [Stage 26], Application Tailor Agent [Stage 30], Supervisor Swarm Lead [Stage 12]) + 1 real Worker Thread Pool card (Stage 03 Active).
+   - `JobDiscoveryOverview.tsx`: Real-time SQLite `job_listings` counts and honest empty state attributing autonomous scraping to Stage 26.
+   - `ApplicationPipeline.tsx`: 10-stage conceptual pipeline bar with genuine SQLite counts and honest Stage 31 automated submissions notice.
+   - `LiveTaskQueue.tsx`: Real-time task table with filter tabs (`All Tasks`, `Running`, `Queued`, `Completed`, `Failed`), progress bars, task inspector trigger, and cooperative cancellation.
+   - `TaskDetailModal.tsx`: Accessible Radix UI Dialog displaying full task UUID, handler type, duration, error details with code, output JSON, and SQLite state history ledger.
+   - `ActivityFeed.tsx`: Live SSE streaming event feed with category filters (`all`, `tasks`, `workers`, `system`), bounded buffer (100 entries), and live stream connection pill.
+   - `ProductivityChart.tsx`: Recharts dark theme task trends over Today, 7 Days, and 30 Days with success rate and total volume badges.
+   - `SystemHealthPanel.tsx`: Subsystems health breakdown (Backend API, Worker Manager, SQLite WAL, Tauri Desktop Supervisor) with quick links to diagnostics.
+   - `PendingActionsPanel.tsx`: Actionable failed tasks requiring review and advance authorization notice (Stage 14).
+   - `QuickActions.tsx`: Direct operational buttons: Dispatch Real Test Task, Job Discovery, Applications, Agents, Backend Diagnostics, Desktop Shell, Database Storage, Sync Metrics.
+5. **Shell Integration**:
+   - Updated `apps/desktop/src/pages/Overview.tsx` to render `DashboardView`.
+   - Updated `apps/desktop/src/test/setup.ts` to polyfill `EventSource` for JSDOM test environments.
+6. **Documentation & Architectural Records**:
+   - `docs/COMMAND_CENTER.md`: Comprehensive Command Center operational specification.
+   - `docs/DASHBOARD_DATA_CONTRACTS.md`: Pydantic & TypeScript schemas for `/api/v1/dashboard/*`.
+   - `docs/DASHBOARD_METRICS.md`: Definitions, calculation formulas, and time windows for all KPIs.
+   - `docs/DASHBOARD_EVENTS.md`: Real-time SSE streaming architecture, deduplication, and cache invalidation.
+   - `docs/DASHBOARD_TESTING.md`: Test plan, test suites, and verification metrics.
+   - `docs/DECISIONS.md`: Recorded ADR-0025 through ADR-0028.
+   - `docs/ROADMAP.md`: Updated Stage 08 deliverables and marked complete.
+
+### 2. Implementation Checklist
+
+- [x] Create Pydantic dashboard schemas in `services/api/app/schemas/dashboard.py`.
+- [x] Implement backend telemetry endpoints in `services/api/app/api/v1/endpoints/dashboard.py`.
+- [x] Register dashboard endpoints in `services/api/app/api/v1/router.py`.
+- [x] Author backend pytest integration tests in `services/api/tests/test_api_dashboard.py`.
+- [x] Define TypeScript contracts in `apps/desktop/src/types/dashboard.ts`.
+- [x] Implement frontend dashboard API client methods in `apps/desktop/src/lib/api-client.ts`.
+- [x] Implement TanStack Query hooks and SSE hook in `apps/desktop/src/hooks/use-dashboard.ts`.
+- [x] Implement `DashboardHeader.tsx` with live system status and manual sync.
+- [x] Implement `DashboardKpiGrid.tsx` with primary KPIs and secondary metric cards.
+- [x] Implement `AgentOperationCard.tsx` and `AgentOperationsPanel.tsx` with honest roadmap release badges.
+- [x] Implement `JobDiscoveryOverview.tsx` and `ApplicationPipeline.tsx` with genuine SQLite counts.
+- [x] Implement `TaskDetailModal.tsx` accessible inspector with SQLite state ledger.
+- [x] Implement `LiveTaskQueue.tsx` with filter tabs, progress bars, and cooperative cancellation.
+- [x] Implement `ActivityFeed.tsx` with SSE deduplication and category filters.
+- [x] Implement `ProductivityChart.tsx` with Recharts and multi-window trend selection.
+- [x] Implement `SystemHealthPanel.tsx` and `PendingActionsPanel.tsx`.
+- [x] Implement `QuickActions.tsx` with direct test task dispatcher.
+- [x] Implement `DashboardView.tsx` orchestrating all panels and integrate into `Overview.tsx`.
+- [x] Author 5 frontend unit and component test suites in `apps/desktop/src/test/dashboard/`.
+- [x] Polyfill `EventSource` in `apps/desktop/src/test/setup.ts`.
+- [x] Verify all 65 desktop tests pass (18/18 test files).
+- [x] Verify all 47 backend pytest tests pass.
+- [x] Verify zero TypeScript errors and production build succeeds (`tsc && vite build`).
+- [x] Author comprehensive documentation suite (`COMMAND_CENTER.md`, `DASHBOARD_DATA_CONTRACTS.md`, `DASHBOARD_METRICS.md`, `DASHBOARD_EVENTS.md`, `DASHBOARD_TESTING.md`).
+- [x] Record ADR-0025 through ADR-0028 in `docs/DECISIONS.md`.
+- [x] Update `docs/ROADMAP.md` marking Stage 08 complete.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Integration Pytest Suite (`services/api/.venv/Scripts/python.exe -m pytest services/api/tests`)**:
+   - `47 passed in 3.65s`:
+     - `test_api_dashboard.py`: 4 tests (unauthenticated check, authenticated overview, multi-window task trends, durable activity events).
+     - Full regression suites: storage, event streaming, task persistence, worker manager, DPAPI vault, migrations, repositories, state machine.
+2. **Frontend Vitest Test Suite (`pnpm --filter @autonom/desktop test`)**:
+   - `18 passed (18 test files) | 65 passed (65 tests) in 15.04s`:
+     - `src/test/dashboard/dashboard-kpi.test.tsx` (4 tests): Skeleton loading, primary KPIs, roadmap badges (Stage 26, Stage 31), secondary metrics, filter navigation.
+     - `src/test/dashboard/dashboard-agents.test.tsx` (3 tests): 3 swarm agent cards, unavailable badges, roadmap release tags, Worker Thread Pool card (Stage 03 Active), info callback.
+     - `src/test/dashboard/dashboard-tasks.test.tsx` (4 tests): Task queue table, tab filtering, task inspector modal, cooperative cancellation.
+     - `src/test/dashboard/dashboard-activity.test.tsx` (3 tests): Live SSE stream events, category tabs, clear stream buffer.
+     - `src/test/dashboard/dashboard-pipeline.test.tsx` (5 tests): 10-stage application pipeline, honest zero state (Stage 31 notice), Kanban navigation, Job Discovery counts (Stage 26 notice).
+     - Full regression suites: `App.test.tsx`, `sidebar.test.tsx`, `sidebar-flyout.test.tsx`, `sidebar-keyboard.test.tsx`, `sidebar-persistence.test.tsx`, `api-client.test.ts`, `DesktopDiagnostics.test.tsx`, design system component tests (`button`, `input`, `badge`, `table`, `dialog`, `theme`).
+3. **Production Build (`pnpm --filter @autonom/desktop build`)**:
+   - `tsc && vite build`: Transformed 2367 modules successfully in 6.42s with zero TypeScript compilation errors.
+4. **Data Integrity Audit**:
+   - Absolute zero-fake data policy maintained. No artificial metrics or synthetic jobs generated.
+   - All future capabilities explicitly labeled with target roadmap stages (`Stage 12`, `Stage 14`, `Stage 26`, `Stage 30`, `Stage 31`).
+
+### 4. Known Limitations & Stage 09 Hand-off
+
+- **Known Limitations**:
+  - Windows system tray icon, minimize-to-tray background execution, and native Windows Action Center notifications will be implemented in Stage 09.
+  - Multi-process health monitoring ping loop and crash resilience supervisor will be completed in Stage 10.
+- **Stage 09 Readiness**:
+  - The Command Center dashboard, real-time agent monitoring, job pipeline visualization, durable task queue, SSE streaming, and operational analytics are 100% operational, fully verified, and production-ready.
+  - The project is fully prepared for **Stage 09: System Tray, Windows Notifications & Window State Management** when requested. DO NOT proceed to Stage 09 until instructed.

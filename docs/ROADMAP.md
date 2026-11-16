@@ -114,14 +114,38 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Complete navigation test suite: 4 new test files covering sidebar rendering, flyouts, keyboard shortcuts, and state persistence (46 total desktop tests passing).
 - **Acceptance Criteria**: 100% test pass rate (13 test files / 46 tests), zero TypeScript compilation errors, smooth mode toggling, persistent user preferences, full WCAG 2.2 AA keyboard accessibility, and production build succeeded.
 
-#### Stage 08: Autonomy Governance Engine & Advance Permission Matrix
+#### Stage 08: Complete Command Center Dashboard, Real-Time Agent Monitoring, Job Pipeline Visualization, Task Management, Live Activity, and Operational Analytics
 
-- **Goal**: Autonomy policy engine enforcing advance authorization, scope-based permissions, and human-in-the-loop approval gates.
+- **Status**: Complete (Stage 08)
+- **Goal**: Build the real, integrated full-stack operational dashboard for AUTONOM to supervise autonomous agents, background task queues, recruitment pipelines, system health, and live telemetry.
 - **Key Deliverables**:
-  - Permission matrix (Finding jobs: Auto; Submitting: Advance Auth; Payments/Attestations: Manual Approval Required).
-  - Interactive approval modal in UI with action diffs and risk levels.
-  - Non-bypassable approval interceptor in agent execution loop.
-- **Acceptance Criteria**: Any action marked sensitive triggers an interactive approval request; unapproved actions are rejected and logged.
+  - Backend Telemetry Endpoints (`services/api/app/api/v1/endpoints/dashboard.py`):
+    - `GET /api/v1/dashboard/overview`: Consolidated telemetry, task state counts, SQLite job & application pipeline counts, agent operation states, worker capacity, and pending action items.
+    - `GET /api/v1/dashboard/task-trends`: Multi-window task execution aggregation (`today`, `7d`, `30d`) with overall success rates.
+    - `GET /api/v1/dashboard/activity`: Durable task transition events from SQLite `task_events`.
+    - `GET /api/v1/tasks/{task_id}/history`: SQLite state transition audit ledger for inspect modal.
+  - Frontend Typed Contracts & Client (`apps/desktop/src/types/dashboard.ts`, `apps/desktop/src/lib/api-client.ts`).
+  - React Query Hooks & SSE Stream (`apps/desktop/src/hooks/use-dashboard.ts`): Bounded client-side deduplication (500 event IDs), automatic cache invalidation, and reconnection recovery.
+  - 13 Dashboard Components (`apps/desktop/src/features/dashboard/`):
+    - `DashboardView`: Comprehensive 7-tier operational supervisor grid.
+    - `DashboardHeader`: Loopback HTTP 8765 badge, uptime counter, global dispatch pill, Stage 08 release tag.
+    - `DashboardKpiGrid`: 4 primary KPI cards + 4 secondary supporting metrics with filter navigation.
+    - `AgentOperationsPanel`: 3 prominent swarm agent status cards (Stage 26, Stage 30, Stage 12) + 1 real Worker Thread Pool card (Stage 03 Active).
+    - `JobDiscoveryOverview`: Real-time SQLite `job_listings` counts and Stage 26 scraper notice.
+    - `ApplicationPipeline`: 10-stage application lifecycle bar and Stage 31 automated submissions notice.
+    - `LiveTaskQueue`: Filter tabs, progress bars, inspect dialog trigger, cooperative cancellation.
+    - `TaskDetailModal`: Accessible Radix Dialog showing UUID, durations, error details, output JSON, state history ledger.
+    - `ActivityFeed`: Live SSE activity feed with category filters, memory bounds, stream health pill.
+    - `ProductivityChart`: Recharts dark theme task trends over Today, 7 Days, 30 Days.
+    - `SystemHealthPanel`: Subsystem breakdown (Backend API, Worker Manager, SQLite WAL, Tauri Desktop).
+    - `PendingActionsPanel`: Actionable failed task reviews and Stage 14 authorization notice.
+    - `QuickActions`: Direct test task dispatcher and one-click navigation shortcuts.
+  - Integration into `Overview.tsx` and desktop routing.
+  - Automated Test Suites:
+    - 5 frontend dashboard test suites in `apps/desktop/src/test/dashboard/` (19 tests).
+    - Full desktop test suite passed: 18 test files, 65 tests passing.
+    - Backend dashboard integration tests passed: 47 pytest tests passing.
+- **Acceptance Criteria**: 100% test pass rate, zero TypeScript errors (`tsc && vite build`), strict zero-fake data integrity, honest roadmap release attribution, and full desktop integration.
 
 #### Stage 09: System Tray, Windows Notifications & Window State Management
 
