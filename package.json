@@ -1,0 +1,23 @@
+{
+  "name": "autonom-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AUTONOM — Multi-Agent Windows 11 Desktop Application",
+  "scripts": {
+    "dev": "pnpm --filter @autonom/desktop dev",
+    "dev:desktop": "pnpm --filter @autonom/desktop tauri dev",
+    "dev:backend": "python -m uvicorn app.main:app --app-dir services/api --host 127.0.0.1 --port 8765 --reload",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:frontend": "pnpm --filter @autonom/desktop test",
+    "test:backend": "python -m pytest services/api/tests",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md,yml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

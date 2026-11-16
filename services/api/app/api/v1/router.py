@@ -1,0 +1,24 @@
+"""API v1 router definition aggregating all versioned endpoints."""
+
+from fastapi import APIRouter
+
+from app.api.v1.endpoints.events import router as events_router
+from app.api.v1.endpoints.health import router as health_router
+from app.api.v1.endpoints.ready import router as ready_router
+from app.api.v1.endpoints.system import router as system_router
+from app.api.v1.endpoints.tasks import router as tasks_router
+from app.api.v1.endpoints.version import router as version_router
+from app.api.v1.endpoints.workers import router as workers_router
+
+api_v1_router = APIRouter(prefix="/api/v1")
+
+# System probes (unauthenticated)
+api_v1_router.include_router(health_router)
+api_v1_router.include_router(ready_router)
+api_v1_router.include_router(version_router)
+
+# Operational endpoints (authenticated)
+api_v1_router.include_router(tasks_router)
+api_v1_router.include_router(workers_router)
+api_v1_router.include_router(system_router)
+api_v1_router.include_router(events_router)
