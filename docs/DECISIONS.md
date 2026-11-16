@@ -346,3 +346,89 @@ AUTONOM operates as an ambient autonomous assistant that runs in the background.
 
 - Professional Windows 11 application ergonomics.
 - Eliminates multi-instance database locking collisions and off-screen window bugs.
+
+---
+
+## ADR-0017: Dark High-Density Windows 11 Design System with Restrained Blue/Cyan Accents
+
+### Context
+
+AUTONOM is an autonomous agent supervisory workstation rather than a consumer web app or marketing portal. It requires an information-dense interface that reduces operator cognitive fatigue during prolonged oversight sessions. Prior consumer design tropes (such as saturated neon glows, purple/gold gradients, oversized rounded pills, and marketing hero banners) distract operators and diminish information density.
+
+### Decision
+
+Establish a disciplined dark dashboard design language inspired by modern Windows 11 system utilities, developer workstations, and financial terminals:
+
+1. Base canvas `#0B1220`, secondary surface `#121E30`, elevated containers `#1B2B42`, and border boundaries `#2A3A52`.
+2. Restrained semantic accents: primary action blue `#338BDF` and electric cyan `#51C8E8`.
+3. Typography scale built on Segoe UI Variable, with tabular figures (`tnum`) for real-time counters and dedicated technical monospace for hashes, process IDs, and addresses.
+4. Total elimination of consumer marketing cards, decorative pill buttons, and saturated neon gradients.
+
+### Consequences
+
+- Clear visual hierarchy and high information throughput for multi-agent supervisory operations.
+- Professional, restrained desktop aesthetic consistent with Windows 11.
+
+---
+
+## ADR-0018: Radix UI Primitives with Class Variance Authority (CVA) for Component Architecture
+
+### Context
+
+Building a component library for an autonomous desktop workstation requires strict accessibility (WCAG 2.2 AA), reliable keyboard navigation, predictable variant management, and zero runtime CSS overhead.
+
+### Decision
+
+Construct the AUTONOM React component library on unstyled `@radix-ui/react-*` accessible primitives combined with `class-variance-authority` (CVA) and Tailwind CSS:
+
+1. Radix UI provides headless, battle-tested accessibility foundations (focus trapping, focus restoration, ARIA attributes, escape-key handling, arrow navigation).
+2. CVA provides type-safe prop-to-class variant mappings (`variant`, `size`, `hasError`, `isLoading`).
+3. Standardized component directory structure under `components/ui/`, `components/layout/`, `components/data-display/`, `components/charts/`, and `components/feedback/`.
+
+### Consequences
+
+- 100% WCAG 2.2 AA compliant components out-of-the-box.
+- Type-safe variant APIs across all interactive controls.
+- Consistent styling without CSS-in-JS runtime overhead.
+
+---
+
+## ADR-0019: TanStack Table v8 for High-Performance Desktop Operational Grids
+
+### Context
+
+Autonomous agent workflows produce high volumes of tabular data (scouted jobs, match scores, execution logs, backup manifests, system events). The frontend requires a fast, customizable data grid supporting client-side filtering, multi-column sorting, and virtualization without opinionated styling constraints.
+
+### Decision
+
+Adopt TanStack Table v8 (`@tanstack/react-table@8.20.6`) for all operational tables:
+
+1. Headless architecture provides total control over DOM structure, density scaling, and dark theme classes.
+2. Built-in global search filtering and multi-column sorting.
+3. Pagination controls integrated with accessible ARIA navigation buttons.
+
+### Consequences
+
+- High throughput rendering of streaming agent tables.
+- Zero layout jank when switching between comfortable and compact densities.
+
+---
+
+## ADR-0020: Dual-Density System (Comfortable vs. Compact) with Local Persistence
+
+### Context
+
+Operators supervise AUTONOM on varying display configurations: standard laptop screens (1080p, 125% DPI) require comfortable touch/click targets, whereas high-resolution multi-monitor setups (4K, 100% DPI, ultrawide) demand compact information-dense grids to maximize simultaneous agent visibility.
+
+### Decision
+
+Implement a dynamic density system driven by `data-density="comfortable"` and `data-density="compact"` attributes on `<html>`:
+
+1. Density alters CSS custom properties (`--density-input-height`, `--density-card-padding`, `--density-table-row-height`).
+2. `ThemeProvider` exposes `useDensity()` and `toggleDensity()` with instant persistence to `localStorage.getItem('autonom_density')`.
+3. Quick-toggle pill button integrated into the global desktop header.
+
+### Consequences
+
+- Seamless transition between comfortable laptop mode and compact multi-agent workstation mode.
+- User preference persists across application restarts.

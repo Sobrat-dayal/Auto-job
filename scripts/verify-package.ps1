@@ -1,4 +1,4 @@
-﻿# AUTONOM — Package Verification Script
+# AUTONOM — Package Verification Script
 # Verifies frontend dist, backend sidecar binary, native desktop binary, and sidecar execution.
 
 $ErrorActionPreference = "Stop"

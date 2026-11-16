@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Database,
   HardDrive,
-  CheckCircle2,
   AlertTriangle,
   RefreshCw,
   Archive,
@@ -19,6 +18,19 @@ import type {
   StorageStatus,
 } from '@autonom/shared-types';
 import { apiClient } from '@/lib/api-client';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { SectionHeader } from '@/components/layout/SectionHeader';
+import { MetricCard } from '@/components/data-display/MetricCard';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export const Storage: React.FC = () => {
   const [status, setStatus] = useState<StorageStatus | null>(null);
@@ -92,49 +104,49 @@ export const Storage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto overflow-y-auto">
-      {/* Header Banner */}
-      <div className="border-b border-border pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
-            <span>Storage & Database Diagnostics</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary-light border border-primary/30 font-mono font-normal">
-              Stage 04 Active
-            </span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            SQLite WAL persistence, Windows DPAPI credential protection, online snapshots, and
-            verified restoration.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start md:self-auto">
-          <button
+    <PageContainer
+      title="Storage & Database Diagnostics"
+      subtitle="SQLite WAL persistence, Windows DPAPI credential protection, online snapshots, and verified restoration"
+      badge={
+        <Badge variant="primary" dot>
+          Stage 04 Active
+        </Badge>
+      }
+      actions={
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleCreateBackup}
             disabled={isBackingUp}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors disabled:opacity-50"
+            isLoading={isBackingUp}
+            loadingText="Backing Up..."
           >
-            <Archive className={`w-3.5 h-3.5 ${isBackingUp ? 'animate-bounce' : ''}`} />
-            <span>{isBackingUp ? 'Backing Up...' : 'Create Backup'}</span>
-          </button>
+            <Archive className="w-3.5 h-3.5 mr-1.5" />
+            Create Backup
+          </Button>
 
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={fetchStorageData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-elevated hover:bg-slate-700 text-slate-200 text-xs font-medium border border-border transition-colors disabled:opacity-50"
+            isLoading={isLoading}
+            loadingText="Refreshing..."
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-cyan' : ''}`} />
-            <span>Refresh</span>
-          </button>
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            Refresh
+          </Button>
         </div>
-      </div>
-
+      }
+    >
       {actionMessage && (
-        <div className="p-3 rounded bg-surface-elevated border border-primary/30 text-xs font-mono text-cyan flex items-center justify-between">
+        <div className="p-3 rounded-lg bg-surface border border-primary/40 text-xs font-mono-tech text-cyan flex items-center justify-between">
           <span>{actionMessage}</span>
           <button
             onClick={() => setActionMessage(null)}
-            className="text-slate-400 hover:text-white"
+            className="text-foreground-muted hover:text-foreground p-1"
+            aria-label="Dismiss message"
           >
             ✕
           </button>
@@ -142,115 +154,92 @@ export const Storage: React.FC = () => {
       )}
 
       {/* Storage Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-lg bg-surface border border-border">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Database className="w-4 h-4 text-primary-light" />
-            Database File
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold font-mono text-slate-100">
-              {formatBytes(status?.database_size_bytes ?? 0)}
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-1">
-            WAL: {formatBytes(status?.wal_size_bytes ?? 0)}
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+        <MetricCard
+          title="Database File"
+          value={formatBytes(status?.database_size_bytes ?? 0)}
+          subtitle={`WAL: ${formatBytes(status?.wal_size_bytes ?? 0)}`}
+          icon={<Database className="w-4 h-4" />}
+          variant="primary"
+        />
 
-        <div className="p-4 rounded-lg bg-surface border border-border">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <FolderArchive className="w-4 h-4 text-cyan" />
-            Artifacts Vault
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold font-mono text-slate-100">
-              {formatBytes(status?.artifacts_size_bytes ?? 0)}
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-1">Resumes, PDFs & documents</div>
-        </div>
+        <MetricCard
+          title="Artifacts Vault"
+          value={formatBytes(status?.artifacts_size_bytes ?? 0)}
+          subtitle="Resumes, PDFs & documents"
+          icon={<FolderArchive className="w-4 h-4" />}
+          variant="cyan"
+        />
 
-        <div className="p-4 rounded-lg bg-surface border border-border">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Archive className="w-4 h-4 text-emerald-400" />
-            Backup Snapshots
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold font-mono text-slate-100">
-              {status?.total_backups_count ?? 0}
-            </span>
-            <span className="text-xs text-slate-400 font-mono">retained</span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-1">
-            Size: {formatBytes(status?.backups_size_bytes ?? 0)}
-          </div>
-        </div>
+        <MetricCard
+          title="Backup Snapshots"
+          value={status?.total_backups_count ?? 0}
+          subtitle={`Total: ${formatBytes(status?.backups_size_bytes ?? 0)}`}
+          icon={<Archive className="w-4 h-4" />}
+          variant="success"
+        />
 
-        <div className="p-4 rounded-lg bg-surface border border-border">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <HardDrive className="w-4 h-4 text-amber-400" />
-            Free Disk Space
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold font-mono text-slate-100">
-              {formatBytes(status?.disk_free_bytes ?? 0)}
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-1">
-            of {formatBytes(status?.disk_total_bytes ?? 0)}
-          </div>
-        </div>
+        <MetricCard
+          title="Free Disk Space"
+          value={formatBytes(status?.disk_free_bytes ?? 0)}
+          subtitle={`of ${formatBytes(status?.disk_total_bytes ?? 0)}`}
+          icon={<HardDrive className="w-4 h-4" />}
+          variant="default"
+        />
       </div>
 
-      {/* Integrity & Encryption Badges */}
+      {/* Integrity & Encryption Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
-          <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <FileCheck className="w-4 h-4 text-emerald-400" />
-            SQLite Database Integrity
-          </span>
-          <div className="space-y-2 text-xs font-mono">
-            <div className="flex justify-between items-center p-2 rounded bg-surface-elevated">
-              <span className="text-slate-400">PRAGMA integrity_check:</span>
+          <SectionHeader
+            title="SQLite Database Integrity"
+            subtitle="Verified via PRAGMA runtime probes"
+            icon={<FileCheck className="w-4 h-4 text-status-success" />}
+          />
+          <div className="space-y-2 text-xs font-mono-tech">
+            <div className="flex justify-between items-center p-2.5 rounded bg-surface-elevated border border-border/40">
+              <span className="text-foreground-secondary">PRAGMA integrity_check:</span>
               {health?.integrity_check_passed ? (
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> PASSED
-                </span>
+                <Badge variant="success" dot>
+                  PASSED
+                </Badge>
               ) : (
-                <span className="text-rose-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" /> FAILED
-                </span>
+                <Badge variant="error" dot>
+                  FAILED
+                </Badge>
               )}
             </div>
-            <div className="flex justify-between items-center p-2 rounded bg-surface-elevated">
-              <span className="text-slate-400">PRAGMA foreign_key_check:</span>
+            <div className="flex justify-between items-center p-2.5 rounded bg-surface-elevated border border-border/40">
+              <span className="text-foreground-secondary">PRAGMA foreign_key_check:</span>
               {health?.foreign_keys_passed ? (
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> ENFORCED (0 Violations)
-                </span>
+                <Badge variant="success" dot>
+                  ENFORCED (0 Violations)
+                </Badge>
               ) : (
-                <span className="text-rose-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" /> VIOLATIONS DETECTED
-                </span>
+                <Badge variant="error" dot>
+                  VIOLATIONS DETECTED
+                </Badge>
               )}
             </div>
           </div>
         </div>
 
         <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
-          <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <Shield className="w-4 h-4 text-primary-light" />
-            Cryptographic Vault & Protection
-          </span>
-          <div className="space-y-2 text-xs font-mono">
-            <div className="flex justify-between items-center p-2 rounded bg-surface-elevated">
-              <span className="text-slate-400">Key Protection:</span>
-              <span className="text-emerald-400">Windows DPAPI (CryptProtectData)</span>
+          <SectionHeader
+            title="Cryptographic Vault & Protection"
+            subtitle="Hardware-backed OS keystore binding"
+            icon={<Shield className="w-4 h-4 text-primary" />}
+          />
+          <div className="space-y-2 text-xs font-mono-tech">
+            <div className="flex justify-between items-center p-2.5 rounded bg-surface-elevated border border-border/40">
+              <span className="text-foreground-secondary">Key Protection:</span>
+              <span className="text-status-success font-semibold">
+                Windows DPAPI (CryptProtectData)
+              </span>
             </div>
-            <div className="flex justify-between items-center p-2 rounded bg-surface-elevated">
-              <span className="text-slate-400">Field Encryption:</span>
-              <span className="text-cyan">AES-256-GCM Authenticated</span>
+            <div className="flex justify-between items-center p-2.5 rounded bg-surface-elevated border border-border/40">
+              <span className="text-foreground-secondary">Field Encryption:</span>
+              <span className="text-cyan font-semibold">AES-256-GCM Authenticated</span>
             </div>
           </div>
         </div>
@@ -258,21 +247,22 @@ export const Storage: React.FC = () => {
 
       {/* Online Backups Table */}
       <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
-        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-          <Archive className="w-4 h-4 text-emerald-400" />
-          Available Backups ({backups.length})
-        </span>
+        <SectionHeader
+          title={`Available Backups (${backups.length})`}
+          subtitle="Point-in-time snapshots with SHA256 integrity digests"
+          icon={<Archive className="w-4 h-4 text-cyan" />}
+        />
 
-        <div className="overflow-x-auto max-h-56 overflow-y-auto font-mono text-xs border border-border rounded bg-surface-elevated">
+        <div className="overflow-x-auto max-h-56 overflow-y-auto font-mono-tech text-xs border border-border rounded-md bg-surface-elevated">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border bg-slate-800/50 text-slate-400 text-[11px]">
-                <th className="p-2">Filename</th>
-                <th className="p-2">Timestamp</th>
-                <th className="p-2">Size</th>
-                <th className="p-2">SHA256 Checksum</th>
-                <th className="p-2">Integrity</th>
-                <th className="p-2 text-right">Actions</th>
+              <tr className="border-b border-border bg-surface-secondary/60 text-foreground-muted text-[11px]">
+                <th className="p-2.5">Filename</th>
+                <th className="p-2.5">Timestamp</th>
+                <th className="p-2.5">Size</th>
+                <th className="p-2.5">SHA256 Checksum</th>
+                <th className="p-2.5">Integrity</th>
+                <th className="p-2.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -280,36 +270,43 @@ export const Storage: React.FC = () => {
                 backups.map((b) => (
                   <tr
                     key={b.backup_id}
-                    className="border-b border-border/50 hover:bg-slate-800/30 text-[11px]"
+                    className="border-b border-border/40 hover:bg-surface-hover text-[11px] transition-colors"
                   >
-                    <td className="p-2 text-slate-200 whitespace-nowrap">{b.filename}</td>
-                    <td className="p-2 text-slate-400 whitespace-nowrap">
+                    <td className="p-2.5 text-foreground font-semibold whitespace-nowrap">
+                      {b.filename}
+                    </td>
+                    <td className="p-2.5 text-foreground-muted whitespace-nowrap">
                       {new Date(b.created_at).toLocaleString()}
                     </td>
-                    <td className="p-2 text-slate-300 whitespace-nowrap">
+                    <td className="p-2.5 text-foreground-secondary whitespace-nowrap">
                       {formatBytes(b.file_size_bytes)}
                     </td>
-                    <td className="p-2 text-slate-400 font-mono text-[10px] truncate max-w-xs">
+                    <td className="p-2.5 text-foreground-muted font-mono-tech text-[10px] truncate max-w-xs">
                       {b.sha256_checksum.slice(0, 16)}...
                     </td>
-                    <td className="p-2 whitespace-nowrap">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <td className="p-2.5 whitespace-nowrap">
+                      <Badge
+                        variant={b.integrity_check_passed ? 'success' : 'error'}
+                        className="text-[10px] py-0 px-1.5"
+                      >
                         {b.integrity_check_passed ? 'VERIFIED' : 'FAILED'}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="p-2 text-right whitespace-nowrap">
-                      <button
+                    <td className="p-2.5 text-right whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => setRestoreConfirmFile(b.filename)}
-                        className="px-2 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-medium"
+                        className="text-[11px] h-6 px-2 text-status-warning border-status-warning/40 hover:bg-status-warning/15"
                       >
                         Restore
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-slate-500 text-xs">
+                  <td colSpan={6} className="p-4 text-center text-foreground-muted text-xs">
                     No database backups found. Click &quot;Create Backup&quot; to generate an
                     on-demand snapshot.
                   </td>
@@ -321,52 +318,50 @@ export const Storage: React.FC = () => {
       </div>
 
       {/* Restore Confirmation Dialog Modal */}
-      {restoreConfirmFile && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-surface border border-rose-500/40 rounded-lg p-5 max-w-md w-full space-y-4">
-            <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+      <Dialog
+        open={Boolean(restoreConfirmFile)}
+        onOpenChange={(open) => !open && setRestoreConfirmFile(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-status-error">
               <AlertTriangle className="w-5 h-5" />
-              <span>Confirm Database Restoration</span>
-            </div>
-            <p className="text-xs text-slate-300">
-              Restoring from <strong className="text-white">{restoreConfirmFile}</strong> will
+              Confirm Database Restoration
+            </DialogTitle>
+            <DialogDescription>
+              Restoring from <strong className="text-foreground">{restoreConfirmFile}</strong> will
               replace the active database. A pre-restore safety snapshot will be taken automatically
               before replacing data.
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setRestoreConfirmFile(null)}
-                className="px-3 py-1.5 rounded bg-surface-elevated text-slate-300 text-xs border border-border"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmRestore}
-                className="px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center gap-1.5"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Authorize & Restore</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setRestoreConfirmFile(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleConfirmRestore}>
+              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+              Authorize & Restore
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Credential Status Summary Table */}
       <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
-        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-          <Key className="w-4 h-4 text-primary-light" />
-          Configured Integration Credentials ({credentials.length})
-        </span>
+        <SectionHeader
+          title={`Configured Integration Credentials (${credentials.length})`}
+          subtitle="Protected at rest using Windows Data Protection API (DPAPI)"
+          icon={<Key className="w-4 h-4 text-primary" />}
+        />
 
-        <div className="overflow-x-auto max-h-48 overflow-y-auto font-mono text-xs border border-border rounded bg-surface-elevated">
+        <div className="overflow-x-auto max-h-48 overflow-y-auto font-mono-tech text-xs border border-border rounded-md bg-surface-elevated">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border bg-slate-800/50 text-slate-400 text-[11px]">
-                <th className="p-2">Provider</th>
-                <th className="p-2">Type</th>
-                <th className="p-2">Security Status</th>
-                <th className="p-2">Storage Layer</th>
+              <tr className="border-b border-border bg-surface-secondary/60 text-foreground-muted text-[11px]">
+                <th className="p-2.5">Provider</th>
+                <th className="p-2.5">Type</th>
+                <th className="p-2.5">Security Status</th>
+                <th className="p-2.5">Storage Layer</th>
               </tr>
             </thead>
             <tbody>
@@ -374,21 +369,21 @@ export const Storage: React.FC = () => {
                 credentials.map((c) => (
                   <tr
                     key={c.provider}
-                    className="border-b border-border/50 hover:bg-slate-800/30 text-[11px]"
+                    className="border-b border-border/40 hover:bg-surface-hover text-[11px] transition-colors"
                   >
-                    <td className="p-2 text-slate-200 font-semibold">{c.provider}</td>
-                    <td className="p-2 text-slate-400">{c.credential_type}</td>
-                    <td className="p-2 text-emerald-400">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20">
+                    <td className="p-2.5 text-foreground font-semibold">{c.provider}</td>
+                    <td className="p-2.5 text-foreground-secondary">{c.credential_type}</td>
+                    <td className="p-2.5">
+                      <Badge variant="success" className="text-[10px] py-0 px-1.5 font-mono-tech">
                         {c.status.toUpperCase()}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="p-2 text-slate-400">Windows DPAPI Encrypted</td>
+                    <td className="p-2.5 text-foreground-muted">Windows DPAPI Encrypted</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="p-4 text-center text-slate-500 text-xs">
+                  <td colSpan={4} className="p-4 text-center text-foreground-muted text-xs">
                     No third-party credentials configured yet. Secrets stored here are protected
                     with Windows DPAPI.
                   </td>
@@ -398,6 +393,6 @@ export const Storage: React.FC = () => {
           </table>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };

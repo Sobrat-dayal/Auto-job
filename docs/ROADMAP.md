@@ -78,14 +78,22 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Automated packaging and verification pipeline (`package-backend.ps1`, `package-desktop.ps1`, `verify-package.ps1`, `verify_stage05_live.py`).
 - **Acceptance Criteria**: Desktop executable launches and starts backend automatically, readiness confirmed on `/api/v1/ready`, single-instance brings window to focus, abnormal process kill triggers bounded restart with task reconciliation, all 20 live verification gates pass.
 
-#### Stage 06: Event Bus, Asynchronous Task Queue & Background Worker Architecture
+#### Stage 06: Complete UI/UX Design System, React Component Library, Design Tokens, Accessibility, and Desktop Layout Foundations (Completed)
 
-- **Goal**: Create an in-process asynchronous task queue and real-time WebSocket/SSE event bus for dispatching agent operations and streaming UI updates.
+- **Status**: COMPLETE (2026-11-16)
+- **Goal**: Implement Phase 2 frontend design foundations, centralized design tokens, disciplined dark Windows dashboard aesthetic, full React component library (`@radix-ui/react-*` + CVA + Tailwind), responsive desktop layout primitives, operational data displays, dark charts, dynamic density modes (`comfortable` vs `compact`), WCAG 2.2 AA accessibility, and interactive component showcase.
 - **Key Deliverables**:
-  - Asynchronous worker queue with priority scheduling and task cancellation.
-  - WebSocket event streaming server in FastAPI.
-  - Frontend event subscriber hook with automatic reconnection.
-- **Acceptance Criteria**: Background tasks dispatch asynchronously without blocking the event loop; UI updates in real time with sub-50ms latency.
+  - Centralized design token system (`tokens.css`, `typography.css`, `tailwind.config.js`).
+  - Dark Windows 11 high-density dashboard palette (`#0B1220`, `#0F1828`, `#121E30`, `#1B2B42`, `#338BDF`, `#51C8E8`).
+  - Accessible React component library: Button, Input, Textarea, Checkbox, Switch, Select, Badge, Progress, Skeleton, Separator, Tooltip, Dialog, DropdownMenu, Tabs.
+  - Desktop layout primitives: `PageContainer`, `SectionHeader`, `SplitPanel`.
+  - Structured operational displays: `MetricCard`, `StatusCard`, `EmptyState`, `DataTable` (TanStack Table v8).
+  - Dark analytics charts: `LineChart`, `BarChart`, `DonutChart` (Recharts).
+  - Feedback primitives: `ErrorState`, `LoadingState`, `Toast` + `useToast()`.
+  - Dynamic density modes (`comfortable` vs `compact`) with `ThemeContext` and `localStorage` persistence.
+  - Interactive Design System showcase (`DesignSystemShowcase.tsx`) with 20 aspect fixtures.
+  - Complete migration of all existing screens (`Overview`, `Diagnostics`, `Storage`, `DesktopDiagnostics`, `Header`, `Sidebar`).
+- **Acceptance Criteria**: All 9 test files / 30 tests pass, clean TypeScript compilation, WCAG 2.2 AA contrast and keyboard accessibility verified, zero breaking changes to existing backend sidecar, SSE, or storage workflows.
 
 #### Stage 07: Configuration Management & System Telemetry Diagnostic System
 

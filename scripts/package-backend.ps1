@@ -1,4 +1,4 @@
-﻿# AUTONOM — Backend Sidecar Packaging Script
+# AUTONOM — Backend Sidecar Packaging Script
 # Compiles Python FastAPI backend into a standalone Windows executable for Tauri 2 sidecar bundling.
 
 $ErrorActionPreference = "Stop"

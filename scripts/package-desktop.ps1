@@ -1,4 +1,4 @@
-﻿# AUTONOM — Desktop Packaging Pipeline
+# AUTONOM — Desktop Packaging Pipeline
 # Builds the frontend, packages the Python backend sidecar, and builds the native Tauri 2 desktop binary.
 
 $ErrorActionPreference = "Stop"

@@ -38,6 +38,11 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [System Tray & Toast Notifications](file:///e:/proooo/AUTO%20JOB/docs/TRAY_AND_NOTIFICATIONS.md)
 - [Packaging & Binary Distribution](file:///e:/proooo/AUTO%20JOB/docs/PACKAGING.md)
 - [Desktop Security & Local Isolation](file:///e:/proooo/AUTO%20JOB/docs/DESKTOP_SECURITY.md)
+- [Design System Specification](file:///e:/proooo/AUTO%20JOB/docs/DESIGN_SYSTEM.md)
+- [Component Library Reference](file:///e:/proooo/AUTO%20JOB/docs/COMPONENT_LIBRARY.md)
+- [Accessibility & WCAG 2.2 Compliance](file:///e:/proooo/AUTO%20JOB/docs/ACCESSIBILITY.md)
+- [UI Design Tokens Reference](file:///e:/proooo/AUTO%20JOB/docs/UI_TOKENS.md)
+- [Frontend Layout Architecture](file:///e:/proooo/AUTO%20JOB/docs/FRONTEND_LAYOUTS.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup
