@@ -365,13 +365,14 @@ Every event sent across `/ws/events` adheres to the following envelope:
 
 The Tauri frontend communicates directly with the Rust native layer via `invoke()`:
 
-| Command                 | Arguments                | Return Type           | Description                                                                           |
-| :---------------------- | :----------------------- | :-------------------- | :------------------------------------------------------------------------------------ |
-| `get_app_info`          | None                     | `AppInfo`             | Returns validated application name, version, Tauri version, OS, and CPU architecture. |
-| `get_backend_status`    | None                     | `BackendInfo`         | Checks if child Python process is alive and returns PID.                              |
-| `restart_backend`       | None                     | `bool`                | Restarts the child Python backend process.                                            |
-| `capture_screen`        | `monitor_index?: number` | `ScreenCaptureResult` | Native high-speed screen capture returning base64/buffer.                             |
-| `inject_mouse_event`    | `MouseEventPayload`      | `void`                | Native `SendInput` mouse movement/click injection.                                    |
-| `inject_keyboard_event` | `KeyboardEventPayload`   | `void`                | Native `SendInput` keystroke injection.                                               |
-| `get_system_displays`   | None                     | `DisplayInfo[]`       | Returns connected display resolutions and DPI scales.                                 |
-| `show_notification`     | `NotificationPayload`    | `void`                | Triggers Windows 11 Action Center toast notification.                                 |
+| Command                     | Arguments                           | Return Type                            | Description                                                                                                 |
+| :-------------------------- | :---------------------------------- | :------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| `get_app_info`              | None                                | `AppInfo`                              | Returns validated application name, version, Tauri version, OS, and CPU architecture.                       |
+| `get_desktop_status`        | None                                | `DesktopStatus`                        | Returns application metadata, active task counter, and current desktop settings.                            |
+| `open_artifact_location`    | `relative_or_absolute: string`      | `Result<bool, string>`                 | Opens an application folder in Windows Explorer with directory traversal protection.                        |
+| `test_notification`         | `title?: string, body?: string`     | `Result<bool, string>`                 | Dispatches native Windows 11 Action Center toast notification via `tauri-plugin-notification`.              |
+| `get_backend_status`        | None                                | `BackendProcessStatus`                 | Queries supervisor state machine (`Ready`, `Restarting`, etc.), PID, port, uptime, and crash restart count. |
+| `restart_backend`           | None                                | `Result<BackendProcessStatus, string>` | Triggers supervisor child process termination, backoff reset, and fresh spawn.                              |
+| `get_window_preferences`    | None                                | `DesktopSettings`                      | Retrieves persistent preferences from `%LOCALAPPDATA%\AUTONOM\config\desktop_settings.json`.                |
+| `set_window_preferences`    | `payload: UpdatePreferencesPayload` | `Result<DesktopSettings, string>`      | Updates preferences (close-to-tray, start-at-login, notifications, window bounds).                          |
+| `save_current_window_state` | None                                | `Result<(), string>`                   | Queries active window position and size, clamping coordinates and persisting to disk.                       |

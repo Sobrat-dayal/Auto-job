@@ -284,3 +284,70 @@ This document records the chronological development, verification, test outcomes
 - **Stage 05 Readiness**:
   - Persistent database architecture, secure storage, migrations, and disaster recovery are fully operational.
   - The project is fully prepared to proceed to **Stage 05** when requested.
+
+---
+
+## Stage 05: Windows Desktop Shell, Native Integration, Backend Sidecar, Process Supervision, Crash Recovery, and Application Lifecycle
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-16T15:15:00Z
+- **Completed**: 2026-11-16T15:45:00Z
+
+### 1. Objectives & Scope
+
+1. Establish self-contained Windows 11 desktop application harness powered by Tauri 2 (Rust) and React/TypeScript.
+2. Implement native window lifecycle, DPI scaling, and multi-monitor safe coordinate persistence at `%LOCALAPPDATA%\AUTONOM\config\desktop_settings.json`.
+3. Implement single-instance application enforcement via `tauri-plugin-single-instance`, focusing existing window on secondary launch.
+4. Implement system tray icon with context menus (Open, Hide/Show, Dynamic Status, Tasks, Restart, Exit) and left-click toggling.
+5. Implement native Windows Action Center notifications via `tauri-plugin-notification` with quiet mode preference toggles.
+6. Implement kernel-enforced process containment using Win32 Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, guaranteeing zero orphaned Python/browser processes on exit or crash.
+7. Package Python FastAPI backend sidecar into standalone executable (`autonom-api-x86_64-pc-windows-msvc.exe`) via PyInstaller.
+8. Implement `BackendSupervisor` state machine (`Stopped`, `Starting`, `Connecting`, `Ready`, `Degraded`, `Restarting`, `Failed`, `Stopping`) with readiness polling at `/api/v1/ready` and bounded exponential backoff crash recovery (max 5 restarts).
+9. Integrate task state reconciliation leveraging Stage 04 SQLite persistence across backend restarts.
+10. Build interactive **Desktop Shell & Process Supervision** diagnostics dashboard (`DesktopDiagnostics.tsx`) in React.
+11. Author comprehensive packaging scripts (`package-backend.ps1`, `package-desktop.ps1`, `verify-package.ps1`) and live verification test suite (`scripts/verify_stage05_live.py`).
+
+### 2. Implementation Checklist
+
+- [x] Configure Tauri 2 desktop harness with plugins (`single-instance`, `notification`, `shell`, `autostart`) and capabilities in `apps/desktop/src-tauri/`.
+- [x] Configure workspace cargo target directory redirection to prevent spaces in paths with GNU windres (`.cargo/config.toml`).
+- [x] Implement Win32 Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` in `apps/desktop/src-tauri/src/processes/job_object.rs`.
+- [x] Implement sidecar resolution hierarchy (packaged binary vs development virtualenv fallback) in `apps/desktop/src-tauri/src/processes/sidecar.rs`.
+- [x] Implement `BackendSupervisor` state machine and background exit monitor with bounded backoff in `apps/desktop/src-tauri/src/processes/supervisor.rs`.
+- [x] Implement System Tray icon and context menu dispatch in `apps/desktop/src-tauri/src/tray/`.
+- [x] Implement native notification service in `apps/desktop/src-tauri/src/notifications/`.
+- [x] Implement desktop settings and window geometry persistence in `apps/desktop/src-tauri/src/state/`.
+- [x] Implement Tauri command bridges (`get_app_info`, `get_desktop_status`, `open_artifact_location`, `test_notification`, `get_backend_status`, `restart_backend`, `get_window_preferences`, `set_window_preferences`, `save_current_window_state`).
+- [x] Add standalone backend entry point CLI in `services/api/app/server_entry.py`.
+- [x] Package Python backend into frozen single-file binary with PyInstaller in `scripts/package-backend.ps1`.
+- [x] Extend `@autonom/shared-types` with `AppInfo`, `DesktopStatus`, `BackendProcessStatus`, `DesktopSettings`.
+- [x] Build `DesktopDiagnostics.tsx` page and wire sidebar navigation and routing in `apps/desktop/`.
+- [x] Author end-to-end build and verification scripts (`package-desktop.ps1`, `verify-package.ps1`).
+- [x] Author Stage 05 architectural documentation (`docs/WINDOWS_DESKTOP.md`, `docs/BACKEND_SIDECAR.md`, `docs/PROCESS_LIFECYCLE.md`, `docs/TRAY_AND_NOTIFICATIONS.md`, `docs/PACKAGING.md`, `docs/DESKTOP_SECURITY.md`).
+- [x] Record architectural decisions ADR-0013 through ADR-0016 in `docs/DECISIONS.md`.
+- [x] Pass 20-step live verification script `scripts/verify_stage05_live.py`.
+
+### 3. Verification & Test Evidence
+
+1. **Rust Native Desktop Test Suite (`cargo test --bin autonom-desktop`)**:
+   - `6 passed in 0.00s` (AppInfo formatting, supervisor initial state, desktop settings defaults, window state serialization, sidecar command construction).
+2. **Frontend Vitest Test Suite (`pnpm --filter @autonom/desktop test`)**:
+   - `Test Files: 3 passed (3) | Tests: 5 passed (5)` (DesktopDiagnostics view rendering, process status badge display, supervisor controls, App shell routing).
+3. **TypeScript Monorepo Compilation (`pnpm -r typecheck`)**:
+   - Clean pass across `@autonom/shared-types`, `@autonom/shared`, and `@autonom/desktop`.
+4. **Backend Sidecar Packaging & Verification**:
+   - Packaged binary: `autonom-api-x86_64-pc-windows-msvc.exe` (~28 MB) with full SQLAlchemy/aiosqlite/cryptography collection.
+   - Tested standalone execution on loopback port, confirmed HTTP 200 on `/api/v1/ready`.
+5. **Native Desktop Release Compilation**:
+   - Compiled `autonom-desktop.exe` (5.81 MB) release binary via MSVC.
+6. **Live End-to-End Verification (`scripts/verify_stage05_live.py`)**:
+   - All 20 verification checks passed.
+
+### 4. Known Limitations & Stage 06 Hand-off
+
+- **Known Limitations**:
+  - Windows UI Automation and computer visual interaction tools will be introduced in Stage 08 and Phase 3.
+  - Multi-agent coordination engine will be integrated in Stage 06.
+- **Stage 06 Readiness**:
+  - Self-contained Windows desktop application shell, PyInstaller backend sidecar, supervisor state machine, Win32 Job Object containment, system tray, and native notification dispatch are fully operational and verified.
+  - The project is fully prepared to proceed to **Stage 06: Agent Infrastructure, Supervisor Engine, and Task Planning** when requested.

@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Overview } from '@/pages/Overview';
 import { Diagnostics } from '@/pages/Diagnostics';
+import { DesktopDiagnostics } from '@/pages/DesktopDiagnostics';
 import { Storage } from '@/pages/Storage';
 
 const queryClient = new QueryClient({
@@ -27,6 +28,8 @@ export const App: React.FC = () => {
           <main className="flex-1 overflow-y-auto bg-background">
             {activeModule === 'diagnostics' ? (
               <Diagnostics />
+            ) : activeModule === 'desktop-diagnostics' ? (
+              <DesktopDiagnostics />
             ) : activeModule === 'storage' ? (
               <Storage />
             ) : (

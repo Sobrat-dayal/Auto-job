@@ -75,10 +75,23 @@ def create_app() -> FastAPI:
     # Include versioned API routers
     app.include_router(api_v1_router)
 
-    # Alias /api/health to canonical /api/v1/health for backward compatibility
+    # Alias /health, /ready, /version, /api/health to canonical /api/v1 endpoints for backward compatibility
+    from app.api.v1.endpoints.ready import get_readiness
+    from app.api.v1.endpoints.version import get_version
+    from app.schemas.system import ReadinessResponse, VersionResponse
+
+    @app.get("/health", response_model=HealthResponse, tags=["system"], include_in_schema=False)
     @app.get("/api/health", response_model=HealthResponse, tags=["system"], include_in_schema=False)
     async def legacy_health_alias():
         return await get_health()
+
+    @app.get("/ready", response_model=ReadinessResponse, tags=["system"], include_in_schema=False)
+    async def legacy_ready_alias():
+        return await get_readiness()
+
+    @app.get("/version", response_model=VersionResponse, tags=["system"], include_in_schema=False)
+    async def legacy_version_alias():
+        return await get_version()
 
     # Root endpoint
     @app.get("/", tags=["root"])

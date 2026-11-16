@@ -262,3 +262,87 @@ Implement backup and restoration using SQLite's native Online Backup API (`sqlit
 
 - True point-in-time disaster recovery with zero data loss risk during restoration.
 - Automated FIFO retention limiting storage to the 10 most recent backups.
+
+---
+
+## ADR-0013: PyInstaller Standalone Sidecar Packaging for Zero-Prerequisite Desktop Distribution
+
+### Context
+
+AUTONOM requires Python for AI orchestration, FastAPI endpoints, and computer automation libraries. Expecting end users on Windows 11 to pre-install Python, setup virtual environments, and configure PATH variables is unacceptable for a consumer-facing desktop application.
+
+### Decision
+
+Package the Python FastAPI backend into a frozen, standalone single-file binary using PyInstaller (`autonom-api-x86_64-pc-windows-msvc.exe`) that bundles Python 3.12, Uvicorn, SQLAlchemy, aiosqlite, cryptography, and Alembic:
+
+1. The desktop harness transparently discovers the binary in `<app>/bin/`.
+2. A development-mode fallback allows running directly via `.venv/Scripts/python.exe` during local coding.
+3. The packaged binary executes with `--host 127.0.0.1 --port 8765 --api-key <token>`.
+
+### Consequences
+
+- Zero Python prerequisite for end users.
+- Fast startup and predictable dependency resolution.
+
+---
+
+## ADR-0014: Win32 Job Object Limits (`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`) for Process Containment
+
+### Context
+
+If the desktop application terminates abruptly (Task Manager force-kill, sudden power loss, or host crash), child processes spawned by it (Python backend sidecar, worker processes, browser drivers) could be orphaned, holding open TCP ports and consuming CPU/RAM indefinitely.
+
+### Decision
+
+Use the native Windows Win32 Job Object API via `windows-sys`:
+
+1. At Tauri startup, create an anonymous Win32 Job Object.
+2. Configure `JOBOBJECT_EXTENDED_LIMIT_INFORMATION` with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`.
+3. Assign each spawned sidecar process handle to the Job Object via `AssignProcessToJobObject`.
+
+### Consequences
+
+- The Windows operating system kernel unconditionally terminates the child backend process whenever the desktop process handle is closed.
+- Eliminates orphaned child processes without relying on cooperative IPC.
+
+---
+
+## ADR-0015: Supervisor State Machine with Bounded Exponential Backoff Crash Recovery
+
+### Context
+
+Autonomous operations and local desktop automation can trigger transient failures, native library faults, or unhandled exceptions. A crashed backend should recover automatically without crashing the desktop UI or getting stuck in an infinite respawn loop.
+
+### Decision
+
+Implement a Rust-managed `BackendSupervisor` state machine (`Stopped`, `Starting`, `Connecting`, `Ready`, `Degraded`, `Restarting`, `Failed`, `Stopping`):
+
+1. A background thread monitors the child process exit status.
+2. Unexpected termination transitions state to `Restarting` and increments `restart_count`.
+3. Bounded exponential backoff delay is enforced: $\Delta t = \min(1.0 \times 2^{\text{count}-1}, 16.0)\text{ s}$.
+4. If `restart_count` exceeds 5, the state transitions to `Failed` and prompts user intervention.
+5. Startup task reconciliation re-evaluates in-flight tasks from the durable SQLite database.
+
+### Consequences
+
+- Self-healing desktop runtime resilient to transient runtime faults.
+- Prevents resource exhaustion from rapid crash-restart loops.
+
+---
+
+## ADR-0016: Tauri Native System Tray, Single-Instance Mutex, and Multi-Monitor Coordinate Validation
+
+### Context
+
+AUTONOM operates as an ambient autonomous assistant that runs in the background. Opening multiple copies could corrupt database locks, and saving window geometry across multiple displays could render the window off-screen if a display is disconnected.
+
+### Decision
+
+1. Enforce single-instance execution via `tauri-plugin-single-instance`, which detects existing instances via named mutex, restores/unhides the window, and focuses it.
+2. Implement close-to-tray minimization with custom context menus (Open, Hide/Show, Status, Tasks, Restart, Exit).
+3. Query `window.available_monitors()` before restoring saved geometry from `desktop_settings.json` and fall back to centered primary display if coordinates are out of bounds.
+
+### Consequences
+
+- Professional Windows 11 application ergonomics.
+- Eliminates multi-instance database locking collisions and off-screen window bugs.

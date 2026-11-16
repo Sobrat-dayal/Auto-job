@@ -32,6 +32,12 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Backup & Disaster Recovery](file:///e:/proooo/AUTO%20JOB/docs/BACKUP_AND_RECOVERY.md)
 - [Data Retention Policy](file:///e:/proooo/AUTO%20JOB/docs/DATA_RETENTION.md)
 - [Storage Operations Runbook](file:///e:/proooo/AUTO%20JOB/docs/STORAGE_OPERATIONS.md)
+- [Windows Desktop Shell & Integration](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_DESKTOP.md)
+- [Backend Sidecar Architecture](file:///e:/proooo/AUTO%20JOB/docs/BACKEND_SIDECAR.md)
+- [Process Lifecycle & Supervision](file:///e:/proooo/AUTO%20JOB/docs/PROCESS_LIFECYCLE.md)
+- [System Tray & Toast Notifications](file:///e:/proooo/AUTO%20JOB/docs/TRAY_AND_NOTIFICATIONS.md)
+- [Packaging & Binary Distribution](file:///e:/proooo/AUTO%20JOB/docs/PACKAGING.md)
+- [Desktop Security & Local Isolation](file:///e:/proooo/AUTO%20JOB/docs/DESKTOP_SECURITY.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup
@@ -68,6 +74,14 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 .\scripts\db-backup.ps1     # Create consistent online backup with SHA-256 manifest
 .\scripts\db-restore.ps1    # Restore database with safety snapshot
 .\scripts\db-migrate.ps1    # Apply pending Alembic migrations
+```
+
+### Build & Packaging (Stage 05)
+
+```powershell
+.\scripts\package-backend.ps1   # Package Python backend into frozen standalone binary
+.\scripts\package-desktop.ps1   # Full build: frontend + backend sidecar + release Tauri desktop exe
+.\scripts\verify-package.ps1    # Automated package verification & live health probe
 ```
 
 ### Build Production Artifacts

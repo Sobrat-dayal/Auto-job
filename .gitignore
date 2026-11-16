@@ -18,6 +18,13 @@ build/
 # Rust / Tauri
 target/
 src-tauri/target/
+*.exe
+apps/desktop/src-tauri/bin/*.exe
+
+# PyInstaller & Build artifacts
+services/api/dist/
+services/api/build/
+*.spec
 
 # Local databases & secrets
 *.db

@@ -64,14 +64,19 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Storage diagnostics UI in desktop React frontend (`Storage.tsx`) and 6 PowerShell database automation scripts.
 - **Acceptance Criteria**: All 25 live verification gates passed, concurrent WAL writes succeed without lockouts, contact info and secrets encrypted at rest without plaintext leakage, state restored cleanly from verified backups, 43 unit/integration tests passing.
 
-#### Stage 05: Cryptographic Secure Storage & Windows DPAPI Key Vault
+#### Stage 05: Windows Desktop Shell, Native Integration, Backend Sidecar, Process Supervision, Crash Recovery, and Application Lifecycle (Completed)
 
-- **Goal**: Secure storage for sensitive credentials, OAuth tokens, and API keys using Windows Data Protection API (DPAPI) and AES-256-GCM.
+- **Status**: COMPLETE (2026-11-16)
+- **Goal**: Transform AUTONOM into a real, self-contained Windows desktop application that manages its own local services, supervises the Python backend sidecar, recovers from crashes, and operates reliably without requiring external terminals.
 - **Key Deliverables**:
-  - Native Windows DPAPI encryption wrapper in Rust / Python.
-  - Encrypted credential vault table in SQLite for API keys and session tokens.
-  - Secure credential retrieval service with zero plain-text logging.
-- **Acceptance Criteria**: Sensitive credentials encrypted at rest using machine-bound DPAPI keys, tamper detection via authentication tags, memory zeroing on drop.
+  - Tauri 2 desktop harness with single-instance enforcement, system tray context menus, and native notifications.
+  - Kernel-enforced process containment using Win32 Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`.
+  - Packaged Python backend sidecar via PyInstaller (`autonom-api-x86_64-pc-windows-msvc.exe`) with loopback isolation (`127.0.0.1`) and bearer token bootstrap.
+  - Supervisor state machine (`Stopped`, `Starting`, `Connecting`, `Ready`, `Degraded`, `Restarting`, `Failed`, `Stopping`) with bounded exponential backoff crash recovery.
+  - Multi-monitor safe window state persistence (`%LOCALAPPDATA%\AUTONOM\config\desktop_settings.json`).
+  - Desktop Diagnostics UI dashboard (`DesktopDiagnostics.tsx`) with supervisor controls and folder shortcuts.
+  - Automated packaging and verification pipeline (`package-backend.ps1`, `package-desktop.ps1`, `verify-package.ps1`, `verify_stage05_live.py`).
+- **Acceptance Criteria**: Desktop executable launches and starts backend automatically, readiness confirmed on `/api/v1/ready`, single-instance brings window to focus, abnormal process kill triggers bounded restart with task reconciliation, all 20 live verification gates pass.
 
 #### Stage 06: Event Bus, Asynchronous Task Queue & Background Worker Architecture
 

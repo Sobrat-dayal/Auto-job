@@ -14,10 +14,10 @@
       {
         "title": "AUTONOM",
         "label": "main",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1024,
-        "minHeight": 720,
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1050,
+        "minHeight": 650,
         "resizable": true,
         "fullscreen": false,
         "center": true,
@@ -29,6 +29,9 @@
     }
   },
   "plugins": {
-    "shell": {}
+    "shell": {},
+    "single-instance": {},
+    "notification": {},
+    "autostart": {}
   }
 }
