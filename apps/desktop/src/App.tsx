@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Overview } from '@/pages/Overview';
 import { Diagnostics } from '@/pages/Diagnostics';
+import { Storage } from '@/pages/Storage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +25,13 @@ export const App: React.FC = () => {
         <div className="flex flex-1 overflow-hidden">
           <Sidebar activeModule={activeModule} onSelectModule={setActiveModule} />
           <main className="flex-1 overflow-y-auto bg-background">
-            {activeModule === 'diagnostics' ? <Diagnostics /> : <Overview />}
+            {activeModule === 'diagnostics' ? (
+              <Diagnostics />
+            ) : activeModule === 'storage' ? (
+              <Storage />
+            ) : (
+              <Overview />
+            )}
           </main>
         </div>
       </div>

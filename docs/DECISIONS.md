@@ -175,3 +175,90 @@ Adopt cooperative cancellation mediated by `TaskExecutionContext`:
 
 - Predictable, deterministic resource consumption aligned with the RTX 4050 / 16GB RAM budget.
 - Clean resource cleanup on user abort without orphaned background operations.
+
+---
+
+## ADR-0009: SQLite Async Engine & Connection PRAGMAs for Single-Writer WAL Concurrency
+
+### Context
+
+AUTONOM is an asynchronous local desktop application requiring concurrent reads (dashboard UI, metrics, event streaming) while background workers perform write transactions (task state updates, scraping ingestion, audit logging). Default SQLite locking can result in `database is locked` errors during burst writes.
+
+### Decision
+
+Configure SQLAlchemy 2.x with `sqlite+aiosqlite` using mandatory connection PRAGMAs executed on every pooled connection:
+
+1. `PRAGMA journal_mode = WAL;`: Enables Write-Ahead Logging, allowing concurrent readers to query without blocking the single writer.
+2. `PRAGMA synchronous = NORMAL;`: Ensures durability without the severe write latency penalty of `FULL` synchronization.
+3. `PRAGMA foreign_keys = ON;`: Enforces referential integrity across all 17 tables.
+4. `PRAGMA busy_timeout = 10000;`: Provides a 10-second wait window for locks to clear before failing.
+
+### Consequences
+
+- Zero external server requirements while handling concurrent UI queries and worker writes seamlessly.
+- Eliminates transient lock timeout errors under multi-agent load.
+
+---
+
+## ADR-0010: Windows DPAPI Envelope Encryption & Authenticated AES-256-GCM Vault
+
+### Context
+
+AUTONOM stores high-value user credentials (integration API keys, session tokens) and PII (contact email, phone numbers, home address). Storing secrets in plaintext in SQLite tables is a critical security vulnerability.
+
+### Decision
+
+Implement a two-tier envelope encryption architecture:
+
+1. A 256-bit AES master key is generated via `os.urandom(32)` and protected directly by the Windows Data Protection API (`CryptProtectData` via Win32 `crypt32.dll`), tying decryption strictly to the active Windows user logon on that workstation.
+2. Sensitive columns (such as applicant contact details and provider tokens) are encrypted using authenticated AES-256-GCM with a unique 96-bit random nonce and entity-bound Associated Data (AAD).
+3. Plaintext secrets are never stored in SQLite, never logged, and masked in all public API responses.
+
+### Consequences
+
+- Defense-in-depth: copying the `.db` file to another computer or user account renders encrypted data cryptographically unreadable.
+- Cryptographic tampering detection guaranteed by AES-GCM authentication tags.
+
+---
+
+## ADR-0011: Alembic Programmatic Migrations & Forward-Only Schema Versioning
+
+### Context
+
+In a desktop application deployed to end-user workstations, database schema updates must execute reliably during application startup without manual user intervention or destructive alterations.
+
+### Decision
+
+Use Alembic with asynchronous SQLAlchemy metadata:
+
+1. Production desktop startup executes forward migrations programmatically (`init_database_schema` / `alembic upgrade head`).
+2. Table alterations utilize Alembic's `batch_alter_table` mode to safely recreate SQLite tables without losing user data.
+3. Pre-migration online snapshots are captured before schema modifications.
+
+### Consequences
+
+- Safe, non-destructive schema updates across application releases.
+- Automated recovery path if a migration fails.
+
+---
+
+## ADR-0012: Online Database Backup API & Verified Restoration Workflow
+
+### Context
+
+Workstation crashes, sudden power loss, or accidental user actions could corrupt local persistent state. AUTONOM requires a robust point-in-time backup and verified recovery mechanism.
+
+### Decision
+
+Implement backup and restoration using SQLite's native Online Backup API (`sqlite3.backup`):
+
+1. Captures consistent online snapshots without locking concurrent read operations.
+2. Generates an independent `.manifest.json` recording backup metadata and SHA-256 checksums.
+3. Before restoring, the backup file is validated with `PRAGMA integrity_check` in isolation and checksum comparison.
+4. Captures an automatic safety snapshot (`pre_restore_safety_*.bak`) of the live database before overwriting.
+5. Performs post-restore integrity checks and automatically rolls back if corruption is detected.
+
+### Consequences
+
+- True point-in-time disaster recovery with zero data loss risk during restoration.
+- Automated FIFO retention limiting storage to the 10 most recent backups.

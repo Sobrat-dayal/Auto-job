@@ -1,6 +1,6 @@
 """Task management REST API endpoints."""
 
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, status
 
@@ -23,7 +23,7 @@ async def create_task(
     manager: TaskManagerDep,
     _auth: AuthDep,
 ) -> TaskResponse:
-    """Submits a new task for asynchronous background worker execution."""
+    """Submits a new task for asynchronous background worker execution and SQLite persistence."""
     return await manager.create_task(req)
 
 
@@ -69,3 +69,13 @@ async def get_task_result(
 ) -> TaskResultResponse:
     """Retrieves the execution result or current non-completed state of a task."""
     return manager.get_task_result(task_id)
+
+
+@router.get("/{task_id}/history", response_model=list[dict[str, Any]])
+async def get_task_history(
+    task_id: str,
+    manager: TaskManagerDep,
+    _auth: AuthDep,
+) -> list[dict[str, Any]]:
+    """Retrieves durable event history for a task from SQLite task_events."""
+    return await manager.get_task_history(task_id)

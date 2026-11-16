@@ -3,7 +3,13 @@
  */
 
 import type {
+  BackupManifest,
+  CredentialStatus,
   EventEnvelope,
+  ProfileSummary,
+  RestoreResponse,
+  StorageHealth,
+  StorageStatus,
   SystemCapabilitiesResponse,
   SystemStatusResponse,
   TaskCancelResponse,
@@ -81,6 +87,7 @@ export class ApiClient {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: 'Bearer dev-local-autonom-key',
           ...options.headers,
         },
       });
@@ -171,6 +178,41 @@ export class ApiClient {
 
   getEventStreamUrl(): string {
     return `${this.config.baseUrl}/api/v1/events/stream`;
+  }
+
+  // Storage & Database Diagnostics
+  async getStorageStatus(): Promise<StorageStatus> {
+    return this.request<StorageStatus>('/api/v1/storage/status');
+  }
+
+  async getStorageHealth(): Promise<StorageHealth> {
+    return this.request<StorageHealth>('/api/v1/storage/health');
+  }
+
+  async listBackups(): Promise<BackupManifest[]> {
+    return this.request<BackupManifest[]>('/api/v1/storage/backups');
+  }
+
+  async createBackup(): Promise<BackupManifest> {
+    return this.request<BackupManifest>('/api/v1/storage/backups', {
+      method: 'POST',
+    });
+  }
+
+  async restoreBackup(filename: string): Promise<RestoreResponse> {
+    return this.request<RestoreResponse>('/api/v1/storage/restore', {
+      method: 'POST',
+      body: JSON.stringify({ filename, confirm: true }),
+    });
+  }
+
+  // Profiles & Credentials
+  async listProfiles(): Promise<ProfileSummary[]> {
+    return this.request<ProfileSummary[]>('/api/v1/profiles');
+  }
+
+  async getCredentialStatus(): Promise<CredentialStatus[]> {
+    return this.request<CredentialStatus[]>('/api/v1/integrations/credentials/status');
   }
 }
 

@@ -49,14 +49,20 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Heartbeat watchdog detecting backend hung states and triggering auto-restart.
 - **Acceptance Criteria**: Desktop app starts Python backend automatically, gracefully terminates on app exit without orphaned processes, and handles backend restart transparently.
 
-#### Stage 04: SQLite Database Engine, Migrations & Schema Architecture
+#### Stage 04: SQLite Database Engine, Migrations & Schema Architecture (Completed)
 
-- **Goal**: Implement local relational persistence using SQLite with Write-Ahead Logging (WAL), foreign key enforcement, connection pooling, and automated schema migrations.
+- **Status**: COMPLETE (2026-11-16)
+- **Goal**: Implement local relational persistence using SQLite with Write-Ahead Logging (WAL), foreign key enforcement, connection pooling, automated schema migrations, Windows DPAPI/AES-256-GCM secure storage, online consistent backups, verified restoration, and persistent task state reconciliation.
 - **Key Deliverables**:
-  - Asynchronous database engine (`aiosqlite`).
-  - Schema definitions for agents, tasks, jobs, resumes, applications, audit logs, and settings.
-  - Migration runner supporting schema versioning and rollbacks.
-- **Acceptance Criteria**: Migrations execute reliably on startup, concurrent writes succeed without database lock timeouts, foreign key constraints are strictly enforced.
+  - Asynchronous database engine (`aiosqlite` + SQLAlchemy 2.x) with WAL mode, foreign keys, and 10s busy timeout.
+  - Relational schema across 17 tables (settings, profiles, skills, evidence, resumes, job sources, listings, matches, applications, attempts, tasks, events, workers, agents, artifacts, credentials, audit).
+  - Alembic migrations runner with `001_initial_schema.py` and programmatic runner.
+  - Windows DPAPI and AES-256-GCM cryptographic vault for field-level contact encryption and credential protection.
+  - Repository layer with typed CRUD, deduplication, and encryption wrappers.
+  - Persistent task execution manager with startup crash reconciliation and durable event history.
+  - Consistent online backup (`sqlite3.backup`) with SHA-256 manifests, pre-restore safety snapshots, and verified restoration.
+  - Storage diagnostics UI in desktop React frontend (`Storage.tsx`) and 6 PowerShell database automation scripts.
+- **Acceptance Criteria**: All 25 live verification gates passed, concurrent WAL writes succeed without lockouts, contact info and secrets encrypted at rest without plaintext leakage, state restored cleanly from verified backups, 43 unit/integration tests passing.
 
 #### Stage 05: Cryptographic Secure Storage & Windows DPAPI Key Vault
 

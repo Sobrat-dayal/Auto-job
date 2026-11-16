@@ -26,6 +26,12 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Hardware Strategy & Resource Budget](file:///e:/proooo/AUTO%20JOB/docs/RESOURCE_BUDGET.md)
 - [External Integrations](file:///e:/proooo/AUTO%20JOB/docs/INTEGRATIONS.md)
 - [Architecture Decisions (ADRs)](file:///e:/proooo/AUTO%20JOB/docs/DECISIONS.md)
+- [Database Implementation](file:///e:/proooo/AUTO%20JOB/docs/DATABASE_IMPLEMENTATION.md)
+- [Database Migrations](file:///e:/proooo/AUTO%20JOB/docs/MIGRATIONS.md)
+- [Secure Storage & DPAPI Vault](file:///e:/proooo/AUTO%20JOB/docs/SECURE_STORAGE.md)
+- [Backup & Disaster Recovery](file:///e:/proooo/AUTO%20JOB/docs/BACKUP_AND_RECOVERY.md)
+- [Data Retention Policy](file:///e:/proooo/AUTO%20JOB/docs/DATA_RETENTION.md)
+- [Storage Operations Runbook](file:///e:/proooo/AUTO%20JOB/docs/STORAGE_OPERATIONS.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup
@@ -52,6 +58,16 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 
 ```powershell
 .\scripts\check.ps1
+```
+
+### Database & Storage Operations
+
+```powershell
+.\scripts\db-status.ps1     # Inspect database metrics and schema version
+.\scripts\db-verify.ps1     # Execute PRAGMA integrity and foreign key checks
+.\scripts\db-backup.ps1     # Create consistent online backup with SHA-256 manifest
+.\scripts\db-restore.ps1    # Restore database with safety snapshot
+.\scripts\db-migrate.ps1    # Apply pending Alembic migrations
 ```
 
 ### Build Production Artifacts

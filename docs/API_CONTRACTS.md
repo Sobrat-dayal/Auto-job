@@ -270,6 +270,75 @@ Submits user decision for a pending approval.
 }
 ```
 
+### 1.5 Storage, Settings & Secure Credentials (Stage 04)
+
+#### `GET /api/v1/storage/status`
+
+Returns database file size, WAL size, artifacts size, backup counts, and free disk space.
+
+- **Auth**: Required
+- **Response**: `StorageStatus`
+
+#### `GET /api/v1/storage/health`
+
+Executes SQLite `PRAGMA integrity_check` and `PRAGMA foreign_key_check`.
+
+- **Auth**: Required
+- **Response**: `StorageHealth`
+
+#### `POST /api/v1/storage/backups`
+
+Creates an online atomic snapshot using SQLite backup API and generates SHA-256 manifest.
+
+- **Auth**: Required
+- **Response**: `BackupManifest` (201 Created)
+
+#### `GET /api/v1/storage/backups`
+
+Returns all available database backups, newest first.
+
+- **Auth**: Required
+- **Response**: `BackupManifest[]`
+
+#### `POST /api/v1/storage/restore`
+
+Restores database from specified backup with pre-restore safety snapshot and post-restore integrity check.
+
+- **Auth**: Required
+- **Request**: `{"filename": "backup_*.db", "confirm": true}`
+- **Response**: `RestoreResponse`
+
+#### `GET /api/v1/tasks/{task_id}/history`
+
+Returns durable event history for a task from the SQLite `task_events` audit table.
+
+- **Auth**: Required
+- **Response**: `TaskEventRecord[]`
+
+#### `GET /api/v1/settings` & `PATCH /api/v1/settings/{key}`
+
+Retrieves and updates application settings.
+
+- **Auth**: Required
+
+#### `POST /api/v1/profiles` & `GET /api/v1/profiles`
+
+Creates applicant profile with encrypted contact info (DPAPI) and lists profiles.
+
+- **Auth**: Required
+
+#### `GET /api/v1/integrations/credentials/status`
+
+Lists configured credential providers with secrets masked (`is_configured: true`).
+
+- **Auth**: Required
+
+#### `POST /api/v1/integrations/credentials`
+
+Stores integration credential encrypted at rest via DPAPI and AES-256-GCM.
+
+- **Auth**: Required
+
 ---
 
 ## 2. Real-Time WebSocket Streaming (`/ws/events`)

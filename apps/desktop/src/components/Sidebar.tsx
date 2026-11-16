@@ -16,6 +16,7 @@ import {
   FileClock,
   Puzzle,
   Settings,
+  Database,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -30,6 +31,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'command-center', label: 'Command Center', icon: LayoutDashboard },
   { id: 'diagnostics', label: 'Diagnostics & Tasks', icon: Activity },
+  { id: 'storage', label: 'Storage & Database', icon: Database },
   { id: 'jobs', label: 'Jobs & Applications', icon: Briefcase, isDevelopmentOnly: true },
   { id: 'agents', label: 'Agents (Swarm)', icon: Users, isDevelopmentOnly: true },
   { id: 'computer-control', label: 'Computer Control', icon: Monitor, isDevelopmentOnly: true },

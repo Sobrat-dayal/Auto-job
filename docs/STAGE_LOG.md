@@ -222,3 +222,65 @@ This document records the chronological development, verification, test outcomes
 - **Stage 04 Readiness**:
   - All Stage 03 requirements and acceptance criteria are satisfied.
   - The project is prepared to proceed to **Stage 04: SQLite Database Engine, Migrations, and Persistent Task State**.
+
+---
+
+## Stage 04: Persistent Database Architecture, Secure Storage, Data Migrations, Credential Protection, Backup and Recovery
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-16T14:30:00Z
+- **Completed**: 2026-11-16T15:10:00Z
+
+### 1. Objectives & Scope
+
+1. Establish persistent local SQLite database architecture at `%LOCALAPPDATA%\AUTONOM\database\autonom.db` with WAL mode, foreign keys, and 10s busy timeouts.
+2. Implement relational schema covering 17 tables across settings, applicant profiles, career evidence, resumes, jobs, matches, applications, tasks, events, workers, agents, artifacts, credentials, and audit logs.
+3. Configure Alembic migration framework with forward-only versioning, `001_initial_schema.py`, and programmatic schema runner.
+4. Implement Windows DPAPI and AES-256-GCM cryptographic vault for master key protection, field-level contact encryption, and secure credential storage.
+5. Create repository layer with typed query execution, job deduplication, and sensitive field masking.
+6. Connect `TaskExecutionManager` to SQLite for persistent task creation, durable event logging, and startup crash reconciliation.
+7. Build consistent online database backup system using SQLite Online Backup API with SHA-256 manifests, pre-restore safety snapshots, isolated integrity verification, and atomic rollback on failure.
+8. Implement versioned REST API endpoints for storage status, health, backups, restoration, profiles, settings, credentials, and task history.
+9. Build frontend Storage & Database management UI (`Storage.tsx`) and provide 6 operational PowerShell automation scripts.
+10. Pass all 25 live verification gates in `scripts/verify_stage04_live.py`.
+
+### 2. Implementation Checklist
+
+- [x] Configure SQLite async engine with WAL mode, foreign keys, and busy timeout in `app/db/engine.py`.
+- [x] Implement 17 relational SQLAlchemy models in `app/db/models.py`.
+- [x] Configure Alembic migrations (`alembic.ini`, `alembic/env.py`, `alembic/versions/001_initial_schema.py`, `app/db/migrations.py`).
+- [x] Implement Windows DPAPI and AES-256-GCM cryptographic vault (`app/security/dpapi.py`, `app/security/vault.py`, `app/security/credentials.py`).
+- [x] Implement repository layer in `app/repositories/` (`SettingsRepository`, `ProfileRepository`, `JobRepository`, `TaskRepository`, `TaskEventRepository`, `CredentialRepository`, `ArtifactRepository`, `AuditRepository`).
+- [x] Integrate SQLite persistence and startup crash reconciliation into `TaskExecutionManager` (`app/execution/manager.py`).
+- [x] Implement online backup and verified restoration (`app/db/backup.py`, `app/db/maintenance.py`).
+- [x] Implement versioned API endpoints (`storage.py`, `settings.py`, `profiles.py`, `credentials.py`, `tasks.py` history) and register in `router.py`.
+- [x] Add storage TypeScript schemas (`packages/shared-types/src/storage.ts`) and frontend API client methods (`apps/desktop/src/lib/api-client.ts`).
+- [x] Build frontend Storage & Database page (`apps/desktop/src/pages/Storage.tsx`) and wire navigation in `Sidebar.tsx` and `App.tsx`.
+- [x] Create database CLI (`app/db/cli.py`) and 6 PowerShell scripts (`db-init.ps1`, `db-migrate.ps1`, `db-status.ps1`, `db-backup.ps1`, `db-verify.ps1`, `db-restore.ps1`).
+- [x] Create comprehensive documentation suite (`docs/DATABASE_IMPLEMENTATION.md`, `docs/MIGRATIONS.md`, `docs/SECURE_STORAGE.md`, `docs/BACKUP_AND_RECOVERY.md`, `docs/DATA_RETENTION.md`, `docs/STORAGE_OPERATIONS.md`).
+- [x] Add ADR-0009 through ADR-0012 to `docs/DECISIONS.md`.
+- [x] Author and validate 25-step live verification script `scripts/verify_stage04_live.py`.
+
+### 3. Verification & Test Evidence
+
+1. **Live End-to-End Verification (`scripts/verify_stage04_live.py`)**:
+   - `ALL 25/25 VERIFICATION GATES PASSED (100% COMPLETE & VALIDATED)`.
+   - Verified: Live server startup, readiness check, HTTP 401 unauthenticated security rejection, storage status & health checks, app settings persistence, applicant profile creation with DPAPI contact info encryption (verified plaintext absent in raw SQLite file), masked credential storage, task execution persistence, durable event history (`task.created`, `task.queued`, `task.started`, `task.completed`), online backup creation with SHA-256 manifest, database mutation injection, verified restoration with pre-restore safety snapshot and rollback semantics, rejection of invalid/unconfirmed restores, server shutdown and process restart, data persistence across restart, and post-restart PRAGMA integrity verification.
+2. **Backend Unit & Integration Test Suite (`pytest services/api/tests`)**:
+   - `43 passed in 3.31s` (including storage API tests, backup/restore tests, DPAPI vault tests, migration tests, repository tests, and task persistence across restart tests).
+3. **Frontend Vitest Test Suite (`pnpm --filter @autonom/desktop test`)**:
+   - `Test Files: 2 passed (2) | Tests: 4 passed (4)`.
+   - Verified: Storage navigation item, typed API client storage methods, App shell rendering.
+4. **TypeScript Monorepo Compilation (`pnpm -r typecheck`)**:
+   - Clean pass across `@autonom/shared-types`, `@autonom/shared`, and `@autonom/desktop`.
+5. **PowerShell Operational Scripts**:
+   - Tested and verified: `db-init.ps1`, `db-verify.ps1`, `db-status.ps1`, `db-backup.ps1`, `db-restore.ps1`.
+
+### 4. Known Limitations & Stage 05 Hand-off
+
+- **Known Limitations**:
+  - LLM orchestration and model invocation will be integrated in Stage 07.
+  - Browser driving (Playwright) and visual computer control will be integrated in Phase 3.
+- **Stage 05 Readiness**:
+  - Persistent database architecture, secure storage, migrations, and disaster recovery are fully operational.
+  - The project is fully prepared to proceed to **Stage 05** when requested.

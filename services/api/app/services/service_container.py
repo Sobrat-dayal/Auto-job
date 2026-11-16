@@ -4,18 +4,22 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from app.core.config import settings
+from app.db.engine import engine
+from app.db.migrations import init_database_schema
 from app.events.bus import EventBus
 from app.events.models import EventType
 from app.execution.handlers import HandlerRegistry
 from app.execution.manager import TaskExecutionManager
 from app.schemas.events import EventEnvelope
+from app.security.vault import vault
 from app.workers.manager import WorkerManager
 
 logger = logging.getLogger("autonom.services")
 
 
 class ServiceContainer:
-    """Dependency injection container holding foundational backend singletons."""
+    """Dependency injection container holding foundational backend singletons and database persistence."""
 
     def __init__(self) -> None:
         self.event_bus = EventBus()
@@ -48,18 +52,41 @@ class ServiceContainer:
         self.is_ready = False
 
     async def initialize(self) -> None:
-        """Sequential startup initialization of backend subsystems."""
+        """Sequential startup initialization of backend subsystems, vault, and database."""
         if not self.event_bus._is_running or not self.worker_manager._is_running:
             self.reset()
 
         logger.info("Initializing ServiceContainer subsystems...")
-        # 1. Start worker manager loop
+        settings.ensure_directories()
+
+        # 1. Initialize Cryptographic Vault
+        try:
+            vault.initialize()
+            logger.info("Cryptographic vault initialized.")
+        except Exception as exc:
+            logger.error(f"Failed to initialize vault: {exc}")
+
+        # 2. Initialize Database Schema
+        try:
+            await init_database_schema(engine)
+            logger.info("Database schema verified.")
+        except Exception as exc:
+            logger.error(f"Failed to initialize database schema: {exc}")
+            raise
+
+        # 3. Startup Task Reconciliation
+        try:
+            await self.task_manager.reconcile_on_startup()
+        except Exception as exc:
+            logger.warning(f"Error during startup task reconciliation: {exc}")
+
+        # 4. Start worker manager loop
         await self.worker_manager.start(self.task_manager)
 
-        # 2. Mark system ready
+        # 5. Mark system ready
         self.is_ready = True
 
-        # 3. Emit system.started event
+        # 6. Emit system.started event
         await self.event_bus.publish(
             EventEnvelope(
                 event_type=EventType.SYSTEM_STARTED,
@@ -75,7 +102,7 @@ class ServiceContainer:
         logger.info("ServiceContainer initialized successfully; readiness set to True.")
 
     async def shutdown(self) -> None:
-        """Orderly shutdown of background workers, event bus, and active work."""
+        """Orderly shutdown of background workers, event bus, database, and active work."""
         logger.info("ServiceContainer beginning shutdown sequence...")
         # 1. Cease readiness immediately
         self.is_ready = False
@@ -97,6 +124,13 @@ class ServiceContainer:
 
         # 4. Close event bus
         await self.event_bus.close()
+
+        # 5. Dispose database engine connections
+        try:
+            await engine.dispose()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"Error disposing database engine: {exc}")
+
         logger.info("ServiceContainer shutdown complete.")
 
     def get_readiness_checks(self) -> dict[str, bool]:
@@ -106,6 +140,7 @@ class ServiceContainer:
             "worker_manager": self.worker_manager.is_running,
             "event_bus": self.event_bus._is_running,
             "task_manager": True,
+            "database": True,
         }
 
     def get_system_status(self) -> dict[str, Any]:
