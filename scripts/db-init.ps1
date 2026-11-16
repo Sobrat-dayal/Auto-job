@@ -1,4 +1,4 @@
-﻿# AUTONOM — Database Initialization Script
+# AUTONOM — Database Initialization Script
 # Initializes the SQLite database schema and tables.
 
 $ErrorActionPreference = "Stop"

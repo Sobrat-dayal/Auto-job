@@ -1,4 +1,4 @@
-﻿# AUTONOM — Database Verification Script
+# AUTONOM — Database Verification Script
 # Executes PRAGMA integrity_check and PRAGMA foreign_key_check.
 
 $ErrorActionPreference = "Stop"

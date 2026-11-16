@@ -1,4 +1,4 @@
-﻿# AUTONOM — Database Storage & Schema Status Script
+# AUTONOM — Database Storage & Schema Status Script
 # Inspects database file size, WAL size, backups, free disk space, and schema version.
 
 $ErrorActionPreference = "Stop"

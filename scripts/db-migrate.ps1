@@ -1,4 +1,4 @@
-﻿# AUTONOM — Database Migration Script
+# AUTONOM — Database Migration Script
 # Applies pending Alembic migrations to head.
 
 $ErrorActionPreference = "Stop"

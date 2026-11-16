@@ -1,4 +1,4 @@
-﻿# AUTONOM — Database Restore Script
+# AUTONOM — Database Restore Script
 # Restores SQLite database from a specified backup with pre-restore snapshot and verification.
 
 param(

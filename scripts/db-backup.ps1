@@ -1,4 +1,4 @@
-﻿# AUTONOM — Database Backup Script
+# AUTONOM — Database Backup Script
 # Creates a consistent online backup using SQLite backup API with SHA-256 manifest.
 
 param(
