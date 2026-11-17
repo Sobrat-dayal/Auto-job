@@ -1168,4 +1168,69 @@ Stage 14 established the central, deterministic, fail-closed **Authorization Eng
 ### 4. Stage 15 Hand-off & Conclusion
 
 - **Stage 14 is 100% complete, verified, and operational.**
-- **DO NOT begin Stage 15 until explicitly instructed.**
+
+---
+
+## Stage 15: Persistent Agent Memory, Hybrid Semantic Retrieval, Local Embeddings, Episodic and Procedural Knowledge, Memory Consolidation, Context Engineering, Privacy-Aware Retrieval, and Long-Term Learning
+
+### 1. Executive Summary
+
+Stage 15 completes **Phase 3: AI Intelligence Engine** by providing AUTONOM with persistent, privacy-preserving agent memory, hybrid semantic retrieval, and long-term procedural learning.
+
+Instead of treating every workflow as a blank slate, AUTONOM retains verified profile facts, learns reusable procedures from successful DAG workflows, detects recurring failure patterns, and provides bounded, structured context to agents within configured token limits.
+
+### 2. Core Subsystems Implemented
+
+1. **Database Schema & Storage (`services/api/app/db/models.py`, `services/api/app/memory/storage/`)**:
+   - `MemoryRecord`: Primary persistent memory record with epistemic status (`verified`, `user_confirmed`, `evidence_supported`, `unverified`, `conflicted`, `superseded`, `expired`, `rejected`), provenance, scope, sensitivity, checksum, and versioning.
+   - `MemoryEmbeddingRecord`: Persistent storage of normalized dense vector embeddings with dimension validation.
+   - `MemoryConflictRecord`: Persistent record of contradictions and preference divergence.
+   - `ProceduralMemoryRecord`: Reusable workflow templates declaring capability bindings, steps, and required permissions.
+   - `MemoryAccessEventRecord`: Immutable audit ledger tracking every memory retrieval and mutation.
+   - `memory_fts`: SQLite FTS5 virtual table with Porter stemming and tokenized BM25 ranking.
+2. **Local-First Embedding Engine (`services/api/app/memory/embeddings/`)**:
+   - `DeterministicLocalEmbeddingEngine`: Zero-network, ultra-fast (<1ms) normalized 384-dimensional dense vector generator.
+   - `OllamaEmbeddingProvider`: Integration with local Ollama daemon (`/api/embeddings`) with automatic fallback to local engine.
+   - `EmbeddingRegistry`: Dimension validation and data egress guardrails preventing cloud transmission of sensitive records.
+3. **Hybrid Retrieval & Context Engine (`services/api/app/memory/retrieval/`)**:
+   - `HybridRetrievalEngine`: Reciprocal Rank Fusion (RRF) combining SQLite FTS5 BM25 keyword matching and dense vector cosine similarity with epistemic status weighting.
+   - `ContextBuilder`: Prompt section layout (`[VERIFIED FACTS]`, `[REUSABLE PROCEDURES]`, `[EPISODIC EXPERIENCES]`) with token budget limits.
+4. **Lifecycle Management (`services/api/app/memory/lifecycle/`)**:
+   - `deduplication.py`: Exact duplicate detection via SHA-256 content checksums and near-duplicate cosine scans.
+   - `conflicts.py`: Contradiction detection and supersession pointer linking.
+   - `consolidation.py`: Background merging of related memories and procedural extraction from successful workflow DAGs.
+   - `expiration.py`: Time-based retention sweeps and index eviction.
+   - `deletion.py`: Secure cascading deletion across SQLite, FTS5, vector store, and audit logging.
+   - `export.py`: JSON/JSONL serialization honoring sensitivity classifications.
+5. **Orchestration & Agent Integrations (`services/api/app/memory/integrations/`)**:
+   - `supervisor_memory`: Planning context retrieval and episodic workflow outcome logging.
+   - `specialist_memory`: Scoped memory retrieval for Recruitment, Coding, Research, and Creative agents.
+   - Integrated into `PlanningAgent.create_plan` and `SupervisorAgent` workflow finalization.
+6. **FastAPI Endpoints (`services/api/app/api/v1/endpoints/memory.py`)**:
+   - 20 typed endpoints covering hybrid search, semantic search, keyword search, CRUD, status, context assembly, index rebuilding, consolidation, conflicts, and procedures.
+7. **Frontend Workspace (`apps/desktop/src/features/memory/MemoryWorkspace.tsx`)**:
+   - Route `/memory` with Overview Dashboard, Memory Explorer, Semantic Search, Procedural Knowledge, Conflict Review, and Diagnostics.
+8. **12 Architectural Documents in `docs/`**:
+   - `MEMORY_ARCHITECTURE.md`, `MEMORY_TYPES.md`, `MEMORY_SCHEMA.md`, `EMBEDDING_ARCHITECTURE.md`, `VECTOR_STORAGE.md`, `HYBRID_RETRIEVAL.md`, `CONTEXT_ENGINEERING.md`, `MEMORY_CONSOLIDATION.md`, `MEMORY_SECURITY.md`, `MEMORY_LIFECYCLE.md`, `MEMORY_EVALUATION.md`, `MEMORY_TESTING.md`.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - Full test run: **125 passed in 48.78s** (100% pass rate).
+   - `test_memory_service.py` (6 tests): All PASSED.
+   - `test_memory_security.py` (3 tests): All PASSED (scope isolation, prompt injection defense, data egress guardrails).
+   - `test_memory_workflows.py` (2 tests): All PASSED (recruitment memory workflow, experience memory and procedure extraction).
+   - `test_memory_evaluation.py` (1 test): All PASSED (MRR: 1.00, Precision@3: 1.00, Latency: 0.82ms).
+2. **Frontend Vitest Suite (`apps/desktop/src/test`)**:
+   - Full test run: **33 test files passed | 126 tests passed** (100% pass rate in 22.91s).
+   - `memory-workspace.test.tsx` (5 tests): All PASSED.
+3. **Monorepo Build & Typecheck**:
+   - `npm.cmd --prefix packages/shared-types run typecheck`: 0 errors.
+   - `npm.cmd --prefix apps/desktop run typecheck`: 0 errors.
+   - `npm.cmd --prefix apps/desktop run build`: Production Vite bundle built cleanly (33 chunks, 0 errors in 9.01s).
+
+### 4. Phase 3 Completion & Stage 16 Readiness
+
+- **Stage 15 is 100% complete and fully verified.**
+- **Phase 3: AI Intelligence Engine is complete.**
+- **DO NOT begin Stage 16 until explicitly instructed.**

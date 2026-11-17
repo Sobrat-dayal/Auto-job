@@ -56,6 +56,14 @@ import type {
   PermissionCategory,
   RiskLevel,
   SecurityAuditEntry,
+  MemoryRecord,
+  MemorySearchResponse,
+  MemoryStatsResponse,
+  MemoryConflict,
+  ProceduralMemory,
+  SearchMode,
+  MemoryType,
+  MemoryScope,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -952,6 +960,138 @@ export class ApiClient {
     if (params?.agentId) searchParams.append('agent_id', params.agentId);
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
     return this.request<SecurityAuditEntry[]>(`/api/v1/security/audit${query}`);
+  }
+
+  // -------------------------------------------------------------------------
+  // Stage 15: Agent Memory & Hybrid Retrieval Engine
+  // -------------------------------------------------------------------------
+
+  async getMemoryStatus(): Promise<MemoryStatsResponse> {
+    return this.request<MemoryStatsResponse>('/api/v1/memory/status');
+  }
+
+  async listMemories(params?: {
+    owner_scope?: MemoryScope;
+    scope_id?: string;
+    memory_type?: MemoryType;
+    limit?: number;
+    offset?: number;
+  }): Promise<MemoryRecord[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.owner_scope) searchParams.append('owner_scope', params.owner_scope);
+    if (params?.scope_id) searchParams.append('scope_id', params.scope_id);
+    if (params?.memory_type) searchParams.append('memory_type', params.memory_type);
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.offset) searchParams.append('offset', String(params.offset));
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<MemoryRecord[]>(`/api/v1/memory${query}`);
+  }
+
+  async getMemory(id: string): Promise<MemoryRecord> {
+    return this.request<MemoryRecord>(`/api/v1/memory/${encodeURIComponent(id)}`);
+  }
+
+  async createMemory(payload: {
+    memory_type?: MemoryType;
+    title: string;
+    content: string;
+    summary?: string;
+    owner_scope?: MemoryScope;
+    scope_id: string;
+    source_type?: string;
+    source_ref?: string;
+    verification_status?: string;
+    confidence_category?: string;
+    sensitivity_category?: string;
+  }): Promise<MemoryRecord> {
+    return this.request<MemoryRecord>('/api/v1/memory', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateMemory(
+    id: string,
+    payload: {
+      title?: string;
+      content?: string;
+      summary?: string;
+      verification_status?: string;
+      confidence_category?: string;
+      sensitivity_category?: string;
+      superseded_by?: string;
+    }
+  ): Promise<MemoryRecord> {
+    return this.request<MemoryRecord>(`/api/v1/memory/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteMemory(id: string): Promise<void> {
+    await this.request<void>(`/api/v1/memory/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async searchMemory(payload: {
+    query: string;
+    search_mode?: SearchMode;
+    memory_types?: MemoryType[];
+    owner_scope?: MemoryScope;
+    scope_id?: string;
+    limit?: number;
+    min_score?: number;
+    exclude_superseded?: boolean;
+  }): Promise<MemorySearchResponse> {
+    const mode = payload.search_mode || 'hybrid';
+    const path =
+      mode === 'semantic'
+        ? '/api/v1/memory/search/semantic'
+        : mode === 'keyword'
+          ? '/api/v1/memory/search/keyword'
+          : '/api/v1/memory/search';
+    return this.request<MemorySearchResponse>(path, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async listMemoryConflicts(status: string = 'unresolved'): Promise<MemoryConflict[]> {
+    return this.request<MemoryConflict[]>(`/api/v1/memory/conflicts?status=${encodeURIComponent(status)}`);
+  }
+
+  async resolveMemoryConflict(
+    conflictId: string,
+    payload: { resolution_action: string; superseding_memory_id?: string }
+  ): Promise<MemoryConflict> {
+    return this.request<MemoryConflict>(
+      `/api/v1/memory/conflicts/${encodeURIComponent(conflictId)}/resolve`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    );
+  }
+
+  async listProceduralMemories(capabilityId?: string): Promise<ProceduralMemory[]> {
+    const query = capabilityId ? `?capability_id=${encodeURIComponent(capabilityId)}` : '';
+    return this.request<ProceduralMemory[]>(`/api/v1/memory/procedures${query}`);
+  }
+
+  async rebuildMemoryIndex(): Promise<{ status: string; vector_store_size: number }> {
+    return this.request<{ status: string; vector_store_size: number }>('/api/v1/memory/index/rebuild', {
+      method: 'POST',
+    });
+  }
+
+  async consolidateMemories(scopeId: string): Promise<{ scope_id: string; consolidated_records: number }> {
+    return this.request<{ scope_id: string; consolidated_records: number }>(
+      `/api/v1/memory/consolidate?scope_id=${encodeURIComponent(scopeId)}`,
+      {
+        method: 'POST',
+      }
+    );
   }
 }
 

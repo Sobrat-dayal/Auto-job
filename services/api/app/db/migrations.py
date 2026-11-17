@@ -28,6 +28,26 @@ async def init_database_schema(engine: AsyncEngine) -> None:
     settings.ensure_directories()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Create FTS5 virtual table for memory search if supported by SQLite
+        try:
+            await conn.execute(
+                text(
+                    """
+                    CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
+                        memory_id UNINDEXED,
+                        title,
+                        content,
+                        summary,
+                        owner_scope,
+                        scope_id,
+                        memory_type,
+                        tokenize = 'porter unicode61'
+                    );
+                    """
+                )
+            )
+        except Exception as exc:
+            logger.warning(f"Could not initialize memory_fts virtual table (FTS5 may be disabled): {exc}")
     logger.info("Database schema initialized successfully.")
 
 

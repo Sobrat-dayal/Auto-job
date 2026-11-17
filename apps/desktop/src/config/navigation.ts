@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Bot,
+  Brain,
   Monitor,
   BriefcaseBusiness,
   MessagesSquare,
@@ -54,6 +55,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         description: 'Review, approve, or deny sensitive agent actions and authorization requests.',
         badge: 'Live',
         shortcut: 'Ctrl+Shift+A',
+      },
+      {
+        id: 'memory',
+        title: 'Agent Memory',
+        icon: Brain,
+        path: '/memory',
+        group: 'main',
+        availability: 'implemented',
+        description: 'Persistent agent memory, hybrid semantic retrieval, procedural workflows, and conflict review.',
+        badge: 'v1',
+        shortcut: 'Ctrl+Shift+M',
       },
       {
         id: 'agents',

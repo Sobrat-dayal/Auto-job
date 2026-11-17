@@ -711,4 +711,104 @@ class EmergencyStopStateRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
 
+# ---------------------------------------------------------------------------
+# Stage 15: Persistent Agent Memory & Hybrid Retrieval Engine
+# ---------------------------------------------------------------------------
+class MemoryRecord(Base):
+    __tablename__ = "memory_records"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    memory_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)  # working, episodic, semantic, procedural
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    owner_scope: Mapped[str] = mapped_column(String(32), nullable=False, index=True)  # user, applicant_profile, workflow, task, agent, project, integration, shared
+    scope_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    source_type: Mapped[str] = mapped_column(String(64), nullable=False)  # user_statement, verified_profile, document, task_execution, tool_output, external_source, ai_synthesis
+    source_ref: Mapped[str] = mapped_column(String(256), default="", nullable=False)
+    provenance_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    verification_status: Mapped[str] = mapped_column(String(32), default="unverified", nullable=False, index=True)  # verified, user_confirmed, evidence_supported, unverified, conflicted, superseded, expired, rejected
+    confidence_category: Mapped[str] = mapped_column(String(32), default="medium", nullable=False)  # high, medium, low, unrated
+    sensitivity_category: Mapped[str] = mapped_column(String(32), default="internal", nullable=False, index=True)  # public, internal, personal, sensitive, restricted, secret
+    visibility_policy: Mapped[str] = mapped_column(String(32), default="scoped", nullable=False)  # scoped, shared, private
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+    last_accessed_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    superseded_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    embedding_model_id: Mapped[str] = mapped_column(String(64), default="local-minilm-l6", nullable=False)
+    embedding_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    embedding_status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)  # pending, completed, failed, not_required
+    content_checksum: Mapped[str] = mapped_column(String(64), nullable=False, index=True)  # sha256
+    retention_policy: Mapped[str] = mapped_column(String(32), default="permanent", nullable=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+
+class MemoryEmbeddingRecord(Base):
+    __tablename__ = "memory_embeddings"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    memory_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    embedding_model_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    dimension: Mapped[int] = mapped_column(Integer, nullable=False)
+    vector_json: Mapped[list[float]] = mapped_column(JSON, nullable=False)  # JSON-encoded array of float embeddings
+    checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class MemoryConflictRecord(Base):
+    __tablename__ = "memory_conflicts"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    memory_id_a: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    memory_id_b: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    conflict_type: Mapped[str] = mapped_column(String(64), default="contradiction", nullable=False)  # contradiction, outdated_preference, scope_mismatch
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="unresolved", nullable=False, index=True)  # unresolved, resolved, dismissed
+    resolution_action: Mapped[str | None] = mapped_column(String(64), nullable=True)  # supersede, keep_both, edit, reject
+    resolved_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class ProceduralMemoryRecord(Base):
+    __tablename__ = "procedural_memories"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    procedure_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    capability_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    required_inputs_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    steps_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
+    preconditions_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    expected_outputs_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    verification_requirements_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    required_permissions_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    provenance_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    validation_status: Mapped[str] = mapped_column(String(32), default="candidate", nullable=False, index=True)  # candidate, validated, deprecated, rejected
+    success_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    failure_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class MemoryAccessEventRecord(Base):
+    __tablename__ = "memory_access_events"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    memory_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    actor_id: Mapped[str] = mapped_column(String(64), default="user", nullable=False)
+    agent_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    workflow_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)  # read, search, create, update, delete, export, consolidate
+    outcome: Mapped[str] = mapped_column(String(32), nullable=False)  # allowed, denied
+    reason: Mapped[str] = mapped_column(String(256), default="", nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
+
 

@@ -38,18 +38,32 @@ class PlanningAgent:
 
         steps: list[WorkflowStepDefinition] = []
 
-        # 1. Check if AI Gateway is available and has models to generate dynamic plan
+        # 1. Retrieve authorized memory context (facts, reusable procedures, prior experiences)
+        try:
+            from app.memory.integrations.supervisor import supervisor_memory
+            plan_context = await supervisor_memory.get_planning_context(goal, workflow_id=workflow_id)
+            if plan_context and plan_context.context_text:
+                constraints["_memory_context"] = plan_context.context_text
+                logger.info(
+                    "Planner integrated %d memory facts and %d procedures into planning context",
+                    plan_context.facts_count,
+                    plan_context.procedures_count,
+                )
+        except Exception as exc:
+            logger.debug("Memory retrieval skipped in planner: %s", exc)
+
+        # 2. Check if AI Gateway is available and has models to generate dynamic plan
         try:
             steps = await self._generate_plan_via_ai(goal, constraints)
         except Exception as exc:
             logger.info("AI Gateway planning skipped or failed (%s); using deterministic planner template", exc)
             steps = []
 
-        # 2. Fallback to specialized deterministic goal planner if AI output was empty or invalid
+        # 3. Fallback to specialized deterministic goal planner if AI output was empty or invalid
         if not steps:
             steps = self._generate_deterministic_plan(goal, constraints)
 
-        # 3. Validate DAG and detect cycles
+        # 4. Validate DAG and detect cycles
         try:
             graph = DependencyGraph(steps)
             logger.info(

@@ -105,6 +105,18 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Security & Authorization Audit Ledger](file:///e:/proooo/AUTO%20JOB/docs/SECURITY_AUDIT.md)
 - [Prompt Injection & Adversarial Attack Defenses](file:///e:/proooo/AUTO%20JOB/docs/PROMPT_INJECTION_DEFENSES.md)
 - [Stage 14 Authorization Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/AUTHORIZATION_TESTING.md)
+- [Persistent Memory Engine Architecture](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_ARCHITECTURE.md)
+- [Cognitive Memory Types (Episodic, Semantic, Procedural, Working)](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_TYPES.md)
+- [Memory Schema, Scopes, and Provenance](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_SCHEMA.md)
+- [Local Embedding Engine & Data Egress Guardrails](file:///e:/proooo/AUTO%20JOB/docs/EMBEDDING_ARCHITECTURE.md)
+- [SQLite & In-Memory Vector Storage](file:///e:/proooo/AUTO%20JOB/docs/VECTOR_STORAGE.md)
+- [Hybrid Retrieval (FTS5 + Dense Vectors + RRF)](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_RETRIEVAL.md)
+- [Context Engineering & Prompt Token Budgeting](file:///e:/proooo/AUTO%20JOB/docs/CONTEXT_ENGINEERING.md)
+- [Memory Consolidation & Procedural Extraction](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_CONSOLIDATION.md)
+- [Memory Security, Scope Isolation, and Prompt Injection Defense](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_SECURITY.md)
+- [Memory Lifecycle, Retention, and Secure Deletion](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_LIFECYCLE.md)
+- [Memory Quality Evaluation Benchmark](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_EVALUATION.md)
+- [Stage 15 Memory Testing & Verification Matrix](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

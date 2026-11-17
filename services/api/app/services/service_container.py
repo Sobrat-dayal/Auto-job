@@ -94,6 +94,13 @@ class ServiceContainer:
         except Exception as exc:
             logger.warning(f"Error during startup emergency stop initialization: {exc}")
 
+        # 3d. Startup Memory Service Index Warm-up
+        try:
+            from app.memory.service import get_memory_service
+            await get_memory_service().initialize()
+        except Exception as exc:
+            logger.warning(f"Error during startup memory service initialization: {exc}")
+
         # 4. Start worker manager loop
         await self.worker_manager.start(self.task_manager)
 

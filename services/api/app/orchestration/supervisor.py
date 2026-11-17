@@ -201,6 +201,19 @@ class SupervisorAgent:
                         status=final_status.value,
                         completed_at=datetime.now(UTC),
                     )
+                    # Record workflow episodic experience in memory
+                    try:
+                        from app.memory.integrations.supervisor import supervisor_memory
+                        wf_model = await repo.get_workflow(workflow_id)
+                        goal_text = wf_model.goal if wf_model else "Unknown workflow"
+                        await supervisor_memory.record_workflow_experience(
+                            workflow_id=workflow_id,
+                            goal=goal_text,
+                            success=(final_status == WorkflowStatus.COMPLETED),
+                            lessons=f"Completed {completed} steps, failed {failed} steps.",
+                        )
+                    except Exception as mem_exc:
+                        logger.debug("Failed recording workflow experience to memory: %s", mem_exc)
                 self._active_tasks.pop(workflow_id, None)
 
         task = asyncio.create_task(_run())

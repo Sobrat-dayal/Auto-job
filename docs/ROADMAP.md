@@ -290,16 +290,25 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Desktop Tray Integration: System tray menu items for Emergency Stop, Pause Automation, and Pending Approvals Queue.
   - 11 Architectural Documents: `AUTHORIZATION_ENGINE.md`, `PERMISSION_MODEL.md`, `POLICY_SCHEMA.md`, `AUTONOMOUS_GRANTS.md`, `APPROVAL_WORKFLOWS.md`, `TOOL_EXECUTION_SECURITY.md`, `EMERGENCY_STOP.md`, `RECRUITMENT_AUTHORIZATION.md`, `SECURITY_AUDIT.md`, `PROMPT_INJECTION_DEFENSES.md`, `AUTHORIZATION_TESTING.md`.
   - Automated Verification: 113/113 pytest tests passing (100%), 121/121 Vitest tests passing (100%), clean TypeScript typecheck across monorepo, clean production Vite build.
-- **Acceptance Criteria**: All Stage 14 requirements satisfied with zero mock data and strict fail-closed security. Ready for Stage 15. DO NOT begin Stage 15 until explicitly instructed.
+- **Acceptance Criteria**: All Stage 14 requirements satisfied with zero mock data and strict fail-closed security. Ready for Stage 15.
 
-#### Stage 15: Agent Dynamic Tool Execution Engine & Sandboxed Execution
+#### Stage 15: Persistent Agent Memory, Hybrid Semantic Retrieval, Local Embeddings, Episodic and Procedural Knowledge, Memory Consolidation, Context Engineering, Privacy-Aware Retrieval, and Long-Term Learning [COMPLETED]
 
-- **Goal**: Secure, typed tool execution environment with argument validation, permission checks, execution timeouts, and result truncation.
+- **Goal**: Persistent cognitive agent memory architecture with hybrid semantic retrieval, deterministic local embeddings, episodic experience learning, procedural workflows, and privacy-aware access controls.
 - **Key Deliverables**:
-  - Tool decorator and registry with Pydantic parameter schemas.
-  - Sandbox execution wrapper enforcing wall-clock timeouts and memory limits.
-  - Automatic tool documentation generation for LLM system prompts.
-- **Acceptance Criteria**: Tool calls execute with verified argument validation; runaway tools terminate cleanly upon reaching timeouts.
+  - Memory Database Models: `MemoryRecord`, `MemoryEmbeddingRecord`, `MemoryConflictRecord`, `ProceduralMemoryRecord`, `MemoryAccessEventRecord`, and `memory_fts` SQLite FTS5 table.
+  - Central Memory Service (`services/api/app/memory/service.py`) coordinating write pipeline, deduplication, conflict resolution, and access audit logging.
+  - Cognitive Memory Taxonomy: Working Memory, Episodic Memory, Semantic Memory, and Procedural Memory.
+  - Local-First Embedding Engine: Deterministic, zero-network 384-dimensional unit vector generator (<1ms) and Ollama adapter with automated fallback.
+  - Vector Storage: In-memory normalized cosine similarity index synchronized with persistent SQLite tables.
+  - Hybrid Retrieval Engine: SQLite FTS5 BM25 keyword matching fused with dense vector cosine similarity via Reciprocal Rank Fusion (RRF) and epistemic verification weighting.
+  - Context Builder: Prompt section layout (`[VERIFIED FACTS]`, `[REUSABLE PROCEDURES]`, `[EPISODIC EXPERIENCES]`) with token budget limits.
+  - Lifecycle Services: Deduplication (SHA-256 hash), conflict detection, supersession linking, consolidation, expiration sweeps, and cascading deletion.
+  - Agent Integrations: Supervisor planning enrichment, specialist-agent scoped queries (Recruitment, Coding, Research, Creative).
+  - REST APIs: 20 typed endpoints in `services/api/app/api/v1/endpoints/memory.py` for search, CRUD, conflicts, procedures, and stats.
+  - Desktop Frontend Workspace: Full React workspace (`/memory`) with Overview Dashboard, Memory Explorer, Semantic Search, Procedural Knowledge, Conflict Review, and Diagnostics.
+  - Automated Verification: 125/125 pytest tests passing (100%), 126/126 Vitest tests passing (100%), clean TypeScript typecheck, and clean production Vite bundle.
+- **Acceptance Criteria**: Phase 3 AI Intelligence Engine is 100% complete. DO NOT begin Stage 16 until explicitly instructed.
 
 #### Stage 16: Model Context Protocol (MCP) Client Core & Server Discovery
 
