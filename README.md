@@ -94,6 +94,17 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Creative, Comms, Coding, & Automation Agents](file:///e:/proooo/AUTO%20JOB/docs/CREATIVE_AND_COMMUNICATION_AGENTS.md)
 - [Agent Security & Context Isolation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md)
 - [Agent Testing & Verification Guide](file:///e:/proooo/AUTO%20JOB/docs/AGENT_TESTING.md)
+- [Authorization Engine Architecture](file:///e:/proooo/AUTO%20JOB/docs/AUTHORIZATION_ENGINE.md)
+- [Permission & Risk Taxonomy Model](file:///e:/proooo/AUTO%20JOB/docs/PERMISSION_MODEL.md)
+- [Authorization Policy Schema & Baselines](file:///e:/proooo/AUTO%20JOB/docs/POLICY_SCHEMA.md)
+- [Preauthorized Autonomy & Standing Grants](file:///e:/proooo/AUTO%20JOB/docs/AUTONOMOUS_GRANTS.md)
+- [Human-in-the-Loop Approval Workflows](file:///e:/proooo/AUTO%20JOB/docs/APPROVAL_WORKFLOWS.md)
+- [Secure Tool Execution Gateway](file:///e:/proooo/AUTO%20JOB/docs/TOOL_EXECUTION_SECURITY.md)
+- [Global Emergency Stop & Automation Pause](file:///e:/proooo/AUTO%20JOB/docs/EMERGENCY_STOP.md)
+- [Recruitment Authorization Governance](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_AUTHORIZATION.md)
+- [Security & Authorization Audit Ledger](file:///e:/proooo/AUTO%20JOB/docs/SECURITY_AUDIT.md)
+- [Prompt Injection & Adversarial Attack Defenses](file:///e:/proooo/AUTO%20JOB/docs/PROMPT_INJECTION_DEFENSES.md)
+- [Stage 14 Authorization Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/AUTHORIZATION_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

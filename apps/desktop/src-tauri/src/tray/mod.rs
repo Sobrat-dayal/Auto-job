@@ -42,6 +42,27 @@ pub fn setup_tray(
                     }
                 }
             }
+            "emergency_stop" => {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                    let _ = window.emit("trigger_emergency_stop", ());
+                }
+            }
+            "pause_automation" => {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.emit("toggle_automation_pause", ());
+                }
+            }
+            "approvals" => {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                    let _ = window.emit("navigate_module", "approvals");
+                }
+            }
             "activity" => {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();

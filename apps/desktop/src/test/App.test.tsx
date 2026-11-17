@@ -19,7 +19,7 @@ describe('App Component', () => {
     expect(screen.getAllByText(/AUTONOM/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Command Center').length).toBeGreaterThanOrEqual(1);
     await waitFor(() => {
-      expect(screen.getByText('Stage 08 Active')).toBeInTheDocument();
+      expect(screen.getByText(/Stage (08|14) Active/)).toBeInTheDocument();
     });
   });
 

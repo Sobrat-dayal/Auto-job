@@ -1090,3 +1090,82 @@ Stage 09 transforms the AUTONOM desktop UI into a complete, organized, multi-mod
 - **Stage 14 Readiness**:
   - The Specialist AI Agent Framework, 24-agent catalog, and 32 capabilities are 100% operational, verified, and complete.
   - DO NOT begin Stage 14 until explicitly instructed.
+
+
+---
+
+## [2026-11-18] — Stage 14: Advanced Authorization Engine, Granular Permissions, Preauthorized Autonomy, Approval Workflows, Policy Enforcement, Emergency Stop, Secure Tool Execution, and Comprehensive Audit Logging
+
+### 1. Goal & Architecture Overview
+
+Stage 14 established the central, deterministic, fail-closed **Authorization Engine** for AUTONOM. Unlike superficial client-side guards or LLM prompt-level constraints, this architecture enforces security boundaries at the core backend execution runtime:
+- **Central Deterministic Evaluator**: 10-step precedence pipeline evaluating every tool execution, network egress, filesystem mutation, and credential access.
+- **Fail-Closed Default Deny**: Every ungranted, unapproved high-risk operation is rejected by default.
+- **Durable Approval Queue**: SQLite-backed human-in-the-loop approvals with SHA-256 parameter digest deduplication, expiration sweeping, and single-use `consumed` state replay attack prevention.
+- **Preauthorized Autonomy Grants**: Bounded, time-limited, usage-capped, and workflow-scoped standing grants enabling uninterrupted autonomous workflows within approved constraints.
+- **Fail-Closed Global Emergency Stop & Automation Pause**: Thread-safe in-memory caching synchronized with persistent SQLite state, surviving process crashes and restarts.
+- **Secure Tool Execution Gateway**: Enforcement wrapper around capability execution with pre-execution checks, just-in-time TOCTOU emergency stop checks, approval consumption, and tamper-evident audit logging.
+- **Desktop Frontend Integration**: Full Approvals Workspace (`/approvals`), Command Center Emergency Stop and Pause controls in `DashboardHeader`, live pending approval alerts in `PendingActionsPanel`, and `waiting_for_authorization` step indicator in `WorkflowsWorkspace`.
+- **System Tray Integration**: Native Windows system tray menu items for Emergency Stop, Pause Automation, and Pending Approvals Queue.
+
+### 2. Implementation Deliverables
+
+1. **Database Schema & Repositories (`services/api/app/db/models.py`, `services/api/app/repositories/authorization_repository.py`)**:
+   - `AuthorizationPolicyRecord` (`authorization_policies`)
+   - `AuthorizationPolicyVersionRecord` (`authorization_policy_versions`)
+   - `AuthorizationGrantRecord` (`authorization_grants`)
+   - `ApprovalRequestRecord` (`approval_requests`)
+   - `AuthorizationDecisionRecord` (`authorization_decisions`)
+   - `EmergencyStopStateRecord` (`emergency_stop_state`)
+2. **Core Authorization Engine (`services/api/app/security/`)**:
+   - `contracts.py`: `RiskLevel`, `PermissionCategory`, `ActionEffect`, `ApprovalStatus`, `ApprovalMode`, `GrantType`, `ReasonCode`, `ActorContext`, `AuthorizationRequest`, `AuthorizationDecision`, `PolicyDefinition`, `GrantDefinition`, `ApprovalRequest`, `EmergencyStopState`.
+   - `scopes.py`: Canonical path resolution (`is_safe_filesystem_path`), exact network origin validation (`is_safe_network_url`), and resource scope matcher (`matches_resource_scope`).
+   - `evaluator.py`: Risk classification, subject matching, action matching, policy rule evaluator, and grant matcher.
+   - `default_policies.py`: 6 immutable baseline system policies.
+   - `emergency.py`: `EmergencyStopController` singleton with persistent SQLite backing.
+   - `approvals.py`: `ApprovalManager` with deduplication and replay defense.
+   - `engine.py`: `AuthorizationEngine` deterministic evaluator.
+   - `enforcement/gateway.py`: `ToolExecutionGateway` capability wrapper.
+3. **Runtime & Scheduler Integration (`services/api/app/orchestration/scheduler.py`, `graph.py`)**:
+   - Integrated `ToolExecutionGateway` into `_execute_single_step`.
+   - Handled `AuthorizationRequiredError` by pausing step as `PAUSED` and marking workflow `WAITING_FOR_AUTHORIZATION`.
+   - Dynamic re-execution upon operator approval.
+4. **FastAPI Endpoints (`services/api/app/api/v1/endpoints/security.py`)**:
+   - 20 typed endpoints covering permissions, emergency stop, automation pause, policies CRUD/evaluate, grants CRUD/revoke, approvals queue, and audit ledger.
+5. **Shared Types & Desktop Client (`packages/shared-types/src/security.ts`, `apps/desktop/src/lib/api-client.ts`)**:
+   - Full TypeScript models for authorization, grants, approvals, emergency stop, and audit logs.
+   - Typed client methods on `apiClient`.
+6. **Frontend UI Components (`apps/desktop/src/`)**:
+   - `ApprovalsWorkspace.tsx` (`/approvals`): Tabbed queue (Pending, Approved, Denied, All, Policies, Grants, Audit), risk badges, parameter inspector, one-time/session approval actions, Emergency Stop modal.
+   - `DashboardHeader.tsx`: Live Emergency Stop status indicator, emergency stop button, automation pause/resume toggle, pulsing alert banner.
+   - `PendingActionsPanel.tsx`: Live count of pending approvals with direct "Review Approvals" navigation.
+   - `WorkflowsWorkspace.tsx`: `waiting_for_authorization` step status badge and approval notification.
+   - `config/navigation.ts`: Added `/approvals` item to navigation sidebar.
+7. **System Tray Integration (`apps/desktop/src-tauri/src/tray/`)**:
+   - Added Emergency Stop, Pause Automation, and Pending Approvals items to native tray menu.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - Full test run: **113 passed in 14.45s** (100% pass rate).
+   - `test_authorization_engine.py` (6 tests): All PASSED.
+   - `test_emergency_stop.py` (2 tests): All PASSED.
+   - `test_approval_lifecycle.py` (2 tests): All PASSED.
+   - `test_recruitment_authorization.py` (3 tests): All PASSED.
+   - `test_security_attacks.py` (5 tests): All PASSED (injection, traversal, tampering, replay, spoofing).
+   - `test_authorization_integration.py` (1 test): Full workflow lifecycle pause-and-resume PASSED.
+2. **Frontend Vitest Test Suite (`apps/desktop/src/test`)**:
+   - Full test run: **32 test files passed | 121 tests passed** (100% pass rate in 22.42s).
+   - `approvals-workspace.test.tsx` (6 tests): All PASSED.
+   - `emergency-controls.test.tsx` (3 tests): All PASSED.
+   - `App.test.tsx` (5 tests): All PASSED.
+3. **Monorepo Build & Typecheck**:
+   - `npm.cmd run typecheck`: 0 errors across all workspaces.
+   - `npm.cmd run build`: Vite production bundle compiled cleanly (32 chunks, 0 errors).
+4. **11 Architectural Documents Created in `docs/`**:
+   - `AUTHORIZATION_ENGINE.md`, `PERMISSION_MODEL.md`, `POLICY_SCHEMA.md`, `AUTONOMOUS_GRANTS.md`, `APPROVAL_WORKFLOWS.md`, `TOOL_EXECUTION_SECURITY.md`, `EMERGENCY_STOP.md`, `RECRUITMENT_AUTHORIZATION.md`, `SECURITY_AUDIT.md`, `PROMPT_INJECTION_DEFENSES.md`, `AUTHORIZATION_TESTING.md`.
+
+### 4. Stage 15 Hand-off & Conclusion
+
+- **Stage 14 is 100% complete, verified, and operational.**
+- **DO NOT begin Stage 15 until explicitly instructed.**

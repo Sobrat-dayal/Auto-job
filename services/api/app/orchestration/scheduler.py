@@ -16,6 +16,7 @@ from app.orchestration.contracts import (
     StepStatus,
     VerificationStatus,
     WorkflowPlan,
+    WorkflowStatus,
     WorkflowStepDefinition,
 )
 from app.orchestration.graph import DependencyGraph
@@ -23,6 +24,10 @@ from app.orchestration.recovery import RecoveryAgent
 from app.orchestration.router import TaskRouterAgent
 from app.orchestration.verifier import VerificationAgent
 from app.repositories.workflow_repository import WorkflowRepository
+from app.security.authorization.contracts import ActorContext
+from app.security.authorization.emergency import get_emergency_stop_controller
+from app.security.authorization.engine import AuthorizationRequiredError
+from app.security.enforcement.gateway import get_tool_execution_gateway
 
 logger = logging.getLogger("autonom.orchestration.scheduler")
 
@@ -41,11 +46,13 @@ class ExecutionScheduler:
         self.recovery = recovery or RecoveryAgent()
         self.capability_registry = get_capability_registry()
         self.agent_registry = get_agent_registry()
+        self.tool_gateway = get_tool_execution_gateway()
+        self.emergency_controller = get_emergency_stop_controller()
 
         # RTX 4050 6GB Guardrail: At most 1 active LLM operation simultaneously
-        self._llm_semaphore = asyncio.Semaphore(1)
+        self._llm_semaphore: asyncio.Semaphore | None = None
         # Deterministic parallel tasks can run up to 4 concurrently
-        self._parallel_semaphore = asyncio.Semaphore(4)
+        self._parallel_semaphore: asyncio.Semaphore | None = None
 
     async def execute_plan(
         self,
@@ -57,6 +64,9 @@ class ExecutionScheduler:
         pause_event: asyncio.Event | None = None,
     ) -> bool:
         """Execute a full workflow plan to completion or terminal failure."""
+        self._llm_semaphore = asyncio.Semaphore(1)
+        self._parallel_semaphore = asyncio.Semaphore(4)
+
         graph = DependencyGraph(plan.steps)
         step_definitions: dict[str, WorkflowStepDefinition] = {s.step_id: s for s in plan.steps}
 
@@ -70,6 +80,9 @@ class ExecutionScheduler:
         for s in plan.steps:
             if s.step_id not in step_statuses:
                 step_statuses[s.step_id] = StepStatus.PENDING
+            elif step_statuses[s.step_id] == StepStatus.PAUSED:
+                # Reset paused steps to READY upon execution re-entry so they can proceed if authorized
+                step_statuses[s.step_id] = StepStatus.READY
 
         logger.info(
             "Scheduler starting execution for workflow '%s' with %d steps across stages: %s",
@@ -79,6 +92,22 @@ class ExecutionScheduler:
         )
 
         while True:
+            # Check for emergency stop
+            if self.emergency_controller.is_emergency_stop_active:
+                logger.warning("Workflow '%s' aborted: Emergency stop is active.", workflow_id)
+                async with get_db_session() as session:
+                    repo = WorkflowRepository(session)
+                    for sid, stat in step_statuses.items():
+                        if not stat.is_terminal:
+                            step_statuses[sid] = StepStatus.CANCELLED
+                            await repo.update_step_status(
+                                workflow_id=workflow_id,
+                                step_id=sid,
+                                status=StepStatus.CANCELLED.value,
+                                error_info_json={"reason": "Emergency stop active"},
+                            )
+                return False
+
             # Check for cancellation
             if cancel_event and cancel_event.is_set():
                 logger.info("Workflow '%s' received cancellation signal.", workflow_id)
@@ -118,6 +147,11 @@ class ExecutionScheduler:
                 if has_running:
                     await asyncio.sleep(0.2)
                     continue
+
+                has_paused = any(stat == StepStatus.PAUSED for stat in step_statuses.values())
+                if has_paused:
+                    logger.info("Workflow '%s' has step(s) paused awaiting authorization. Pausing dispatch.", workflow_id)
+                    return False
 
                 logger.warning("No executable steps remain and no steps running in workflow '%s'", workflow_id)
                 async with get_db_session() as session:
@@ -200,17 +234,53 @@ class ExecutionScheduler:
             output_result: dict[str, Any] | None = None
             step_error: Exception | str | None = None
 
-            # 3. Execute with semaphore controls
+            # 3. Execute with authorization and semaphore controls
+            if self._llm_semaphore is None:
+                self._llm_semaphore = asyncio.Semaphore(1)
+            if self._parallel_semaphore is None:
+                self._parallel_semaphore = asyncio.Semaphore(4)
             sem = self._llm_semaphore if requires_ai else self._parallel_semaphore
             start_time = datetime.now(UTC)
 
+            actor = ActorContext(
+                actor_id=assigned_agent,
+                actor_type="agent",
+                agent_id=assigned_agent,
+                workflow_id=workflow_id,
+                step_id=step_id,
+            )
+
             try:
                 async with sem:
-                    output_result = await self.capability_registry.execute(
+                    output_result = await self.tool_gateway.execute_capability(
                         capability_id=step.capability_id,
-                        input_data=resolved_inputs,
-                        context=context.to_dict(),
+                        parameters=resolved_inputs,
+                        actor=actor,
+                        resource_type="workflow",
+                        resource_id=workflow_id,
+                        custom_handler=lambda params: self.capability_registry.execute(
+                            capability_id=step.capability_id,
+                            input_data=params,
+                            context=context.to_dict(),
+                        ),
                     )
+            except AuthorizationRequiredError as auth_req:
+                logger.info("Step '%s' paused awaiting authorization approval: %s", step_id, auth_req)
+                self.router.record_finish(assigned_agent)
+                step_statuses[step_id] = StepStatus.PAUSED
+                async with get_db_session() as session:
+                    repo = WorkflowRepository(session)
+                    await repo.update_step_status(
+                        workflow_id=workflow_id,
+                        step_id=step_id,
+                        status=StepStatus.PAUSED.value,
+                        error_info_json={"reason": str(auth_req), "approval_id": auth_req.approval_id},
+                    )
+                    await repo.update_workflow_status(
+                        workflow_id=workflow_id,
+                        status=WorkflowStatus.WAITING_FOR_AUTHORIZATION.value,
+                    )
+                return
             except Exception as exc:
                 logger.error("Step '%s' execution raised exception: %s", step_id, exc)
                 step_error = exc

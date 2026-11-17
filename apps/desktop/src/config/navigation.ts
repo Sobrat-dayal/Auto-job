@@ -18,6 +18,7 @@ import {
   Activity,
   Database,
   Sparkles,
+  ShieldAlert,
 } from 'lucide-react';
 import type {
   NavigationGroup,
@@ -42,6 +43,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         description:
           'Overall AUTONOM operational overview, active task telemetry, and engine health.',
         shortcut: 'Ctrl+1',
+      },
+      {
+        id: 'approvals',
+        title: 'Pending Approvals',
+        icon: ShieldAlert,
+        path: '/approvals',
+        group: 'main',
+        availability: 'implemented',
+        description: 'Review, approve, or deny sensitive agent actions and authorization requests.',
+        badge: 'Live',
+        shortcut: 'Ctrl+Shift+A',
       },
       {
         id: 'agents',

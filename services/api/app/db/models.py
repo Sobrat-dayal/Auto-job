@@ -588,3 +588,127 @@ class AgentConfigurationRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
 
+# ---------------------------------------------------------------------------
+# K. Stage 14: Central Authorization, Policies, Grants & Approvals
+# ---------------------------------------------------------------------------
+class AuthorizationPolicyRecord(Base):
+    __tablename__ = "authorization_policies"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    subject_scope: Mapped[str] = mapped_column(String(128), default="*", nullable=False)  # agent_id, role:*, or *
+    category_scope: Mapped[str] = mapped_column(String(64), default="*", nullable=False)
+    action_scope_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    resource_scope_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    effect: Mapped[str] = mapped_column(String(32), default="allow", nullable=False)  # allow, deny, require_approval
+    conditions_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class AuthorizationPolicyVersionRecord(Base):
+    __tablename__ = "authorization_policy_versions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    policy_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("authorization_policies.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    policy_snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    modified_by: Mapped[str] = mapped_column(String(64), default="user", nullable=False)
+    change_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class AuthorizationGrantRecord(Base):
+    __tablename__ = "authorization_grants"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    grant_type: Mapped[str] = mapped_column(String(32), default="standing", nullable=False)  # standing, workflow_scoped, task_scoped, time_limited, one_time
+    subject_type: Mapped[str] = mapped_column(String(32), default="agent", nullable=False)  # user, agent, workflow
+    subject_id: Mapped[str] = mapped_column(String(128), default="*", nullable=False)
+    workflow_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    task_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    allowed_capabilities_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    resource_scope_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    risk_limit: Mapped[str] = mapped_column(String(32), default="moderate", nullable=False)  # low, moderate, high, critical
+    valid_from: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    valid_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    max_uses: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    use_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_revoked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    revocation_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    created_by: Mapped[str] = mapped_column(String(64), default="user", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class ApprovalRequestRecord(Base):
+    __tablename__ = "approval_requests"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    task_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    step_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    capability_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    action: Mapped[str] = mapped_column(String(128), nullable=False)
+    resource_type: Mapped[str] = mapped_column(String(64), default="general", nullable=False)
+    resource_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    resource_scope_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    parameters_digest: Mapped[str] = mapped_column(String(64), nullable=False)  # SHA-256 hash of parameters
+    parameters_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(32), default="moderate", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)  # pending, approved, denied, expired, cancelled, revoked, consumed
+    approval_mode: Mapped[str] = mapped_column(String(32), default="one_time", nullable=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    decided_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    decision_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AuthorizationDecisionRecord(Base):
+    __tablename__ = "authorization_decisions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    correlation_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    actor_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    agent_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    workflow_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    step_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    capability_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    action: Mapped[str] = mapped_column(String(128), nullable=False)
+    resource_type: Mapped[str] = mapped_column(String(64), default="general", nullable=False)
+    resource_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    outcome: Mapped[str] = mapped_column(String(32), nullable=False)  # allow, deny, require_approval
+    policy_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    grant_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    reason_code: Mapped[str] = mapped_column(String(64), default="POLICY_EVALUATED", nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
+class EmergencyStopStateRecord(Base):
+    __tablename__ = "emergency_stop_state"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default="global_state")
+    is_emergency_stop_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    emergency_stop_activated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    emergency_stop_activated_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    emergency_stop_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    is_automation_paused: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    automation_paused_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    automation_paused_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    automation_pause_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+

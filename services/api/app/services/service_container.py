@@ -87,6 +87,13 @@ class ServiceContainer:
         except Exception as exc:
             logger.warning(f"Error during startup workflow reconciliation: {exc}")
 
+        # 3c. Startup Emergency Stop State Loading
+        try:
+            from app.security.authorization.emergency import get_emergency_stop_controller
+            await get_emergency_stop_controller().initialize()
+        except Exception as exc:
+            logger.warning(f"Error during startup emergency stop initialization: {exc}")
+
         # 4. Start worker manager loop
         await self.worker_manager.start(self.task_manager)
 

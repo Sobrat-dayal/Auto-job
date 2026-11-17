@@ -46,6 +46,16 @@ import type {
   WorkflowResponse,
   WorkflowStatus,
   WorkflowSummary,
+  ApprovalMode,
+  ApprovalRequest,
+  AuthorizationDecision,
+  AuthorizationGrant,
+  AuthorizationPolicy,
+  EmergencyStopState,
+  GrantType,
+  PermissionCategory,
+  RiskLevel,
+  SecurityAuditEntry,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -766,6 +776,182 @@ export class ApiClient {
 
   async listAllCapabilities(): Promise<CapabilityDefinition[]> {
     return this.request<CapabilityDefinition[]>('/api/v1/agents/capabilities');
+  }
+
+  // --- Stage 14: Security, Authorization, Grants & Emergency Stop ---
+
+  async getPermissionsTaxonomy(): Promise<{
+    categories: PermissionCategory[];
+    risk_levels: RiskLevel[];
+    action_effects: string[];
+    approval_modes: ApprovalMode[];
+    grant_types: GrantType[];
+  }> {
+    return this.request('/api/v1/security/permissions');
+  }
+
+  async getEmergencyStopStatus(): Promise<EmergencyStopState> {
+    return this.request<EmergencyStopState>('/api/v1/security/emergency-stop');
+  }
+
+  async activateEmergencyStop(reason?: string): Promise<EmergencyStopState> {
+    return this.request<EmergencyStopState>('/api/v1/security/emergency-stop', {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async clearEmergencyStop(): Promise<EmergencyStopState> {
+    return this.request<EmergencyStopState>('/api/v1/security/emergency-stop/clear', {
+      method: 'POST',
+    });
+  }
+
+  async pauseAutomation(reason?: string): Promise<EmergencyStopState> {
+    return this.request<EmergencyStopState>('/api/v1/security/automation/pause', {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async resumeAutomation(): Promise<EmergencyStopState> {
+    return this.request<EmergencyStopState>('/api/v1/security/automation/resume', {
+      method: 'POST',
+    });
+  }
+
+  async listPolicies(enabledOnly = false): Promise<AuthorizationPolicy[]> {
+    return this.request<AuthorizationPolicy[]>(
+      `/api/v1/security/policies${enabledOnly ? '?enabled_only=true' : ''}`
+    );
+  }
+
+  async getPolicy(id: string): Promise<AuthorizationPolicy> {
+    return this.request<AuthorizationPolicy>(`/api/v1/security/policies/${encodeURIComponent(id)}`);
+  }
+
+  async createPolicy(policy: Partial<AuthorizationPolicy>): Promise<AuthorizationPolicy> {
+    return this.request<AuthorizationPolicy>('/api/v1/security/policies', {
+      method: 'POST',
+      body: JSON.stringify(policy),
+    });
+  }
+
+  async updatePolicy(
+    id: string,
+    patch: Partial<AuthorizationPolicy> & { expected_version?: number; change_reason?: string }
+  ): Promise<AuthorizationPolicy> {
+    return this.request<AuthorizationPolicy>(`/api/v1/security/policies/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  }
+
+  async revokePolicy(id: string): Promise<AuthorizationPolicy> {
+    return this.request<AuthorizationPolicy>(`/api/v1/security/policies/${encodeURIComponent(id)}/revoke`, {
+      method: 'POST',
+    });
+  }
+
+  async evaluatePolicyPreview(request: any): Promise<AuthorizationDecision> {
+    return this.request<AuthorizationDecision>('/api/v1/security/policies/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async listGrants(params?: {
+    activeOnly?: boolean;
+    subjectId?: string;
+    workflowId?: string;
+  }): Promise<AuthorizationGrant[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.activeOnly) searchParams.append('active_only', 'true');
+    if (params?.subjectId) searchParams.append('subject_id', params.subjectId);
+    if (params?.workflowId) searchParams.append('workflow_id', params.workflowId);
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<AuthorizationGrant[]>(`/api/v1/security/grants${query}`);
+  }
+
+  async createGrant(grant: any): Promise<AuthorizationGrant> {
+    return this.request<AuthorizationGrant>('/api/v1/security/grants', {
+      method: 'POST',
+      body: JSON.stringify(grant),
+    });
+  }
+
+  async revokeGrant(id: string, reason?: string): Promise<AuthorizationGrant> {
+    const query = reason ? `?reason=${encodeURIComponent(reason)}` : '';
+    return this.request<AuthorizationGrant>(`/api/v1/security/grants/${encodeURIComponent(id)}/revoke${query}`, {
+      method: 'POST',
+    });
+  }
+
+  async listApprovals(params?: {
+    status?: string;
+    workflowId?: string;
+    agentId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<ApprovalRequest[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.workflowId) searchParams.append('workflow_id', params.workflowId);
+    if (params?.agentId) searchParams.append('agent_id', params.agentId);
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.offset) searchParams.append('offset', String(params.offset));
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<ApprovalRequest[]>(`/api/v1/security/approvals${query}`);
+  }
+
+  async getApproval(id: string): Promise<ApprovalRequest> {
+    return this.request<ApprovalRequest>(`/api/v1/security/approvals/${encodeURIComponent(id)}`);
+  }
+
+  async approveRequest(
+    id: string,
+    options?: {
+      reason?: string;
+      approval_mode?: ApprovalMode;
+      valid_until_seconds?: number;
+    }
+  ): Promise<ApprovalRequest> {
+    return this.request<ApprovalRequest>(`/api/v1/security/approvals/${encodeURIComponent(id)}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({
+        decision: 'approve',
+        reason: options?.reason,
+        approval_mode: options?.approval_mode || 'one_time',
+        valid_until_seconds: options?.valid_until_seconds,
+      }),
+    });
+  }
+
+  async denyRequest(id: string, options?: { reason?: string }): Promise<ApprovalRequest> {
+    return this.request<ApprovalRequest>(`/api/v1/security/approvals/${encodeURIComponent(id)}/deny`, {
+      method: 'POST',
+      body: JSON.stringify({
+        decision: 'deny',
+        reason: options?.reason,
+      }),
+    });
+  }
+
+  async listSecurityAuditLogs(params?: {
+    limit?: number;
+    offset?: number;
+    correlationId?: string;
+    outcome?: string;
+    agentId?: string;
+  }): Promise<SecurityAuditEntry[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.offset) searchParams.append('offset', String(params.offset));
+    if (params?.correlationId) searchParams.append('correlation_id', params.correlationId);
+    if (params?.outcome) searchParams.append('outcome', params.outcome);
+    if (params?.agentId) searchParams.append('agent_id', params.agentId);
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<SecurityAuditEntry[]>(`/api/v1/security/audit${query}`);
   }
 }
 

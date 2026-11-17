@@ -11,6 +11,7 @@ import {
   Clock,
   Layers,
   ShieldCheck,
+  ShieldAlert,
   PlusCircle,
   Eye,
   RefreshCw,
@@ -245,6 +246,8 @@ export const WorkflowsWorkspace: React.FC = () => {
       case 'planning':
       case 'plan_ready':
         return <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/30">Plan Ready</Badge>;
+      case 'waiting_for_authorization':
+        return <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse">Awaiting Approval</Badge>;
       case 'paused':
         return <Badge className="bg-zinc-600/20 text-zinc-400 border-zinc-500/30">Paused</Badge>;
       case 'failed':
@@ -260,6 +263,9 @@ export const WorkflowsWorkspace: React.FC = () => {
     switch (status) {
       case 'completed':
         return <CheckCircle2 className="h-4 w-4 text-emerald-400" />;
+      case 'waiting_for_authorization':
+      case 'paused':
+        return <ShieldAlert className="h-4 w-4 text-amber-400 animate-pulse" />;
       case 'running':
         return <RefreshCw className="h-4 w-4 text-amber-400 animate-spin" />;
       case 'failed':
@@ -639,6 +645,28 @@ export const WorkflowsWorkspace: React.FC = () => {
                       </Button>
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
+                      {/* Authorization Pending Notice */}
+                      {selectedStep.status === 'paused' && (
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 text-xs">
+                          <div className="flex items-center gap-2">
+                            <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0" />
+                            <div>
+                              <span className="font-semibold text-foreground">Awaiting Operator Authorization</span>
+                              <p className="text-[11px] text-amber-200">
+                                This step requires human confirmation before executing sensitive capability '{selectedStep.capability_id}'.
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-7"
+                            onClick={() => navigate('/approvals')}
+                          >
+                            Review in Approvals
+                          </Button>
+                        </div>
+                      )}
+
                       {/* Verification Status */}
                       <div className="flex items-center gap-2 p-2 rounded bg-muted/40 text-xs">
                         <ShieldCheck className="h-4 w-4 text-primary" />

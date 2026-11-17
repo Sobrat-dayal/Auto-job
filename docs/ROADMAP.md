@@ -271,14 +271,26 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - 10 new architectural documents (`SPECIALIST_AGENT_FRAMEWORK.md`, `SPECIALIST_AGENT_CATALOG.md`, `AGENT_MANIFESTS.md`, `AGENT_MODEL_PROFILES.md`, `RECRUITMENT_AGENTS.md`, `COMPUTER_AGENTS.md`, `PRODUCTIVITY_AGENTS.md`, `CREATIVE_AND_COMMUNICATION_AGENTS.md`, `AGENT_SECURITY.md`, `AGENT_TESTING.md`).
 - **Acceptance Criteria**: 94/94 Pytest unit & integration tests passed; 112/112 Vitest frontend tests passed; clean TypeScript typecheck across monorepo; clean production build. Ready for Stage 14. DO NOT begin Stage 14 until explicitly instructed.
 
-#### Stage 14: Multi-Agent Coordination & Swarm Message Board
+#### Stage 14: Advanced Authorization Engine, Granular Permissions, Preauthorized Autonomy, Approval Workflows, Policy Enforcement, Emergency Stop, Secure Tool Execution, and Comprehensive Audit Logging [COMPLETE]
 
-- **Goal**: Swarm coordination system where specialized agents (Job Scout, Resume Tailor, Outreach Coordinator, Browser Operator) collaborate via a shared board.
+- **Status**: COMPLETE (2026-11-18)
+- **Goal**: Establish a production-grade, centralized, deterministic Authorization Engine controlling autonomous agent execution, bounding agent capabilities, managing standing preauthorizations, queueing human-in-the-loop approvals, providing hard emergency stop controls, securing tool execution boundaries, and maintaining an append-only audit ledger.
 - **Key Deliverables**:
-  - Coordinator agent delegating sub-tasks to specialist agents.
-  - Inter-agent message passing protocol with typed messages.
-  - Conflict resolution and outcome arbitration mechanism.
-- **Acceptance Criteria**: Coordinator splits a compound task into parallel sub-tasks, dispatches to two workers, and combines results.
+  - Deterministic Authorization Engine (`AuthorizationEngine`) enforcing 10 evaluation precedence steps: Emergency Stop -> Automation Pause -> Credential Invariants -> Pre-existing Approvals -> Standing Grants -> Explicit Deny Policies -> Require Approval Policies -> Explicit Allow Policies -> Low-Risk Read Baseline -> High-Risk Action Guard -> Default Deny.
+  - 6 Relational SQLite tables: `authorization_policies`, `authorization_policy_versions`, `authorization_grants`, `approval_requests`, `authorization_decisions`, `emergency_stop_state`.
+  - 10 Permission Categories (`recruitment`, `filesystem`, `network`, `credential`, `browser`, `desktop`, `communication`, `code`, `creative`, `system`) and 4 Risk Levels (`LOW`, `MODERATE`, `HIGH`, `CRITICAL`).
+  - 6 Immutable Baseline Policies: System Read-Only Baseline, Moderate Synthesis Baseline, Credential Access Strict Isolation, External Job Application Submission Gate, Outbound Communications Gate, Destructive Operations Gate.
+  - Preauthorized Autonomy & Standing Grants (`AuthorizationGrant`): Time-bounded, usage-capped, workflow-scoped, and resource-bounded authorizations for uninterrupted autonomous operations.
+  - Durable Human-in-the-Loop Approval Queue (`ApprovalRequest`): SHA-256 parameter digest deduplication, expiration sweeping, single-use `consumed` state preventing parameter replay attacks.
+  - Fail-Closed Global Emergency Stop & Automation Pause (`EmergencyStopController`): Thread-safe in-memory caching synchronized with persistent SQLite state, surviving application restarts.
+  - Secure Tool Execution Gateway (`ToolExecutionGateway`): Enforcement barrier wrapping all capability invocations, pre-execution checks, just-in-time TOCTOU emergency stop checks, approval consumption, and audit trail emission.
+  - Workflow Integration: `ExecutionScheduler` pauses step on `AuthorizationRequiredError`, marks workflow `WAITING_FOR_AUTHORIZATION`, and resumes cleanly upon operator approval.
+  - Desktop Frontend Workspace (`/approvals`): Pending approvals queue, approval inspector drawer, policy manager, standing grants manager, audit ledger, and emergency stop modal.
+  - Command Center Integration: Emergency Stop button and Pause toggle in `DashboardHeader`, live pending approvals alert in `PendingActionsPanel`.
+  - Desktop Tray Integration: System tray menu items for Emergency Stop, Pause Automation, and Pending Approvals Queue.
+  - 11 Architectural Documents: `AUTHORIZATION_ENGINE.md`, `PERMISSION_MODEL.md`, `POLICY_SCHEMA.md`, `AUTONOMOUS_GRANTS.md`, `APPROVAL_WORKFLOWS.md`, `TOOL_EXECUTION_SECURITY.md`, `EMERGENCY_STOP.md`, `RECRUITMENT_AUTHORIZATION.md`, `SECURITY_AUDIT.md`, `PROMPT_INJECTION_DEFENSES.md`, `AUTHORIZATION_TESTING.md`.
+  - Automated Verification: 113/113 pytest tests passing (100%), 121/121 Vitest tests passing (100%), clean TypeScript typecheck across monorepo, clean production Vite build.
+- **Acceptance Criteria**: All Stage 14 requirements satisfied with zero mock data and strict fail-closed security. Ready for Stage 15. DO NOT begin Stage 15 until explicitly instructed.
 
 #### Stage 15: Agent Dynamic Tool Execution Engine & Sandboxed Execution
 

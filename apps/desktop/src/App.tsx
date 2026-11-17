@@ -36,6 +36,7 @@ const IntegrationsWorkspace = React.lazy(
 );
 const AIWorkspace = React.lazy(() => import('@/features/ai/AIWorkspace'));
 const SettingsWorkspace = React.lazy(() => import('@/features/settings/SettingsWorkspace'));
+const ApprovalsWorkspace = React.lazy(() => import('@/features/security/ApprovalsWorkspace'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,6 +115,10 @@ export const AppContent: React.FC = () => {
               {/* Centralized Settings Workspace (Stage 10) */}
               <Route path="/settings" element={<SettingsWorkspace />} />
               <Route path="/settings/*" element={<SettingsWorkspace />} />
+
+              {/* Authorization & Approvals Engine (Stage 14) */}
+              <Route path="/approvals" element={<ApprovalsWorkspace />} />
+              <Route path="/approvals/*" element={<ApprovalsWorkspace />} />
 
               {/* Standalone System Diagnostics & Development Tools */}
               <Route path="/diagnostics" element={<Diagnostics />} />
