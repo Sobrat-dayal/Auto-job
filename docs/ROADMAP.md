@@ -243,14 +243,19 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - 10 automated backend pytest tests and 5 automated frontend Vitest tests (100% pass rate).
 - **Acceptance Criteria**: Verified local and cloud inference execution, dynamic model switching without GPU OOM crashes, streaming token delivery, and complete documentation. Ready for Stage 12 (Base Agent Runtime & PEVR Architecture).
 
-#### Stage 12: Base Agent Runtime & Plan-Execute-Verify-Recover Architecture
+#### Stage 12: Base Agent Runtime & Plan-Execute-Verify-Recover Architecture [COMPLETE]
 
-- **Goal**: Core agent engine implementing structured reasoning: Goal Formulation -> Step Planning -> Execution -> Verification -> Error Recovery.
+- **Goal**: Core multi-agent orchestration runtime implementing structured reasoning, dynamic planning, dependency graphs, capability dispatching, multi-layer verification, and 13-category error recovery.
 - **Key Deliverables**:
-  - Agent state machine (Idle, Planning, Executing, Verifying, Recovering, Awaiting Approval, Done, Failed).
-  - Structured plan representation with dependency graphs.
-  - Verification predicates checking execution success before advancing steps.
-- **Acceptance Criteria**: Agent creates verifiable multi-step execution plans and recovers from synthetic step failures without halting.
+  - 5 Core Logical Agents: Supervisor Agent (`supervisor`), Planning Agent (`planner`), Task Router Agent (`router`), Verification Agent (`verifier`), Recovery Agent (`recovery`), plus Safe Capability Worker (`capability_worker`).
+  - 8 Relational database tables: `workflows`, `workflow_plans`, `workflow_steps`, `workflow_dependencies`, `agent_executions`, `agent_messages`, `verification_results`, `recovery_attempts`.
+  - DAG Engine: Kahn's algorithm cycle detection, topological sorting, multi-level parallel stages, and mustache input binding resolution (`{{step_x.field}}`).
+  - 7 Safe Capabilities: `text_summarize`, `text_classify`, `structured_extract`, `text_compare`, `data_transform`, `output_validate`, `code_inspect`.
+  - Hardware Guardrail: Single-active local LLM slot semaphore for NVIDIA GeForce RTX 4050 6GB Laptop GPU.
+  - End-to-end recruitment workflow: Analyzes job description, extracts technical skills, summarizes responsibilities, classifies domain, and compiles structured markdown report.
+  - Desktop UI: Workflows Workspace (`/workflows`) with natural language goal builder, interactive DAG visualizer, step inspector drawer, and pause/resume/cancel controls; Agents Workspace (`/agents`) with real Stage 12 coordination agent statuses.
+  - 10 new architectural documents (`MULTI_AGENT_ARCHITECTURE.md`, `SUPERVISOR_AGENT.md`, `PLANNING_ENGINE.md`, `AGENT_ROUTING.md`, `WORKFLOW_DAG.md`, `AGENT_COMMUNICATION.md`, `AGENT_VERIFICATION.md`, `AGENT_RECOVERY.md`, `ORCHESTRATION_SECURITY.md`, `ORCHESTRATION_TESTING.md`) and ADR-0041 to ADR-0044.
+- **Acceptance Criteria**: 84/84 Pytest unit & integration tests passed; 110/110 Vitest frontend tests passed; end-to-end recruitment workflow executed successfully. Ready for Stage 13. DO NOT begin Stage 13 until explicitly instructed.
 
 #### Stage 13: Memory Architecture (Context Window, Episodic SQLite & Semantic Vectors)
 

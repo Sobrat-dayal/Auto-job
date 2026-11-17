@@ -6,7 +6,6 @@ import {
   ModuleHeader,
   ModuleToolbar,
   ModuleTabs,
-  ModuleUnavailableState,
   ModuleDetailPanel,
   ModuleLoadingState,
   ModuleEmptyState,
@@ -30,34 +29,109 @@ export interface AgentDefinition {
 }
 
 export const AGENT_REGISTRY: AgentDefinition[] = [
-  // Tier 1: Orchestration & Swarm
+  // Tier 1: Multi-Agent Orchestration Core (Stage 12 Active)
   {
-    id: 'supervisor-swarm',
-    name: 'Supervisor Swarm Coordinator',
+    id: 'supervisor',
+    name: 'Supervisor Agent',
     category: 'Orchestration',
-    role: 'Multi-Agent Orchestrator & Safety Gate',
+    role: 'Workflow Coordinator & Governance Master',
     description:
-      'Plans, breaks down high-level user directives into DAGs, and assigns tasks to specialist agents.',
-    model: 'Claude 3.5 Sonnet / GPT-4o',
+      'Coordinates multi-agent workflows, manages lifecycle state transitions, preserves checkpoints, and enforces user controls.',
+    model: 'Unified AI Gateway / Router',
     stage: 'Stage 12',
-    status: 'unavailable',
+    status: 'active',
     capabilities: [
-      'Dynamic DAG Generation',
-      'Safety Policy Verification',
-      'Failure Recovery & Retries',
+      'Workflow Lifecycle Management',
+      'Checkpoint Preservation',
+      'Pause/Resume/Cancel Control',
+      'Crash State Reconciliation',
     ],
   },
   {
-    id: 'plan-execute-verify',
-    name: 'PEV Plan-Execute-Verify Engine',
+    id: 'planner',
+    name: 'Planning Agent',
     category: 'Orchestration',
-    role: 'Verification & Quality Auditor',
+    role: 'Dynamic Workflow Planner',
     description:
-      'Inspects intermediate agent outputs and validates results against requirements before finalizing.',
-    model: 'Gemini 1.5 Pro',
+      'Decomposes natural language goals into structured dependency DAGs, verifies cycle-free topology, and versions plans.',
+    model: 'AI Gateway (Planning Mode)',
     stage: 'Stage 12',
-    status: 'unavailable',
-    capabilities: ['Self-Correction Loops', 'Deterministic Invariant Checks', 'Audit Trails'],
+    status: 'active',
+    capabilities: [
+      'Goal Interpretation & Decomposition',
+      'DAG Graph Construction',
+      'Fast Cycle Detection (Kahn Algo)',
+      'Plan Versioning & Replanning',
+    ],
+  },
+  {
+    id: 'router',
+    name: 'Task Router Agent',
+    category: 'Orchestration',
+    role: 'Capability Dispatcher',
+    description:
+      'Evaluates step requirements, matches capabilities, checks agent concurrency limits and hardware constraints with explainability.',
+    model: 'Deterministic Capability Router',
+    stage: 'Stage 12',
+    status: 'active',
+    capabilities: [
+      'Capability-Based Matching',
+      'Concurrency Slot Management',
+      'Explainable Routing Decisions',
+      'Fallback Agent Selection',
+    ],
+  },
+  {
+    id: 'verifier',
+    name: 'Verification Agent',
+    category: 'Orchestration',
+    role: 'Multi-Layer Quality Auditor',
+    description:
+      'Audits step execution outputs using deterministic schema/type assertions and semantic model evaluations.',
+    model: 'Deterministic Validator + AI Review',
+    stage: 'Stage 12',
+    status: 'active',
+    capabilities: [
+      'Layer 1: Schema & Type Assertions',
+      'Layer 2: Semantic Output Audit',
+      'Four-State Verification Outcomes',
+      'Audit Evidence Logging',
+    ],
+  },
+  {
+    id: 'recovery',
+    name: 'Recovery Agent',
+    category: 'Orchestration',
+    role: 'Fault Diagnostician & Healer',
+    description:
+      'Classifies failures across 13 normalized categories, executes bounded retries, and triggers dynamic replanning.',
+    model: 'Diagnostic Classifier',
+    stage: 'Stage 12',
+    status: 'active',
+    capabilities: [
+      '13 Normalized Failure Classes',
+      'Bounded Idempotent Retries',
+      'Dynamic Plan Revision',
+      'Safe Recovery Audit Logging',
+    ],
+  },
+  {
+    id: 'capability_worker',
+    name: 'Safe Capability Worker',
+    category: 'Orchestration',
+    role: 'Deterministic & AI Capability Executor',
+    description:
+      'Executes registered safe capabilities (text summarization, classification, structured extraction, comparison, transformation, validation, and code inspection).',
+    model: 'Local / Cloud Hybrid Execution',
+    stage: 'Stage 12',
+    status: 'active',
+    capabilities: [
+      'Text Summarize & Classify',
+      'Structured Entity Extract',
+      'Text Diff & Compare',
+      'Data Transform & Markdown Reports',
+      'Deterministic Code AST Inspect',
+    ],
   },
   {
     id: 'safety-guardrail',
@@ -364,9 +438,9 @@ export const AgentsWorkspace: React.FC = () => {
     >
       <ModuleHeader
         title="Autonomous Agent Swarm"
-        description="Inspect, supervise, and configure the 24-agent autonomous specialist swarm."
+        description="Inspect, supervise, and configure the autonomous multi-agent coordination swarm."
         icon={Bot}
-        stageTag="Stage 12 Planned"
+        stageTag="Stage 12 Active"
         badgeLabel={`${AGENT_REGISTRY.length} Cataloged`}
         badgeVariant="outline"
         actions={
@@ -387,18 +461,16 @@ export const AgentsWorkspace: React.FC = () => {
         }
       />
 
-      <ModuleUnavailableState
-        moduleName="Autonomous Swarm Orchestration"
-        stageTag="Stage 12"
-        stageName="24-Agent Swarm Runtime"
-        description="Full multi-agent autonomous swarm execution, dynamic Plan-Execute-Verify cycles, and peer-to-peer message bus communication will activate in Stage 12. Below is the operational agent registry and current local background worker pool."
-        plannedCapabilities={[
-          'Dynamic multi-agent DAG decomposition',
-          'Autonomous plan-execute-verify loops',
-          'Deterministic safety barrier gating',
-          'Agent-to-agent async event broadcasting',
-        ]}
-      />
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-xs">
+        <div className="flex items-center gap-2 font-semibold text-primary">
+          <BrainCircuit className="h-4 w-4" />
+          Multi-Agent Orchestration Runtime (Stage 12 Operational)
+        </div>
+        <p className="mt-1 text-muted-foreground">
+          Core coordination agents (Supervisor, Planner, Router, Verifier, Recovery, Capability Worker) are active.
+          Specialist domain agents (Recruitment, Computer Control, Media) are cataloged below and scheduled for subsequent roadmap stages.
+        </p>
+      </div>
 
       {/* Backend Worker Pool Status Card */}
       <Card className="border-border/60 bg-card/60 backdrop-blur-sm">

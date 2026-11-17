@@ -416,6 +416,31 @@ Authenticated HTTP endpoints under `/api/v1/ai/`:
 | `GET`   | `/api/v1/ai/routing/preferences`     | Retrieves user-configured model preferences for all 16 specialization categories.                         |
 | `PATCH` | `/api/v1/ai/routing/preferences`     | Updates model preferences or local-only restrictions for a specialization category in SQLite.             |
 
+---
+
+## 8. Multi-Agent Orchestration Endpoints (Stage 12)
+
+Authenticated HTTP endpoints under `/api/v1/orchestration/`:
+
+| Method  | Endpoint                                             | Description                                                                                               |
+| :------ | :--------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `POST`  | `/api/v1/orchestration/workflows`                   | Creates a new workflow, decomposes user goal into a validated DAG plan, and initializes steps in SQLite.  |
+| `GET`   | `/api/v1/orchestration/workflows`                   | Lists workflows with optional status filtering (`status`), limit, and offset pagination.                 |
+| `GET`   | `/api/v1/orchestration/workflows/{id}`              | Retrieves comprehensive workflow status including active plan, step statuses, outputs, and metrics.       |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/start`        | Triggers execution of the active plan (supports `background=true|false`).                                 |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/pause`        | Pauses an active workflow run at stage boundary.                                                          |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/resume`        | Resumes execution of a paused workflow.                                                                   |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/cancel`        | Cancels an active or queued workflow.                                                                     |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/replan`        | Dynamically replans a workflow, versioning the DAG and preserving completed step outputs.                 |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/dag`           | Returns DAG visualization metadata (steps, dependencies, stages, topological order).                      |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/executions`    | Returns agent execution trace logs with duration and status for a workflow.                               |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/messages`      | Returns typed inter-agent message logs from the audit ledger.                                             |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/verifications` | Returns verification audit evidence records (Pass/Fail/NeedsReview).                                      |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/recoveries`    | Returns failure recovery attempts and remediation records.                                                |
+| `GET`   | `/api/v1/orchestration/agents`                      | Lists all registered autonomous coordination agents and specialist roadmap catalog.                       |
+| `GET`   | `/api/v1/orchestration/capabilities`                | Lists registered capabilities with typed input/output schemas and verification policies.                  |
+| `GET`   | `/api/v1/orchestration/stats`                       | Retrieves aggregate workflow execution statistics and completion rates.                                   |
+
 
 ---
 
@@ -441,4 +466,29 @@ Authenticated HTTP endpoints under `/api/v1/ai/`:
 | `GET`   | `/api/v1/ai/requests`                | Returns paginated audit logs of past inference requests with token counts, costs, and routing rules.      |
 | `GET`   | `/api/v1/ai/routing/preferences`     | Retrieves user-configured model preferences for all 16 specialization categories.                         |
 | `PATCH` | `/api/v1/ai/routing/preferences`     | Updates model preferences or local-only restrictions for a specialization category in SQLite.             |
+
+---
+
+## 8. Multi-Agent Orchestration Endpoints (Stage 12)
+
+Authenticated HTTP endpoints under `/api/v1/orchestration/`:
+
+| Method  | Endpoint                                             | Description                                                                                               |
+| :------ | :--------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `POST`  | `/api/v1/orchestration/workflows`                   | Creates a new workflow, decomposes user goal into a validated DAG plan, and initializes steps in SQLite.  |
+| `GET`   | `/api/v1/orchestration/workflows`                   | Lists workflows with optional status filtering (`status`), limit, and offset pagination.                 |
+| `GET`   | `/api/v1/orchestration/workflows/{id}`              | Retrieves comprehensive workflow status including active plan, step statuses, outputs, and metrics.       |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/start`        | Triggers execution of the active plan (supports `background=true|false`).                                 |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/pause`        | Pauses an active workflow run at stage boundary.                                                          |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/resume`        | Resumes execution of a paused workflow.                                                                   |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/cancel`        | Cancels an active or queued workflow.                                                                     |
+| `POST`  | `/api/v1/orchestration/workflows/{id}/replan`        | Dynamically replans a workflow, versioning the DAG and preserving completed step outputs.                 |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/dag`           | Returns DAG visualization metadata (steps, dependencies, stages, topological order).                      |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/executions`    | Returns agent execution trace logs with duration and status for a workflow.                               |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/messages`      | Returns typed inter-agent message logs from the audit ledger.                                             |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/verifications` | Returns verification audit evidence records (Pass/Fail/NeedsReview).                                      |
+| `GET`   | `/api/v1/orchestration/workflows/{id}/recoveries`    | Returns failure recovery attempts and remediation records.                                                |
+| `GET`   | `/api/v1/orchestration/agents`                      | Lists all registered autonomous coordination agents and specialist roadmap catalog.                       |
+| `GET`   | `/api/v1/orchestration/capabilities`                | Lists registered capabilities with typed input/output schemas and verification policies.                  |
+| `GET`   | `/api/v1/orchestration/stats`                       | Retrieves aggregate workflow execution statistics and completion rates.                                   |
 

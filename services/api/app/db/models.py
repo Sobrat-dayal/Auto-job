@@ -423,3 +423,150 @@ class AIRoutingPreferenceRecord(Base):
     fallback_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
     is_local_only: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+# ---------------------------------------------------------------------------
+# S. Multi-Agent Orchestration Models (Stage 12)
+# ---------------------------------------------------------------------------
+
+class WorkflowRecord(Base):
+    __tablename__ = "workflows"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    goal: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="created", nullable=False, index=True)
+    active_plan_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    priority: Mapped[str] = mapped_column(String(32), default="normal", nullable=False)
+    context_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    constraints_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    total_steps: Mapped[int] = mapped_column(Integer, default=0)
+    completed_steps: Mapped[int] = mapped_column(Integer, default=0)
+    failed_steps: Mapped[int] = mapped_column(Integer, default=0)
+    total_cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    plans: Mapped[list["WorkflowPlanRecord"]] = relationship(back_populates="workflow", cascade="all, delete-orphan")
+    steps: Mapped[list["WorkflowStepRecord"]] = relationship(back_populates="workflow", cascade="all, delete-orphan")
+
+
+class WorkflowPlanRecord(Base):
+    __tablename__ = "workflow_plans"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    goal: Mapped[str] = mapped_column(Text, nullable=False)
+    plan_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    success_criteria_json: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    workflow: Mapped["WorkflowRecord"] = relationship(back_populates="plans")
+    steps: Mapped[list["WorkflowStepRecord"]] = relationship(back_populates="plan", cascade="all, delete-orphan")
+
+
+class WorkflowStepRecord(Base):
+    __tablename__ = "workflow_steps"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    plan_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflow_plans.id", ondelete="CASCADE"), nullable=False, index=True)
+    step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    capability_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    assigned_agent_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    input_bindings_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    output_result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error_info_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    task_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    verification_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    verification_result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    max_retries: Mapped[int] = mapped_column(Integer, default=2)
+    timeout_seconds: Mapped[int] = mapped_column(Integer, default=60)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    workflow: Mapped["WorkflowRecord"] = relationship(back_populates="steps")
+    plan: Mapped["WorkflowPlanRecord"] = relationship(back_populates="steps")
+
+    __table_args__ = (
+        UniqueConstraint("workflow_id", "plan_id", "step_id", name="uq_workflow_plan_step"),
+    )
+
+
+class WorkflowDependencyRecord(Base):
+    __tablename__ = "workflow_dependencies"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    depends_on_step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class AgentExecutionRecord(Base):
+    __tablename__ = "agent_executions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    agent_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="running", nullable=False)
+    model_used: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    tokens_used: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AgentMessageRecord(Base):
+    __tablename__ = "agent_messages"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender_agent_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    recipient_agent_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    step_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
+class VerificationResultRecord(Base):
+    __tablename__ = "verification_results"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    verification_type: Mapped[str] = mapped_column(String(32), default="deterministic", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    passed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    evidence_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class RecoveryAttemptRecord(Base):
+    __tablename__ = "recovery_attempts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str] = mapped_column(String(36), ForeignKey("workflows.id", ondelete="CASCADE"), nullable=False, index=True)
+    step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    failure_category: Mapped[str] = mapped_column(String(64), nullable=False)
+    recovery_action: Mapped[str] = mapped_column(String(64), nullable=False)
+    attempt_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    success: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    details_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+

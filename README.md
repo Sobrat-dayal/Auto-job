@@ -74,6 +74,16 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [AI Privacy & Security Architecture](file:///e:/proooo/AUTO%20JOB/docs/AI_PRIVACY.md)
 - [AI Streaming Architecture](file:///e:/proooo/AUTO%20JOB/docs/AI_STREAMING.md)
 - [AI Gateway Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/AI_TESTING.md)
+- [Multi-Agent Architecture](file:///e:/proooo/AUTO%20JOB/docs/MULTI_AGENT_ARCHITECTURE.md)
+- [Supervisor Agent Specification](file:///e:/proooo/AUTO%20JOB/docs/SUPERVISOR_AGENT.md)
+- [Planning Engine & Goal Decomposition](file:///e:/proooo/AUTO%20JOB/docs/PLANNING_ENGINE.md)
+- [Task Routing & Capability Matching](file:///e:/proooo/AUTO%20JOB/docs/AGENT_ROUTING.md)
+- [Workflow DAG Engine](file:///e:/proooo/AUTO%20JOB/docs/WORKFLOW_DAG.md)
+- [Agent Communication & Event Ledger](file:///e:/proooo/AUTO%20JOB/docs/AGENT_COMMUNICATION.md)
+- [Verification Agent Architecture](file:///e:/proooo/AUTO%20JOB/docs/AGENT_VERIFICATION.md)
+- [Recovery Agent & Fault Remediation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_RECOVERY.md)
+- [Orchestration Security & Governance](file:///e:/proooo/AUTO%20JOB/docs/ORCHESTRATION_SECURITY.md)
+- [Orchestration Testing & Verification Guide](file:///e:/proooo/AUTO%20JOB/docs/ORCHESTRATION_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

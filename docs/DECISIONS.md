@@ -895,3 +895,89 @@ Implement Server-Sent Events (SSE) streaming via `POST /api/v1/ai/chat/stream`:
 - Instant visual feedback in the desktop AI Playground with sub-second time to first token.
 - Immediate interruption of unwanted generations, preventing wasted tokens or GPU cycles.
 - Accurate recording of partial token counts upon cancellation.
+
+---
+
+## ADR-0041: Multi-Agent DAG Orchestration & Fast Cycle Detection via Kahn's Algorithm
+
+### Context
+
+Coordinating autonomous multi-agent workflows across recruitment, coding, and computer automation requires strict ordering guarantees, parallel branch execution, and protection against circular deadlocks.
+
+### Decision
+
+Implement Directed Acyclic Graph (DAG) validation and scheduling in `app.orchestration.graph.DependencyGraph`:
+1. Use Kahn's algorithm for topological sorting and cycle detection; plans with circular dependencies fail fast during plan generation.
+2. Calculate parallel execution stages allowing independent nodes to run concurrently.
+3. Dynamically compute executable steps as predecessors complete.
+4. Support mustache-style typed input binding resolution (`{{step_x.field}}`, `{{input.field}}`).
+
+### Consequences
+
+- Deadlock-free execution of complex multi-agent workflows.
+- Maximum utilization of CPU cores for deterministic steps.
+- Clear, visual stage representation in the desktop UI.
+
+---
+
+## ADR-0042: Separation of 5 Core Coordination Agents from Safe Capabilities
+
+### Context
+
+Multi-agent systems often suffer from monolithic bloat where agents attempt to perform both workflow supervision and low-level task execution.
+
+### Decision
+
+Architect a clean separation of concerns:
+1. **5 Core Logical Agents**: Supervisor (`supervisor`), Planning (`planner`), Task Router (`router`), Verification (`verifier`), and Recovery (`recovery`).
+2. **Capability Registry**: Modular, typed capability handlers (`text_summarize`, `text_classify`, `structured_extract`, `text_compare`, `data_transform`, `output_validate`, `code_inspect`) executed by the Safe Capability Worker (`capability_worker`).
+3. Specialist agents (Job Discovery, Resume Tailoring, Browser Automation) cataloged honestly in the Agent Registry with roadmap activation stages.
+
+### Consequences
+
+- High testability and modularity of coordination logic.
+- Immediate operational utility with 7 safe out-of-the-box capabilities.
+- Zero-Fake-Data compliance: honest distinction between active core agents and future specialists.
+
+---
+
+## ADR-0043: Multi-Layer Step Output Verification (Deterministic + AI Semantic)
+
+### Context
+
+Autonomous workflows can produce malformed JSON, empty fields, or prompt-deviant outputs. Relying solely on downstream steps to fail leads to cascaded errors and wasted tokens.
+
+### Decision
+
+Implement a two-layer verification architecture in `VerificationAgent`:
+1. **Layer 1 (Deterministic)**: Enforces required dictionary formats, JSON schema field presence, non-empty assertions, and strong type checks.
+2. **Layer 2 (Semantic)**: When required by policy, calls the AI Gateway to score instruction compliance (0.0 to 1.0) and verify semantic accuracy.
+3. Emit four normalized verification states: `Pass`, `Fail`, `NeedsReview`, and `Unverifiable`.
+
+### Consequences
+
+- 100% prevention of malformed data corrupting downstream pipeline steps.
+- Granular audit logging in `verification_results`.
+- Clear triggers for automated recovery or human-in-the-loop review.
+
+---
+
+## ADR-0044: 13-Category Fault Classification & Bounded Dynamic Replanning
+
+### Context
+
+Step failures in autonomous systems range from transient rate limits and timeouts to permanent missing capabilities and structural dependency breaks. Treating all errors identically leads to infinite retry loops or premature failures.
+
+### Decision
+
+Implement a structured fault recovery engine in `RecoveryAgent`:
+1. Normalize all exceptions and error messages into 13 discrete `FailureCategory` enums.
+2. Check step idempotency before retrying.
+3. Apply bounded retries (up to 2 attempts) for transient errors (rate limit, timeout, resource exhaustion).
+4. Apply bounded dynamic replanning (up to 2 revisions) when retries fail or verification fails permanently, preserving completed checkpoint states.
+
+### Consequences
+
+- Resilient execution capable of self-healing without user intervention.
+- Strict prevention of runaway retry loops or unbounded cloud API expenses.
+- Transparent recovery audit records in `recovery_attempts`.

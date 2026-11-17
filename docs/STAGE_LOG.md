@@ -893,3 +893,98 @@ Stage 09 transforms the AUTONOM desktop UI into a complete, organized, multi-mod
 - **Stage 12 Readiness**:
   - The AI Model Gateway is fully operational, verified, and ready to serve as the unified inference foundation for all 24 specialist agents.
   - DO NOT begin Stage 12 until explicitly instructed.
+
+---
+
+## Stage 12: Production-Oriented Multi-Agent Orchestration, Supervisor Intelligence, Dynamic Planning, Task Delegation, Dependency Graphs, Verification, Recovery, and Autonomous Workflow Execution
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-17T16:30:00Z
+- **Completed**: 2026-11-17T19:15:00Z
+- **Lead Roles**: Principal AI Systems Architect, Senior Multi-Agent Engineer, Python Backend Architect, Distributed Systems Engineer, LLM Infrastructure Engineer, Rust Systems Developer, React Engineer, Security Architect, QA Lead
+
+### 1. Objectives & Scope
+
+1. Construct the production-grade **Multi-Agent Orchestration Runtime** coordinating 5 Core Logical Agents:
+   - **Supervisor Agent (`supervisor`)**: Master coordination, workflow lifecycle transitions, checkpoints, user governance.
+   - **Planning Agent (`planner`)**: Natural language goal decomposition, validated DAG generation, Kahn's algorithm cycle detection, plan versioning.
+   - **Task Router Agent (`router`)**: Capability-based matching, concurrency checks, permission enforcement, explainable routing decisions.
+   - **Verification Agent (`verifier`)**: Multi-layer verification (deterministic schema/type assertions + AI-assisted semantic review), emitting Pass/Fail/NeedsReview/Unverifiable.
+   - **Recovery Agent (`recovery`)**: 13-category failure classification, bounded retries, dynamic replanning, state recovery.
+2. Implement **Agent Registry** and **Capability Registry** with typed contracts, schemas, and execution environments.
+3. Deliver 7 initial safe capabilities functional out of the box:
+   - `text_summarize`: AI Gateway summarizer with extractive fallback.
+   - `text_classify`: Category classification with keyword fallback.
+   - `structured_extract`: Key-value entity extraction with regex fallback.
+   - `text_compare`: SequenceMatcher diff and similarity comparison.
+   - `data_transform`: Dictionary merging, filtering, and markdown report formatting.
+   - `output_validate`: Schema, non-empty, and type assertions.
+   - `code_inspect`: Python AST syntax validation and cyclomatic complexity scoring.
+4. Enforce physical hardware guardrail for NVIDIA GeForce RTX 4050 6GB Laptop GPU (single active LLM slot semaphore, parallel non-LLM execution up to 4 concurrent steps).
+5. Build and execute real end-to-end recruitment workflow: "Analyze supplied job description, extract technical skills, summarize responsibilities, identify experience requirements, and produce a structured report".
+6. Upgrade desktop frontend:
+   - Workflows Workspace (`/workflows`): Natural language goal input, workflow status list, interactive DAG visualizer (topological stages), Step Inspector drawer, pause/resume/cancel controls.
+   - Agents Workspace (`/agents`): Real status for Supervisor, Planner, Router, Verifier, Recovery, and Capability Worker; honest roadmap markers for future specialists.
+
+### 2. Implementation Checklist
+
+- [x] Create 8 relational SQLAlchemy models in `services/api/app/db/models.py` (`WorkflowRecord`, `WorkflowPlanRecord`, `WorkflowStepRecord`, `WorkflowDependencyRecord`, `AgentExecutionRecord`, `AgentMessageRecord`, `VerificationResultRecord`, `RecoveryAttemptRecord`).
+- [x] Implement database persistence repository in `services/api/app/repositories/workflow_repository.py`.
+- [x] Implement core orchestration contracts, schemas, and enums in `services/api/app/orchestration/contracts.py`.
+- [x] Implement DAG engine with Kahn's algorithm cycle detection and parallel stages in `services/api/app/orchestration/graph.py`.
+- [x] Implement 7 initial safe capabilities and registry in `services/api/app/orchestration/capabilities/`.
+- [x] Implement Agent Registry with 5 core agents in `services/api/app/orchestration/agents/registry.py`.
+- [x] Implement Planning Agent with goal decomposition and DAG validation in `services/api/app/orchestration/planner.py`.
+- [x] Implement Task Router Agent with explainable dispatching in `services/api/app/orchestration/router.py`.
+- [x] Implement Verification Agent with deterministic and semantic audit in `services/api/app/orchestration/verifier.py`.
+- [x] Implement Recovery Agent with 13-category fault classification in `services/api/app/orchestration/recovery.py`.
+- [x] Implement shared context and mustache binding resolution in `services/api/app/orchestration/context.py`.
+- [x] Implement DAG Execution Scheduler with hardware semaphores in `services/api/app/orchestration/scheduler.py`.
+- [x] Implement Supervisor Agent master coordinator in `services/api/app/orchestration/supervisor.py`.
+- [x] Implement FastAPI endpoints in `services/api/app/api/v1/endpoints/orchestration.py` and register in router.
+- [x] Implement startup workflow crash reconciliation in `services/api/app/services/service_container.py`.
+- [x] Author comprehensive backend test suite in `services/api/tests/test_orchestration.py` (8 tests, 100% pass).
+- [x] Define TypeScript shared types in `packages/shared-types/src/orchestration.ts` and export.
+- [x] Add typed orchestration API client methods to `apps/desktop/src/lib/api-client.ts`.
+- [x] Upgrade `apps/desktop/src/features/workflows/WorkflowsWorkspace.tsx` with goal builder, DAG visualizer, and step inspector.
+- [x] Upgrade `apps/desktop/src/features/agents/AgentsWorkspace.tsx` with real Stage 12 coordination agent statuses.
+- [x] Author frontend Vitest tests in `apps/desktop/src/test/features/workflows-workspace.test.tsx` and `agents-workspace.test.tsx`.
+- [x] Author 10 architectural documentation files in `docs/` and record ADR-0041 to ADR-0044 in `docs/DECISIONS.md`.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `python -m pytest -v`: **84 passed in 10.83s** (100% pass rate).
+   - `test_orchestration.py` (8 tests):
+     - `test_dependency_graph_topological_sort_and_stages` PASSED
+     - `test_dependency_graph_cycle_detection` PASSED
+     - `test_capabilities_execution` PASSED
+     - `test_context_binding_resolution` PASSED
+     - `test_agent_registry` PASSED
+     - `test_recovery_classification` PASSED
+     - `test_end_to_end_job_analysis_workflow` PASSED
+     - `test_fastapi_orchestration_endpoints` PASSED
+2. **Frontend Vitest Test Suite (`apps/desktop/src/test`)**:
+   - `pnpm -r test`: **30 test files passed | 110 tests passed in 22.54s** (100% pass rate).
+   - `workflows-workspace.test.tsx` (2 tests): Render workflows, statistics badge, interactive DAG, goal builder submission.
+   - `agents-workspace.test.tsx` (3 tests): Render active agents, search filtering, detail inspector.
+3. **End-to-End Real Workflow Verification**:
+   - Executed live job analysis workflow end-to-end:
+     - Goal: "Analyze supplied job description, extract technical skills, summarize responsibilities, identify experience requirements, and produce a structured report".
+     - Extracted technical skills (`Python`, `Rust`, `FastAPI`).
+     - Generated executive summary.
+     - Classified role specialization (`Full Stack Engineering`).
+     - Compiled markdown report artifact.
+     - Validated schema compliance via deterministic assertions.
+4. **Hardware & Zero-Fake-Data Audit**:
+   - RTX 4050 6GB Laptop GPU single-active-model semaphore verified.
+   - Zero-Fake-Data compliance verified across all models, agents, and outputs.
+
+### 4. Known Limitations & Stage 13 Hand-off
+
+- **Known Limitations**:
+  - Fine-grained human-in-the-loop authorization policies, action boundary interceptors, and security gating will activate in **Stage 13 (Agent Safety Guardrails, Authorization Engine, and Sandboxing)**.
+  - Autonomous web crawling and job board scraping activate in Stage 14.
+- **Stage 13 Readiness**:
+  - The multi-agent orchestration runtime is fully operational, verified, and complete.
+  - DO NOT begin Stage 13 until explicitly instructed.

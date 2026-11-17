@@ -80,6 +80,13 @@ class ServiceContainer:
         except Exception as exc:
             logger.warning(f"Error during startup task reconciliation: {exc}")
 
+        # 3b. Startup Workflow Orchestration Reconciliation
+        try:
+            from app.orchestration.supervisor import get_supervisor_agent
+            await get_supervisor_agent().reconcile_active_workflows()
+        except Exception as exc:
+            logger.warning(f"Error during startup workflow reconciliation: {exc}")
+
         # 4. Start worker manager loop
         await self.worker_manager.start(self.task_manager)
 

@@ -11,6 +11,7 @@ from app.api.v1.endpoints.events import router as events_router
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.integrations import router as integrations_router
 from app.api.v1.endpoints.jobs import router as jobs_router
+from app.api.v1.endpoints.orchestration import router as orchestration_router
 from app.api.v1.endpoints.profiles import router as profiles_router
 from app.api.v1.endpoints.ready import router as ready_router
 from app.api.v1.endpoints.settings import router as settings_router
@@ -42,3 +43,4 @@ api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(applications_router)
 api_v1_router.include_router(artifacts_router)
 api_v1_router.include_router(ai_router)
+api_v1_router.include_router(orchestration_router)

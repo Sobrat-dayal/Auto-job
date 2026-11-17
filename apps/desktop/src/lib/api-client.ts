@@ -33,6 +33,15 @@ import type {
   RoutingDecision,
   AIRoutingPreference,
   TaskCategory,
+  AgentDefinition,
+  CapabilityDefinition,
+  DAGVisualizationData,
+  OrchestrationStats,
+  WorkflowCreateRequest,
+  WorkflowReplanRequest,
+  WorkflowResponse,
+  WorkflowStatus,
+  WorkflowSummary,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -596,6 +605,103 @@ export class ApiClient {
     return () => {
       controller.abort();
     };
+  }
+
+  // ==========================================
+  // Multi-Agent Orchestration Methods (Stage 12)
+  // ==========================================
+
+  async createWorkflow(request: WorkflowCreateRequest): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>('/api/v1/orchestration/workflows', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async listWorkflows(status?: WorkflowStatus, limit = 50, offset = 0): Promise<WorkflowSummary[]> {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    return this.request<WorkflowSummary[]>(`/api/v1/orchestration/workflows?${params.toString()}`);
+  }
+
+  async getWorkflow(workflowId: string): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>(`/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}`);
+  }
+
+  async startWorkflow(workflowId: string, background = true): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>(
+      `/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/start?background=${background}`,
+      { method: 'POST' }
+    );
+  }
+
+  async pauseWorkflow(workflowId: string): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>(
+      `/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/pause`,
+      { method: 'POST' }
+    );
+  }
+
+  async resumeWorkflow(workflowId: string): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>(
+      `/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/resume`,
+      { method: 'POST' }
+    );
+  }
+
+  async cancelWorkflow(workflowId: string): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>(
+      `/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/cancel`,
+      { method: 'POST' }
+    );
+  }
+
+  async replanWorkflow(workflowId: string, request: WorkflowReplanRequest): Promise<WorkflowResponse> {
+    return this.request<WorkflowResponse>(
+      `/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/replan`,
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      }
+    );
+  }
+
+  async getWorkflowDag(workflowId: string): Promise<DAGVisualizationData> {
+    return this.request<DAGVisualizationData>(
+      `/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/dag`
+    );
+  }
+
+  async getWorkflowExecutions(workflowId: string): Promise<any[]> {
+    return this.request<any[]>(`/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/executions`);
+  }
+
+  async getWorkflowMessages(workflowId: string): Promise<any[]> {
+    return this.request<any[]>(`/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/messages`);
+  }
+
+  async getWorkflowVerifications(workflowId: string): Promise<any[]> {
+    return this.request<any[]>(`/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/verifications`);
+  }
+
+  async getWorkflowRecoveries(workflowId: string): Promise<any[]> {
+    return this.request<any[]>(`/api/v1/orchestration/workflows/${encodeURIComponent(workflowId)}/recoveries`);
+  }
+
+  async listAgents(onlyAvailable = false): Promise<AgentDefinition[]> {
+    return this.request<AgentDefinition[]>(
+      `/api/v1/orchestration/agents?only_available=${onlyAvailable}`
+    );
+  }
+
+  async listCapabilities(): Promise<CapabilityDefinition[]> {
+    return this.request<CapabilityDefinition[]>('/api/v1/orchestration/capabilities');
+  }
+
+  async getOrchestrationStats(): Promise<OrchestrationStats> {
+    return this.request<OrchestrationStats>('/api/v1/orchestration/stats');
   }
 }
 

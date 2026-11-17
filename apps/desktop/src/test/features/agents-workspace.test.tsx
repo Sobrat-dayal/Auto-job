@@ -27,15 +27,16 @@ describe('AgentsWorkspace', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Autonomous Agent Swarm');
-    expect(screen.getByText('Stage 12 Planned')).toBeInTheDocument();
-    expect(screen.getByText('Scheduled for Stage 12')).toBeInTheDocument();
+    expect(screen.getByText('Stage 12 Active')).toBeInTheDocument();
+    expect(screen.getByText(/Stage 12 Operational/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(
         screen.getByText('Active Local Worker Pool (Stage 03 Foundation)')
       ).toBeInTheDocument();
       expect(screen.getByText('2 / 4 Active')).toBeInTheDocument();
-      expect(screen.getByText('Supervisor Swarm Coordinator')).toBeInTheDocument();
+      expect(screen.getByText('Supervisor Agent')).toBeInTheDocument();
+      expect(screen.getByText('Planning Agent')).toBeInTheDocument();
       expect(screen.getByText('Job Discovery Scout')).toBeInTheDocument();
       expect(screen.getByText('Visual Grounding Agent')).toBeInTheDocument();
     });
@@ -49,14 +50,14 @@ describe('AgentsWorkspace', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Supervisor Swarm Coordinator')).toBeInTheDocument();
+      expect(screen.getByText('Supervisor Agent')).toBeInTheDocument();
     });
 
     const searchInput = screen.getByRole('searchbox');
     fireEvent.change(searchInput, { target: { value: 'Visual Grounding' } });
 
     expect(screen.getByText('Visual Grounding Agent')).toBeInTheDocument();
-    expect(screen.queryByText('Supervisor Swarm Coordinator')).not.toBeInTheDocument();
+    expect(screen.queryByText('Supervisor Agent')).not.toBeInTheDocument();
   });
 
   it('opens detail inspector when clicking an agent card', async () => {
@@ -67,15 +68,15 @@ describe('AgentsWorkspace', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Supervisor Swarm Coordinator')).toBeInTheDocument();
+      expect(screen.getByText('Supervisor Agent')).toBeInTheDocument();
     });
 
-    const agentCard = screen.getByText('Supervisor Swarm Coordinator');
+    const agentCard = screen.getByText('Supervisor Agent');
     fireEvent.click(agentCard);
 
     await waitFor(() => {
       expect(screen.getByRole('complementary', { name: /detail inspector/i })).toBeInTheDocument();
-      expect(screen.getByText('Multi-Agent Orchestrator & Safety Gate')).toBeInTheDocument();
+      expect(screen.getByText('Workflow Coordinator & Governance Master')).toBeInTheDocument();
       expect(screen.getByText('Target AI Model')).toBeInTheDocument();
     });
   });
