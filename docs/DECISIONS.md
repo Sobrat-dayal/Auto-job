@@ -807,3 +807,91 @@ Implement structured export/import contracts in `SettingsRepository`:
 - Safe, portable configuration backups across machines.
 - Prevention of configuration corruption via strict schema validation.
 - Clear audit logging of all administrative restore actions.
+
+---
+
+## ADR-0037: Unified AI Model Gateway & Provider-Agnostic Interface
+
+### Context
+
+Specialist agents across subsequent development stages (Job Scouting, Resume Tailoring, Code Synthesis, Vision, Document Generation) need LLM inference capabilities. Connecting each agent directly to specific provider SDKs creates brittle coupling, redundant credential logic, and inconsistent token accounting.
+
+### Decision
+
+Establish a centralized, provider-agnostic AI Model Gateway (`AIGateway`) as the sole entry point for LLM inference:
+1. Standardized domain contracts for chat messages, token usage, capability flags, and pricing.
+2. Abstract provider interface (`AIProvider`) implemented for Ollama (local loopback), OpenAI (cloud REST API), and OpenAI-compatible services.
+3. Centralized model registry discovering models dynamically without code modifications.
+4. Seamless handoff between local execution and cloud APIs.
+
+### Consequences
+
+- Specialist agents remain completely decoupled from underlying LLM vendors.
+- Adding a new provider requires implementing a single adapter class.
+- Unified token usage accounting and financial cost attribution across all agents.
+
+---
+
+## ADR-0038: RTX 4050 6GB Laptop GPU Guardrails & Single Active Model Enforcement
+
+### Context
+
+Target hardware is an NVIDIA GeForce RTX 4050 Laptop GPU with 6,144 MB GDDR6 VRAM and 16 GB system RAM. Loading multiple models concurrently causes GPU memory fragmentation, driver timeouts, and catastrophic Windows DWM crashes.
+
+### Decision
+
+Implement rigorous physical memory bounds and model switching orchestration in `LocalModelResourceController`:
+1. Enforce strict single-active-model policy: only one quantized model may reside in VRAM at any time.
+2. When switching from model A to model B, model A is explicitly unloaded via Ollama `keep_alive=0` before model B is loaded.
+3. Local concurrency is gated by an `asyncio.Semaphore(1)`.
+4. Direct NVML C-bindings query GPU memory status with microsecond latency.
+
+### Consequences
+
+- Total elimination of GPU Out-Of-Memory (OOM) fatal crashes on laptop hardware.
+- Safe 1.0 GB memory headroom reserved for Windows desktop compositing and WebView2.
+- Predictable inference latency and thermal management.
+
+---
+
+## ADR-0039: Local-First Privacy Boundary & 16-Category Intelligent Model Router
+
+### Context
+
+AUTONOM processes sensitive personal information, including resumes, contact details, application histories, and credentials. Transmitting this data to third-party cloud LLMs without explicit authorization violates user privacy.
+
+### Decision
+
+Implement an explainable, category-based model router (`IntelligentModelRouter`):
+1. 16 distinct task categories with dedicated default model assignments and privacy classifications.
+2. Default strategy `local_first` resolves to local Ollama inference whenever capable models are available.
+3. Tasks marked `is_local_only=True` strictly prohibit cloud routing under all circumstances; if local execution is impossible, the request fails safely with `ProviderUnavailableError`.
+4. Router returns an explainable decision structure detailing the rule applied, candidates considered, and available fallbacks.
+
+### Consequences
+
+- Zero data leakage for sensitive personal and recruitment workflows.
+- User maintains full auditability and control over model selection per task category.
+- Transparent fallback behavior when local models are unavailable.
+
+---
+
+## ADR-0040: Real-Time SSE Inference Streaming & Cooperative Client-Side Cancellation
+
+### Context
+
+Modern autonomous assistant interfaces require token-by-token streaming delivery to provide responsive user feedback and enable immediate cancellation of hallucinated or erroneous outputs.
+
+### Decision
+
+Implement Server-Sent Events (SSE) streaming via `POST /api/v1/ai/chat/stream`:
+1. Chunked SSE stream emitting `start`, `delta`, `complete`, `error`, and `cancelled` event types.
+2. Time-to-first-token (TTFT) and token counts calculated in real-time.
+3. Centralized `CancellationManager` tracking active request cancellation tokens via `asyncio.Event`.
+4. Client can terminate generation immediately via `POST /api/v1/ai/requests/{id}/cancel` or UI Stop Generation button.
+
+### Consequences
+
+- Instant visual feedback in the desktop AI Playground with sub-second time to first token.
+- Immediate interruption of unwanted generations, preventing wasted tokens or GPU cycles.
+- Accurate recording of partial token counts upon cancellation.

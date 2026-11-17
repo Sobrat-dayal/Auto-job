@@ -52,3 +52,4 @@ export function useDensity(): ThemeContextValue {
   }
   return context;
 }
+

@@ -363,3 +363,63 @@ class AuditEventModel(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
     correlation_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     safe_metadata_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+
+
+# ---------------------------------------------------------------------------
+# H. AI Model Registry, Inference Requests & Routing Preferences (Stage 11)
+# ---------------------------------------------------------------------------
+class AIModelRecord(Base):
+    __tablename__ = "ai_models"
+
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)  # provider_id:model_id
+    provider_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    model_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    display_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider_type: Mapped[str] = mapped_column(String(32), default="local", nullable=False)  # local or cloud
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    context_window: Mapped[int] = mapped_column(Integer, default=8192, nullable=False)
+    max_output_tokens: Mapped[int] = mapped_column(Integer, default=4096, nullable=False)
+    capabilities_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    pricing_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    reported_size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    quantization: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    last_discovered_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    last_invoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    status_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class AIInferenceRequestRecord(Base):
+    __tablename__ = "ai_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    task_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    task_category: Mapped[str] = mapped_column(String(64), default="general_conversation", nullable=False, index=True)
+    provider_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    model_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    routing_strategy: Mapped[str] = mapped_column(String(32), default="local_first", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="completed", nullable=False, index=True)
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    tokens_source: Mapped[str] = mapped_column(String(32), default="reported", nullable=False)
+    estimated_cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    latency_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    time_to_first_token_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    routing_decision_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    prompt_preview: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AIRoutingPreferenceRecord(Base):
+    __tablename__ = "ai_routing_preferences"
+
+    category: Mapped[str] = mapped_column(String(64), primary_key=True)
+    preferred_provider: Mapped[str] = mapped_column(String(64), default="ollama", nullable=False)
+    preferred_model: Mapped[str] = mapped_column(String(128), default="llama3.1:8b", nullable=False)
+    fallback_provider: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    fallback_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    is_local_only: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)

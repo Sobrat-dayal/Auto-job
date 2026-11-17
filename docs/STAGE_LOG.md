@@ -826,3 +826,70 @@ Stage 09 transforms the AUTONOM desktop UI into a complete, organized, multi-mod
   - Phase 2 (Frontend and User Experience) is officially concluded.
   - All settings contracts, persistence layers, validation models, and desktop UI screens are 100% operational, fully verified, and production-ready.
   - The project is fully prepared for **Stage 11: Unified AI Model Gateway**. DO NOT proceed to Stage 11 until instructed.
+
+---
+
+## Stage 11: Unified AI Model Gateway, Local and Cloud Inference, Intelligent Model Routing, Streaming, Model Management, Hardware Optimization, and Usage Analytics
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-17T13:05:00Z
+- **Completed**: 2026-11-17T16:00:00Z
+
+### 1. Objectives & Scope
+
+1. Implement genuine, provider-agnostic AI model inference across local Ollama (`127.0.0.1:11434`), OpenAI official cloud REST API, and configurable OpenAI-compatible providers.
+2. Establish strict hardware guardrails for NVIDIA GeForce RTX 4050 6GB Laptop GPU (6,144 MB total VRAM) with direct NVML C-bindings (`nvidia-ml-py`), single active model policy in VRAM, 5.0 GB memory cap, and local concurrency semaphore (1 slot).
+3. Implement 16-category Intelligent Model Router supporting 7 routing strategies, category preferences, automatic fallback resolution, and explainable decision outputs.
+4. Deliver high-performance Server-Sent Events (SSE) token streaming via `POST /api/v1/ai/chat/stream` with client cooperative cancellation.
+5. Implement precise context budgeting with `tiktoken` (cl100k_base) and six-decimal token cost accounting.
+6. Build full desktop frontend workspace (`/ai/*`) with AI Playground, Model Management, Model Routing Configuration, Hardware Resource Monitor, and AI Usage Analytics.
+7. Comply strictly with Zero-Fake-Data principles (honest discovery, no simulated responses or fabricated models).
+
+### 2. Implementation Checklist
+
+- [x] Create database models in `app/db/models.py` (`AIModelRecord`, `AIInferenceRequestRecord`, `AIRoutingPreferenceRecord`).
+- [x] Create repository layer in `app/repositories/ai_repository.py` (`AIRepository`).
+- [x] Implement core AI contracts and enums in `app/ai/contracts.py`.
+- [x] Implement normalized exception hierarchy in `app/ai/errors.py`.
+- [x] Implement context budgeting with `tiktoken` in `app/ai/context.py`.
+- [x] Implement token cost catalog and pricing accounting in `app/ai/budgets.py`.
+- [x] Implement NVML telemetry and single-model resource controller in `app/ai/resources/`.
+- [x] Implement provider adapters in `app/ai/providers/` (`OllamaProvider`, `OpenAIProvider`, `OpenAICompatibleProvider`).
+- [x] Implement registry, router, cancellation, and streaming coordinator in `app/ai/`.
+- [x] Implement unified `AIGateway` facade and factory in `app/ai/gateway.py` and `factory.py`.
+- [x] Register AI task execution handlers (`ai.generate`, `ai.generate_structured`, `ai.classify`, `ai.summarize`) in `app/execution/handlers.py`.
+- [x] Implement REST endpoints in `app/api/v1/endpoints/ai.py` and register in `router.py`.
+- [x] Author comprehensive backend test suite in `services/api/tests/test_api_ai.py` (10 tests, 100% pass).
+- [x] Export shared TypeScript schemas in `packages/shared-types/src/ai.ts`.
+- [x] Add typed AI API methods and SSE stream consumer to `apps/desktop/src/lib/api-client.ts`.
+- [x] Build frontend components: `ResourceMonitorCard`, `ModelCard`, `ModelDetailDrawer`, `RoutePreviewCard`, `StreamingOutputView`.
+- [x] Build frontend pages: `AIPlayground`, `ModelManagementPage`, `ModelRoutingPage`, `AIUsagePage`.
+- [x] Build master `AIWorkspace` module and wire routes in `App.tsx` and `navigation.ts`.
+- [x] Author frontend Vitest test suite in `apps/desktop/src/test/features/ai-workspace.test.tsx` (5 tests, 100% pass).
+- [x] Create 9 comprehensive documentation files and update ADRs in `docs/DECISIONS.md` (ADR-0037 to ADR-0040).
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `python -m pytest -v`: **76 passed in 8.35s** (100% pass rate).
+   - `test_api_ai.py` (10 tests): Budget manager, context validation, context limits, router policies, single-model VRAM switching, cancellation, structured generation, REST endpoints.
+2. **Frontend Vitest Test Suite (`apps/desktop/src/test`)**:
+   - `pnpm --filter @autonom/desktop test`: **30 test files passed | 109 tests passed in 17.30s** (100% pass rate).
+   - `ai-workspace.test.tsx` (5 tests): Workspace header, telemetry bar, 4 gateway tabs, model management with Ollama, routing table with preview, usage dashboard.
+3. **TypeScript Monorepo Compilation**:
+   - `pnpm --filter @autonom/shared-types typecheck`: Exit code 0.
+   - `pnpm --filter @autonom/desktop typecheck`: Exit code 0 (`tsc --noEmit`).
+4. **Hardware Telemetry Verification**:
+   - Confirmed direct NVML detection of NVIDIA GeForce RTX 4050 Laptop GPU (6,141 MB total VRAM).
+   - Single active model guard and 5,120 MB budget enforced.
+5. **Zero-Fake-Data Audit**:
+   - Honest discovery: Reports 0 models in Ollama when none installed, provides PowerShell pull commands without fabricating fake models.
+
+### 4. Known Limitations & Stage 12 Hand-off
+
+- **Known Limitations**:
+  - Multi-agent swarm orchestration, PEVR loop (Plan-Execute-Verify-Recover), agent state machines, and consensus arbitration will be implemented in **Stage 12 (Base Agent Runtime & PEVR Architecture)**.
+  - Browser navigation and visual computer control will activate in Phase 3.
+- **Stage 12 Readiness**:
+  - The AI Model Gateway is fully operational, verified, and ready to serve as the unified inference foundation for all 24 specialist agents.
+  - DO NOT begin Stage 12 until explicitly instructed.

@@ -65,6 +65,15 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Automation Controls & Worker Pool Management](file:///e:/proooo/AUTO%20JOB/docs/AUTOMATION_CONTROLS.md)
 - [Action Permissions & Killswitch Architecture](file:///e:/proooo/AUTO%20JOB/docs/PERMISSIONS_UI.md)
 - [Settings Automated Testing & Verification Matrix](file:///e:/proooo/AUTO%20JOB/docs/SETTINGS_TESTING.md)
+- [AI Model Gateway Specification](file:///e:/proooo/AUTO%20JOB/docs/AI_GATEWAY.md)
+- [AI Provider Integrations](file:///e:/proooo/AUTO%20JOB/docs/AI_PROVIDERS.md)
+- [Intelligent Model Routing](file:///e:/proooo/AUTO%20JOB/docs/MODEL_ROUTING.md)
+- [Local Model & Hardware Optimization](file:///e:/proooo/AUTO%20JOB/docs/LOCAL_MODEL_MANAGEMENT.md)
+- [AI Context Budgeting & Token Management](file:///e:/proooo/AUTO%20JOB/docs/AI_CONTEXT_MANAGEMENT.md)
+- [AI Usage Accounting & Cost Tracking](file:///e:/proooo/AUTO%20JOB/docs/AI_USAGE_AND_COSTS.md)
+- [AI Privacy & Security Architecture](file:///e:/proooo/AUTO%20JOB/docs/AI_PRIVACY.md)
+- [AI Streaming Architecture](file:///e:/proooo/AUTO%20JOB/docs/AI_STREAMING.md)
+- [AI Gateway Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/AI_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

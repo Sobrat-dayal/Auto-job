@@ -393,38 +393,52 @@ Authenticated HTTP endpoints under `/api/v1/dashboard/`:
 
 ---
 
-## 6. Settings & Operational Controls Endpoints (Stage 10)
+## 7. AI Model Gateway Endpoints (Stage 11)
 
-Authenticated HTTP endpoints under `/api/v1/settings/` and `/api/v1/integrations/`:
+Authenticated HTTP endpoints under `/api/v1/ai/`:
 
 | Method  | Endpoint                             | Description                                                                                               |
 | :------ | :----------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| `GET`   | `/api/v1/settings/all`               | Retrieves all 13 settings categories in a single strongly-typed payload.                                 |
-| `GET`   | `/api/v1/settings/{category}`        | Retrieves a single settings category by name (e.g. `general`, `ai`, `permissions`, `automation`).        |
-| `PATCH` | `/api/v1/settings/{category}`        | Performs atomic partial update for a specific category, validating against Pydantic models.              |
-| `POST`  | `/api/v1/settings/{category}/reset`  | Restores factory default configuration for a single category.                                            |
-| `POST`  | `/api/v1/settings/reset`             | Restores factory default configuration across all 13 categories simultaneously.                           |
-| `GET`   | `/api/v1/settings/schema`            | Returns JSON schema definitions, field types, and restart-required flags for all settings properties.     |
-| `GET`   | `/api/v1/settings/export`            | Exports complete system settings bundle as a sanitized JSON document (DPAPI secrets excluded).          |
-| `POST`  | `/api/v1/settings/import`            | Validates and atomically imports a settings JSON bundle, rejecting malformed payloads with HTTP 422.       |
-| `GET`   | `/api/v1/integrations/configurations`| Returns registered integrations, MCP servers, and DPAPI keystore reference statuses.                     |
+| `GET`   | `/api/v1/ai/providers`               | Lists discovered and configured inference providers (Ollama, OpenAI, custom).                           |
+| `GET`   | `/api/v1/ai/providers/{id}/health`   | Probes health status and round-trip network/loopback latency for a specific provider.                     |
+| `GET`   | `/api/v1/ai/models`                  | Returns catalog of all discovered local and cloud models across providers.                               |
+| `GET`   | `/api/v1/ai/models/{p}/{m}`          | Retrieves detailed specification, context window, capabilities, and pricing for a model.                  |
+| `POST`  | `/api/v1/ai/models/refresh`          | Forces live rediscovery of models from local Ollama tags and configured cloud endpoints.                  |
+| `POST`  | `/api/v1/ai/models/local/load`       | Pre-loads a local quantized model into GPU VRAM (unloads any currently active model first).               |
+| `POST`  | `/api/v1/ai/models/local/unload`     | Releases loaded model weights from GPU VRAM via `keep_alive=0`.                                           |
+| `POST`  | `/api/v1/ai/requests`                | Executes synchronous inference request with schema validation and token accounting.                       |
+| `POST`  | `/api/v1/ai/chat/stream`             | Server-Sent Events (SSE) token streaming endpoint delivering real-time deltas and usage stats.           |
+| `POST`  | `/api/v1/ai/requests/{id}/cancel`    | Cooperatively interrupts an in-flight inference request using its cancellation token.                     |
+| `POST`  | `/api/v1/ai/route/preview`           | Simulates intelligent model routing and returns an explainable decision without executing inference.      |
+| `GET`   | `/api/v1/ai/resources`               | Queries direct NVML GPU memory telemetry and host system RAM allocation.                                 |
+| `GET`   | `/api/v1/ai/usage`                   | Returns aggregated inference metrics, token volume, local/cloud ratio, and financial cost attribution.     |
+| `GET`   | `/api/v1/ai/requests`                | Returns paginated audit logs of past inference requests with token counts, costs, and routing rules.      |
+| `GET`   | `/api/v1/ai/routing/preferences`     | Retrieves user-configured model preferences for all 16 specialization categories.                         |
+| `PATCH` | `/api/v1/ai/routing/preferences`     | Updates model preferences or local-only restrictions for a specialization category in SQLite.             |
 
 
 ---
 
-## 6. Settings & Operational Controls Endpoints (Stage 10)
+## 7. AI Model Gateway Endpoints (Stage 11)
 
-Authenticated HTTP endpoints under `/api/v1/settings/` and `/api/v1/integrations/`:
+Authenticated HTTP endpoints under `/api/v1/ai/`:
 
 | Method  | Endpoint                             | Description                                                                                               |
 | :------ | :----------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| `GET`   | `/api/v1/settings/all`               | Retrieves all 13 settings categories in a single strongly-typed payload.                                 |
-| `GET`   | `/api/v1/settings/{category}`        | Retrieves a single settings category by name (e.g. `general`, `ai`, `permissions`, `automation`).        |
-| `PATCH` | `/api/v1/settings/{category}`        | Performs atomic partial update for a specific category, validating against Pydantic models.              |
-| `POST`  | `/api/v1/settings/{category}/reset`  | Restores factory default configuration for a single category.                                            |
-| `POST`  | `/api/v1/settings/reset`             | Restores factory default configuration across all 13 categories simultaneously.                           |
-| `GET`   | `/api/v1/settings/schema`            | Returns JSON schema definitions, field types, and restart-required flags for all settings properties.     |
-| `GET`   | `/api/v1/settings/export`            | Exports complete system settings bundle as a sanitized JSON document (DPAPI secrets excluded).          |
-| `POST`  | `/api/v1/settings/import`            | Validates and atomically imports a settings JSON bundle, rejecting malformed payloads with HTTP 422.       |
-| `GET`   | `/api/v1/integrations/configurations`| Returns registered integrations, MCP servers, and DPAPI keystore reference statuses.                     |
+| `GET`   | `/api/v1/ai/providers`               | Lists discovered and configured inference providers (Ollama, OpenAI, custom).                           |
+| `GET`   | `/api/v1/ai/providers/{id}/health`   | Probes health status and round-trip network/loopback latency for a specific provider.                     |
+| `GET`   | `/api/v1/ai/models`                  | Returns catalog of all discovered local and cloud models across providers.                               |
+| `GET`   | `/api/v1/ai/models/{p}/{m}`          | Retrieves detailed specification, context window, capabilities, and pricing for a model.                  |
+| `POST`  | `/api/v1/ai/models/refresh`          | Forces live rediscovery of models from local Ollama tags and configured cloud endpoints.                  |
+| `POST`  | `/api/v1/ai/models/local/load`       | Pre-loads a local quantized model into GPU VRAM (unloads any currently active model first).               |
+| `POST`  | `/api/v1/ai/models/local/unload`     | Releases loaded model weights from GPU VRAM via `keep_alive=0`.                                           |
+| `POST`  | `/api/v1/ai/requests`                | Executes synchronous inference request with schema validation and token accounting.                       |
+| `POST`  | `/api/v1/ai/chat/stream`             | Server-Sent Events (SSE) token streaming endpoint delivering real-time deltas and usage stats.           |
+| `POST`  | `/api/v1/ai/requests/{id}/cancel`    | Cooperatively interrupts an in-flight inference request using its cancellation token.                     |
+| `POST`  | `/api/v1/ai/route/preview`           | Simulates intelligent model routing and returns an explainable decision without executing inference.      |
+| `GET`   | `/api/v1/ai/resources`               | Queries direct NVML GPU memory telemetry and host system RAM allocation.                                 |
+| `GET`   | `/api/v1/ai/usage`                   | Returns aggregated inference metrics, token volume, local/cloud ratio, and financial cost attribution.     |
+| `GET`   | `/api/v1/ai/requests`                | Returns paginated audit logs of past inference requests with token counts, costs, and routing rules.      |
+| `GET`   | `/api/v1/ai/routing/preferences`     | Retrieves user-configured model preferences for all 16 specialization categories.                         |
+| `PATCH` | `/api/v1/ai/routing/preferences`     | Updates model preferences or local-only restrictions for a specialization category in SQLite.             |
 

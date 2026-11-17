@@ -34,6 +34,7 @@ const ActivityWorkspace = React.lazy(() => import('@/features/activity/ActivityW
 const IntegrationsWorkspace = React.lazy(
   () => import('@/features/integrations/IntegrationsWorkspace')
 );
+const AIWorkspace = React.lazy(() => import('@/features/ai/AIWorkspace'));
 const SettingsWorkspace = React.lazy(() => import('@/features/settings/SettingsWorkspace'));
 
 const queryClient = new QueryClient({
@@ -105,6 +106,10 @@ export const AppContent: React.FC = () => {
 
               <Route path="/integrations" element={<IntegrationsWorkspace />} />
               <Route path="/integrations/*" element={<IntegrationsWorkspace />} />
+
+              {/* AI Model Gateway (Stage 11) */}
+              <Route path="/ai" element={<AIWorkspace />} />
+              <Route path="/ai/*" element={<AIWorkspace />} />
 
               {/* Centralized Settings Workspace (Stage 10) */}
               <Route path="/settings" element={<SettingsWorkspace />} />

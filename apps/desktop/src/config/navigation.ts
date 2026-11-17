@@ -17,6 +17,7 @@ import {
   Palette,
   Activity,
   Database,
+  Sparkles,
 } from 'lucide-react';
 import type {
   NavigationGroup,
@@ -967,6 +968,51 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
     title: 'DEVELOPMENT',
     order: 5,
     items: [
+      {
+        id: 'ai-gateway',
+        title: 'AI Model Gateway',
+        icon: Sparkles,
+        path: '/ai',
+        group: 'development',
+        availability: 'implemented',
+        roadmapStage: 'Stage 11',
+        description:
+          'Unified AI model gateway, local Ollama, cloud inference, streaming, routing, and GPU telemetry.',
+        children: [
+          {
+            id: 'ai-playground',
+            title: 'AI Playground',
+            path: '/ai/playground',
+            availability: 'implemented',
+            roadmapStage: 'Stage 11',
+            description: 'Direct interactive prompt testing, streaming responses, and cost accounting.',
+          },
+          {
+            id: 'ai-models',
+            title: 'Model Management',
+            path: '/ai/models',
+            availability: 'implemented',
+            roadmapStage: 'Stage 11',
+            description: 'Local Ollama & cloud model inventory, VRAM loading, and capability inspection.',
+          },
+          {
+            id: 'ai-routing',
+            title: 'Model Routing',
+            path: '/ai/routing',
+            availability: 'implemented',
+            roadmapStage: 'Stage 11',
+            description: '16 task category assignments, routing strategies, and live preview decisions.',
+          },
+          {
+            id: 'ai-usage',
+            title: 'AI Usage & Analytics',
+            path: '/ai/usage',
+            availability: 'implemented',
+            roadmapStage: 'Stage 11',
+            description: 'Token consumption, cost accounting, latency metrics, and recent inference requests.',
+          },
+        ],
+      },
       {
         id: 'design-system',
         title: 'Design System',

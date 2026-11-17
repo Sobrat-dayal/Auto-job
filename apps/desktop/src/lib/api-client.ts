@@ -23,6 +23,16 @@ import type {
   TaskResponse,
   TaskResultResponse,
   WorkerListResponse,
+  AIUsageSummary,
+  HardwareTelemetry,
+  InferenceRequest,
+  InferenceResponse,
+  ModelInfo,
+  ProviderHealth,
+  ProviderSummary,
+  RoutingDecision,
+  AIRoutingPreference,
+  TaskCategory,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -387,6 +397,205 @@ export class ApiClient {
     return this.request(`/api/v1/integrations/credentials/${provider}`, {
       method: 'DELETE',
     });
+  }
+
+  // =========================================================================
+  // AI Model Gateway Endpoints (Stage 11)
+  // =========================================================================
+
+  async getAIProviders(): Promise<ProviderSummary[]> {
+    return this.request<ProviderSummary[]>('/api/v1/ai/providers');
+  }
+
+  async getAIProviderHealth(providerId: string): Promise<ProviderHealth> {
+    return this.request<ProviderHealth>(`/api/v1/ai/providers/${providerId}/health`);
+  }
+
+  async getAIModels(providerId?: string): Promise<ModelInfo[]> {
+    const query = providerId ? `?provider_id=${encodeURIComponent(providerId)}` : '';
+    return this.request<ModelInfo[]>(`/api/v1/ai/models${query}`);
+  }
+
+  async getAIModel(providerId: string, modelId: string): Promise<ModelInfo> {
+    return this.request<ModelInfo>(`/api/v1/ai/models/${providerId}/${modelId}`);
+  }
+
+  async refreshAIModels(): Promise<ModelInfo[]> {
+    return this.request<ModelInfo[]>('/api/v1/ai/models/refresh', {
+      method: 'POST',
+    });
+  }
+
+  async loadLocalAIModel(
+    modelId: string
+  ): Promise<{ status: string; model_id: string; currently_loaded: string | null }> {
+    return this.request('/api/v1/ai/models/local/load', {
+      method: 'POST',
+      body: JSON.stringify({ model_id: modelId }),
+    });
+  }
+
+  async unloadLocalAIModel(modelId: string): Promise<{ status: string; model_id: string }> {
+    return this.request('/api/v1/ai/models/local/unload', {
+      method: 'POST',
+      body: JSON.stringify({ model_id: modelId }),
+    });
+  }
+
+  async createInferenceRequest(request: InferenceRequest): Promise<InferenceResponse> {
+    return this.request<InferenceResponse>('/api/v1/ai/requests', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async previewAIRoute(request: InferenceRequest): Promise<RoutingDecision> {
+    return this.request<RoutingDecision>('/api/v1/ai/route/preview', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async cancelAIRequest(requestId: string): Promise<{ request_id: string; cancelled: boolean }> {
+    return this.request(`/api/v1/ai/requests/${requestId}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  async getAIHardwareResources(): Promise<HardwareTelemetry> {
+    return this.request<HardwareTelemetry>('/api/v1/ai/resources');
+  }
+
+  async getAIUsageSummary(days: number = 30): Promise<AIUsageSummary> {
+    return this.request<AIUsageSummary>(`/api/v1/ai/usage?days=${days}`);
+  }
+
+  async listInferenceRequests(params?: {
+    limit?: number;
+    offset?: number;
+    provider_id?: string;
+    status?: string;
+    category?: string;
+  }): Promise<{ items: any[]; total: number }> {
+    const q = new URLSearchParams();
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    if (params?.provider_id) q.set('provider_id', params.provider_id);
+    if (params?.status) q.set('status', params.status);
+    if (params?.category) q.set('category', params.category);
+    return this.request(`/api/v1/ai/requests?${q.toString()}`);
+  }
+
+  async getAIRoutingPreferences(): Promise<AIRoutingPreference[]> {
+    return this.request<AIRoutingPreference[]>('/api/v1/ai/routing/preferences');
+  }
+
+  async updateAIRoutingPreference(preference: {
+    category: TaskCategory;
+    preferred_provider: string;
+    preferred_model: string;
+    fallback_provider?: string | null;
+    fallback_model?: string | null;
+    is_local_only?: boolean;
+  }): Promise<any> {
+    return this.request('/api/v1/ai/routing/preferences', {
+      method: 'PATCH',
+      body: JSON.stringify(preference),
+    });
+  }
+
+  streamAIChat(
+    payload: {
+      prompt: string;
+      system_prompt?: string | null;
+      task_category?: TaskCategory;
+      routing_strategy?: string;
+      provider_preference?: string | null;
+      model_preference?: string | null;
+      temperature?: number;
+      max_tokens?: number;
+      is_local_only?: boolean;
+    },
+    callbacks: {
+      onStart?: (data: any) => void;
+      onDelta: (delta: string) => void;
+      onComplete: (data: any) => void;
+      onError: (err: string) => void;
+    }
+  ): () => void {
+    const controller = new AbortController();
+    const token = 'dev-local-autonom-key';
+
+    (async () => {
+      try {
+        const response = await fetch(`${this.baseUrl}/api/v1/ai/chat/stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          callbacks.onError(`HTTP ${response.status}: ${errText}`);
+          return;
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          callbacks.onError('ReadableStream not supported by browser.');
+          return;
+        }
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          let currentEvent = 'message';
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.slice(7).trim();
+            } else if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              try {
+                const data = JSON.parse(dataStr);
+                if (currentEvent === 'start') {
+                  callbacks.onStart?.(data);
+                } else if (currentEvent === 'delta') {
+                  callbacks.onDelta(data.delta || '');
+                } else if (currentEvent === 'complete') {
+                  callbacks.onComplete(data);
+                } else if (currentEvent === 'error') {
+                  callbacks.onError(data.error || 'Stream error');
+                } else if (currentEvent === 'cancelled') {
+                  callbacks.onError('Generation cancelled.');
+                }
+              } catch {
+                // Ignore parse errors on partial chunks
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          callbacks.onError(err.message || 'Stream connection error');
+        }
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
   }
 }
 

@@ -98,7 +98,7 @@ describe('SettingsWorkspace', () => {
       expect(
         screen.getByRole('heading', { level: 2, name: /AI Providers & Models/i })
       ).toBeInTheDocument();
-      expect(screen.getByText(/Planned — Stage 11/i)).toBeInTheDocument();
+      expect(screen.getByText('Stage 11 Operational')).toBeInTheDocument();
     });
   });
 

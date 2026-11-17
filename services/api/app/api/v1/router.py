@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from app.api.v1.endpoints.ai import router as ai_router
 from app.api.v1.endpoints.applications import router as applications_router
 from app.api.v1.endpoints.artifacts import router as artifacts_router
 from app.api.v1.endpoints.credentials import router as credentials_router
@@ -40,3 +41,4 @@ api_v1_router.include_router(dashboard_router)
 api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(applications_router)
 api_v1_router.include_router(artifacts_router)
+api_v1_router.include_router(ai_router)

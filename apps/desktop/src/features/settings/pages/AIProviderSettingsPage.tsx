@@ -1,12 +1,13 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { AISettings } from '@autonom/shared-types';
-import { Cpu } from 'lucide-react';
+import { Cpu, Sparkles, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   SettingsSection,
   SettingsField,
   SettingsToggle,
-  SettingsUnavailableState,
   SettingsSaveBar,
 } from '../components';
 
@@ -33,12 +34,28 @@ export const AIProviderSettingsPage: React.FC<AIProviderSettingsPageProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <SettingsUnavailableState
-        title="AI Model Gateway & LLM Orchestration"
-        roadmapStage="Stage 11"
-        description="Stage 10 establishes the configuration architecture, parameter validation, and secure DPAPI credential binding. Live inference execution and local model loading will activate in Stage 11."
-        configurationNotes="Target hardware allocation: NVIDIA GeForce RTX 4050 Laptop GPU (6GB VRAM) with single active model enforcement."
-      />
+      <div className="p-4 rounded-lg border border-cyan/40 bg-cyan/5 flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-cyan" />
+            <h3 className="text-sm font-semibold text-foreground">
+              AI Model Gateway Status
+            </h3>
+            <Badge variant="cyan" className="text-[10px]">
+              Stage 11 Operational
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
+            Live local inference (Ollama), cloud inference (OpenAI), streaming, 16-category intelligent routing, and RTX 4050 6GB VRAM telemetry are fully implemented.
+          </p>
+        </div>
+        <Link to="/ai">
+          <Button size="sm" className="bg-cyan hover:bg-cyan/90 text-primary-foreground text-xs font-medium">
+            Open AI Gateway & Playground
+            <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+          </Button>
+        </Link>
+      </div>
 
       <SettingsSection
         title="Local Hardware Resource Limits (RTX 4050 / 6GB VRAM)"
