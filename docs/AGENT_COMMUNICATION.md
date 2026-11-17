@@ -36,3 +36,13 @@ CREATE TABLE agent_messages (
 ```
 
 Clients and UI monitors query `/api/v1/orchestration/workflows/{workflow_id}/messages` to render real-time communication feeds.
+
+---
+
+## 4. Stage 13 Specialist Agent Handoffs
+
+In Stage 13, the communication protocol introduced structured `AgentHandoff` proposals in `AgentResult`. When a specialist agent finishes execution (for instance, `JobMatchingAgent` completing skill analysis), it proposes next-step handoffs (e.g. recommending `ResumeAgent` for tailoring). The Supervisor and Router inspect these handoffs to dynamically chain DAG steps while respecting user approvals and context isolation.
+
+Refer to:
+- [Specialist AI Agent Framework](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_FRAMEWORK.md)
+- [Agent Security & Isolation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md)

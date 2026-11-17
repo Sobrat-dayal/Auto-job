@@ -216,3 +216,119 @@ export interface OrchestrationStats {
   failed_workflows: number;
   completion_rate_percent: number;
 }
+
+// =========================================================================
+// Stage 13: Specialist Agent Framework Types
+// =========================================================================
+
+export type AgentCategory =
+  | 'orchestration'
+  | 'recruitment'
+  | 'computer'
+  | 'development'
+  | 'research'
+  | 'productivity'
+  | 'creative'
+  | 'communication'
+  | 'automation';
+
+export type AvailabilityState =
+  | 'operational'
+  | 'limited'
+  | 'planned'
+  | 'unavailable'
+  | 'disabled';
+
+export interface AgentModelProfile {
+  preferred_model?: string | null;
+  task_category: string;
+  local_first: boolean;
+  cloud_permitted: boolean;
+  fallback_model?: string | null;
+  max_context_tokens: number;
+  max_output_tokens: number;
+  temperature: number;
+  timeout_seconds: number;
+  cost_budget_usd: number;
+}
+
+export interface AgentContextPolicy {
+  allowed_input_keys: string[];
+  isolation_level: string;
+  allow_credentials: boolean;
+  allow_system_logs: boolean;
+  retention_policy: string;
+}
+
+export interface AgentExecutionLimits {
+  timeout_seconds: number;
+  concurrency_limit: number;
+  max_retries: number;
+  max_model_calls: number;
+}
+
+export interface AgentManifest {
+  agent_id: string;
+  name: string;
+  role: string;
+  description: string;
+  category: AgentCategory;
+  version: string;
+  capabilities: string[];
+  required_permissions: string[];
+  allowed_tools: string[];
+  model_profile: AgentModelProfile;
+  context_policy: AgentContextPolicy;
+  execution_limits: AgentExecutionLimits;
+  verification_policy: string;
+  availability_state: AvailabilityState;
+  roadmap_stage: string;
+  system_instructions: string;
+  instructions_version: string;
+  enabled: boolean;
+  metadata?: Record<string, any>;
+}
+
+export interface AgentStatusResponse {
+  agent_id: string;
+  name: string;
+  category: AgentCategory;
+  availability_state: AvailabilityState;
+  enabled: boolean;
+  active_assignments: number;
+  concurrency_limit: number;
+  is_busy: boolean;
+  preferred_model?: string | null;
+  total_executions: number;
+  successful_executions: number;
+  failed_executions: number;
+  last_execution_at?: string | null;
+}
+
+export interface AgentConfigurationUpdate {
+  enabled?: boolean;
+  preferred_model?: string | null;
+  concurrency_limit?: number;
+  timeout_seconds?: number;
+  temperature?: number;
+  max_tokens?: number;
+  local_first?: boolean;
+  cloud_permitted?: boolean;
+  allowed_capabilities?: string[];
+  custom_settings?: Record<string, any>;
+}
+
+export interface AgentExecutionHistoryItem {
+  id: string;
+  agent_id: string;
+  workflow_id: string;
+  step_id: string;
+  status: string;
+  model_used?: string | null;
+  tokens_used: number;
+  cost_usd: number;
+  duration_ms: number;
+  created_at: string;
+  completed_at?: string | null;
+}
+

@@ -37,3 +37,13 @@ flowchart TD
 ```
 
 When an assignment begins and finishes, `record_start(agent_id)` and `record_finish(agent_id)` maintain real-time concurrency metrics.
+
+---
+
+## 4. Stage 13 Capability Catalog Expansion
+
+Stage 13 expanded the registered capability catalog from 7 initial safe capabilities to **32 specialist capabilities** across 7 domains. The Router uses `manifest.capabilities` declared in each `AgentManifest` to match specialist agents with incoming DAG requirements.
+
+For the full catalog of capabilities and agent assignments, refer to:
+- [Specialist AI Agent Catalog](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_CATALOG.md)
+- [Specialist AI Agent Framework](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_FRAMEWORK.md)

@@ -257,14 +257,19 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - 10 new architectural documents (`MULTI_AGENT_ARCHITECTURE.md`, `SUPERVISOR_AGENT.md`, `PLANNING_ENGINE.md`, `AGENT_ROUTING.md`, `WORKFLOW_DAG.md`, `AGENT_COMMUNICATION.md`, `AGENT_VERIFICATION.md`, `AGENT_RECOVERY.md`, `ORCHESTRATION_SECURITY.md`, `ORCHESTRATION_TESTING.md`) and ADR-0041 to ADR-0044.
 - **Acceptance Criteria**: 84/84 Pytest unit & integration tests passed; 110/110 Vitest frontend tests passed; end-to-end recruitment workflow executed successfully. Ready for Stage 13. DO NOT begin Stage 13 until explicitly instructed.
 
-#### Stage 13: Memory Architecture (Context Window, Episodic SQLite & Semantic Vectors)
+#### Stage 13: Specialist AI Agent Framework, Agent Registry, Recruitment Agents, Computer Agents, Coding Agents, Research Agents, Productivity Agents, Communication Agents, Creative Agents, and Multi-Agent Collaboration [COMPLETE]
 
-- **Goal**: Three-tier memory system: working context window, episodic task history in SQLite, and local semantic retrieval via vector embeddings.
+- **Goal**: Full specialist AI agent framework and typed agent registry integrating all 24 planned agent roles into the multi-agent runtime, with strict context isolation, model profiling, execution timeouts, honest capability attribution, and multi-agent collaboration workflows.
 - **Key Deliverables**:
-  - Context window manager with intelligent message pruning and summarization.
-  - Episodic memory logger capturing tool calls, results, and outcomes.
-  - Local vector store (`sqlite-vec` or ChromaDB local) for semantic similarity search.
-- **Acceptance Criteria**: Agent recalls relevant prior experiences during planning and retains context across multiple sessions.
+  - Specialist Agent Base Framework (`SpecialistAgent`) with lifecycle management, input/output validation, context isolation (credential rejection), execution cancellation, and capability dispatching.
+  - Complete 24-Agent Catalog defined via strongly typed `AgentManifest` schemas: 5 Core Orchestration Agents, 1 Safe Capability Worker, 6 Recruitment Specialists, 4 Computer Control Specialists, 1 Coding Specialist, 2 Research Specialists, 3 Productivity Specialists, 1 Creative Specialist, 1 Communication Specialist, 1 Automation Specialist.
+  - 32 Granular Specialist Capabilities across recruitment (9), computer (4), coding (3), research (3), productivity (7), creative & communication (4), and automation (2), all registered in `CapabilityRegistry` with deterministic analytical fallbacks.
+  - Hardware Guardrail Compliance: Calibration for NVIDIA RTX 4050 6GB Laptop GPU utilizing AI Gateway's single-active-model semaphore (`asyncio.Semaphore(1)`) and maximum 4 concurrent analytical workers (`Semaphore(4)`).
+  - Multi-Agent Collaboration DAGs: End-to-end recruitment analysis & resume tailoring workflow, and static code review & automated test generation pipeline.
+  - Persistence & Telemetry: `AgentConfigurationRecord` in SQLite, execution tracking, dynamic runtime configuration updates (`PATCH /api/v1/agents/{id}/configuration`), and per-agent live diagnostics (`POST /api/v1/agents/{id}/test`).
+  - Desktop Agents Workspace (`/agents`): Real-time manifest loading, category filtering tabs (Orchestration, Recruitment, Computer, Coding, Research, Productivity, Creative, Comms, Automation), status badges, and 4-tab interactive detail inspector (Overview, Configuration, History, Diagnostics).
+  - 10 new architectural documents (`SPECIALIST_AGENT_FRAMEWORK.md`, `SPECIALIST_AGENT_CATALOG.md`, `AGENT_MANIFESTS.md`, `AGENT_MODEL_PROFILES.md`, `RECRUITMENT_AGENTS.md`, `COMPUTER_AGENTS.md`, `PRODUCTIVITY_AGENTS.md`, `CREATIVE_AND_COMMUNICATION_AGENTS.md`, `AGENT_SECURITY.md`, `AGENT_TESTING.md`).
+- **Acceptance Criteria**: 94/94 Pytest unit & integration tests passed; 112/112 Vitest frontend tests passed; clean TypeScript typecheck across monorepo; clean production build. Ready for Stage 14. DO NOT begin Stage 14 until explicitly instructed.
 
 #### Stage 14: Multi-Agent Coordination & Swarm Message Board
 

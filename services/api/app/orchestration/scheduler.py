@@ -278,10 +278,12 @@ class ExecutionScheduler:
                 context.set_step_output(step_id, output_result, {"duration_ms": duration_ms})
                 step_statuses[step_id] = StepStatus.COMPLETED
                 self.router.record_finish(assigned_agent)
+                self.agent_registry.record_execution_telemetry(assigned_agent, status="completed", duration_ms=duration_ms)
                 return
 
             # 6. Failure Recovery Flow
             self.router.record_finish(assigned_agent)
+            self.agent_registry.record_execution_telemetry(assigned_agent, status="failed", duration_ms=duration_ms)
             recovery_decision = self.recovery.decide_recovery_action(
                 step=step,
                 error=str(step_error or "Unknown failure"),

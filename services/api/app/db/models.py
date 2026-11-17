@@ -570,3 +570,21 @@ class RecoveryAttemptRecord(Base):
     details_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
 
+
+class AgentConfigurationRecord(Base):
+    __tablename__ = "agent_configurations"
+
+    agent_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    preferred_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    concurrency_limit: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    timeout_seconds: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
+    temperature: Mapped[float] = mapped_column(Float, default=0.2, nullable=False)
+    max_tokens: Mapped[int] = mapped_column(Integer, default=2048, nullable=False)
+    local_first: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    cloud_permitted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    allowed_capabilities_json: Mapped[list[str] | None] = mapped_column(JSON, default=list)
+    custom_settings_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+

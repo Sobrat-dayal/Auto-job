@@ -133,8 +133,176 @@ class PlanningAgent:
         goal: str,
         constraints: dict[str, Any],
     ) -> list[WorkflowStepDefinition]:
-        """High-fidelity deterministic decomposition tailored to recruitment and analysis workflows."""
+        """High-fidelity deterministic decomposition tailored to multi-agent specialist workflows."""
         goal_lower = goal.lower()
+
+        # 1. Full Multi-Agent Recruitment & Tailoring Collaboration Workflow (Stage 13)
+        if (
+            ("interview" in goal_lower and "resume" in goal_lower)
+            or ("verified skills" in goal_lower)
+            or ("preparation plan" in goal_lower)
+            or ("compare" in goal_lower and "skills" in goal_lower and "interview" in goal_lower)
+        ):
+            return [
+                WorkflowStepDefinition(
+                    step_id="step_extract",
+                    title="Extract Role Requirements",
+                    description="Extract hard/soft skills, required experience, and credentials from job posting.",
+                    capability_id="recruitment_extract_job_requirements",
+                    dependencies=[],
+                    input_bindings={
+                        "job_description": "{{input.job_description}}",
+                        "role_title": "{{input.role_title}}",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_match",
+                    title="Match Verified Applicant Skills",
+                    description="Perform grounded comparison between extracted job requirements and verified applicant profile.",
+                    capability_id="recruitment_match_skills",
+                    dependencies=["step_extract"],
+                    input_bindings={
+                        "required_skills": "{{step_extract.required_skills}}",
+                        "applicant_skills": "{{input.applicant_skills}}",
+                        "role_title": "{{step_extract.role_title}}",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_resume",
+                    title="Draft Tailored Resume Achievements",
+                    description="Draft grounded, impact-oriented resume bullet points highlighting matched skills.",
+                    capability_id="recruitment_draft_resume_bullets",
+                    dependencies=["step_match"],
+                    input_bindings={
+                        "matched_skills": "{{step_match.matched_skills}}",
+                        "verified_experience": "{{input.verified_experience}}",
+                        "target_role": "{{step_extract.role_title}}",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_interview",
+                    title="Generate Targeted Interview Questions",
+                    description="Generate technical drills, behavioral questions, and preparation study guide.",
+                    capability_id="recruitment_generate_interview_questions",
+                    dependencies=["step_extract"],
+                    input_bindings={
+                        "role_title": "{{step_extract.role_title}}",
+                        "required_skills": "{{step_extract.required_skills}}",
+                        "job_description": "{{input.job_description}}",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_report",
+                    title="Synthesize Comprehensive Recruitment Report",
+                    description="Consolidate skill match analysis, tailored resume bullets, and interview plan into structured report.",
+                    capability_id="doc_draft_report",
+                    dependencies=["step_match", "step_resume", "step_interview"],
+                    input_bindings={
+                        "title": "Comprehensive Candidate Assessment & Tailoring Report",
+                        "findings": {
+                            "match_summary": "{{step_match.summary}}",
+                            "recommendation": "{{step_match.recommendation}}",
+                            "tailored_bullets": "{{step_resume.suggested_bullets}}",
+                            "interview_questions": "{{step_interview.technical_questions}}",
+                        },
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_validate",
+                    title="Validate Consolidated Report",
+                    description="Verify that the generated report meets completeness and non-empty criteria.",
+                    capability_id="output_validate",
+                    dependencies=["step_report"],
+                    input_bindings={
+                        "data": {
+                            "title": "{{step_report.title}}",
+                            "word_count": "{{step_report.word_count}}",
+                        },
+                        "required_fields": ["title", "word_count"],
+                    },
+                    verification_policy=VerificationPolicy.DETERMINISTIC_ASSERTION,
+                ),
+            ]
+
+        # 2. Multi-Agent Coding & Technical Review Collaboration Workflow (Stage 13)
+        if (
+            ("python function" in goal_lower or "bugs" in goal_lower)
+            and ("test cases" in goal_lower or "technical review" in goal_lower)
+        ):
+            return [
+                WorkflowStepDefinition(
+                    step_id="step_explain",
+                    title="Explain Code Architecture & Complexity",
+                    description="Analyze code structure, algorithm flow, and computational complexity.",
+                    capability_id="code_explain",
+                    dependencies=[],
+                    input_bindings={
+                        "code": "{{input.source_code}}",
+                        "language": "python",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_review",
+                    title="Static Review & Bug Identification",
+                    description="Identify potential runtime defects, security risks, and refactoring opportunities.",
+                    capability_id="code_review_static",
+                    dependencies=["step_explain"],
+                    input_bindings={
+                        "code": "{{input.source_code}}",
+                        "language": "{{step_explain.language}}",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_tests",
+                    title="Generate Unit Test Cases",
+                    description="Generate comprehensive unit test suite covering nominal and edge cases.",
+                    capability_id="code_generate_tests",
+                    dependencies=["step_explain"],
+                    input_bindings={
+                        "code": "{{input.source_code}}",
+                        "framework": "pytest",
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_report",
+                    title="Compile Technical Code Review Report",
+                    description="Synthesize architecture summary, review findings, and test suite into structured report.",
+                    capability_id="doc_draft_report",
+                    dependencies=["step_review", "step_tests"],
+                    input_bindings={
+                        "title": "Technical Code Review & Quality Assessment",
+                        "findings": {
+                            "architecture_summary": "{{step_explain.summary}}",
+                            "review_quality": "{{step_review.overall_quality}}",
+                            "test_cases_count": "{{step_tests.test_cases_count}}",
+                        },
+                    },
+                    verification_policy=VerificationPolicy.SCHEMA_VALIDATION,
+                ),
+                WorkflowStepDefinition(
+                    step_id="step_validate",
+                    title="Audit Review Artifact Quality",
+                    description="Assert non-zero word count and presence of test cases.",
+                    capability_id="output_validate",
+                    dependencies=["step_report"],
+                    input_bindings={
+                        "data": {
+                            "title": "{{step_report.title}}",
+                            "word_count": "{{step_report.word_count}}",
+                        },
+                        "required_fields": ["title", "word_count"],
+                    },
+                    verification_policy=VerificationPolicy.DETERMINISTIC_ASSERTION,
+                ),
+            ]
 
         # Job analysis, recruitment, or structured text analysis workflow
         if any(w in goal_lower for w in ["job", "resume", "extract", "report", "skill", "requirement", "description"]):

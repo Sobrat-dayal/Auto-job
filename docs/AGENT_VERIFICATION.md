@@ -43,3 +43,17 @@ The Verification Agent produces four normalized outcomes:
 ## 3. Persistent Audit Evidence
 
 Every verification is saved to the SQLite `verification_results` table with complete evidence, verification type, and detailed audit notes, queryable at `/api/v1/orchestration/workflows/{workflow_id}/verifications`.
+
+---
+
+## 4. Stage 13 Specialist Verification Contracts
+
+In Stage 13, the Verification Agent integrates contract rules tailored for specialist domains:
+- **Recruitment Bullets**: Asserts non-empty bullet arrays, action-oriented phrasing, and strict absence of hallucinated company names or unverified candidate metrics.
+- **Coding Reviews**: Asserts presence of risk levels, syntax validity, and structured issue categories.
+- **Test Generation**: Asserts syntax validity of Python pytest or TypeScript vitest blocks.
+- **Context Boundary Verification**: Asserts that outputs do not leak restricted credentials or secrets.
+
+Refer to:
+- [Agent Security & Isolation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md)
+- [Agent Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/AGENT_TESTING.md)

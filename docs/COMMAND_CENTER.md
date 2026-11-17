@@ -29,7 +29,8 @@ AUTONOM strictly adheres to absolute data honesty:
   - **Job Discovery Crawler**: `Stage 26`
   - **Application Tailor Agent**: `Stage 30`
   - **Autonomous Submissions**: `Stage 31`
-  - **Supervisor Swarm Lead**: `Stage 12`
+  - **Supervisor Multi-Agent Orchestrator**: `Stage 12 (Active)`
+  - **Specialist AI Agent Framework**: `Stage 13 (Active)`
   - **Advance Permissions & Approvals**: `Stage 14`
 - **Real SQLite Telemetry**: All task statistics, state counts, durations, and logs reflect actual SQLite records in `%APPDATA%\autonom\autonom.db`.
 

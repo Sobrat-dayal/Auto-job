@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.models import (
+    AgentConfigurationRecord,
     AgentExecutionRecord,
     AgentMessageRecord,
     RecoveryAttemptRecord,
@@ -429,6 +430,91 @@ class WorkflowRepository:
         res = await self.session.execute(stmt)
         return list(res.scalars().all())
 
+    get_agent_messages = list_agent_messages
+
+    async def list_agent_executions(
+        self,
+        workflow_id: str,
+    ) -> list[AgentExecutionRecord]:
+        """Lists execution traces for all agents in a workflow."""
+        stmt = (
+            select(AgentExecutionRecord)
+            .where(AgentExecutionRecord.workflow_id == workflow_id)
+            .order_by(AgentExecutionRecord.created_at)
+        )
+        res = await self.session.execute(stmt)
+        return list(res.scalars().all())
+
+    get_agent_executions = list_agent_executions
+
+    async def get_executions_for_agent(
+        self,
+        agent_id: str,
+        limit: int = 50,
+    ) -> list[AgentExecutionRecord]:
+        """Lists recent execution traces for a specific agent across all workflows."""
+        stmt = (
+            select(AgentExecutionRecord)
+            .where(AgentExecutionRecord.agent_id == agent_id)
+            .order_by(AgentExecutionRecord.created_at.desc())
+            .limit(limit)
+        )
+        res = await self.session.execute(stmt)
+        return list(res.scalars().all())
+
+    async def get_agent_configuration(self, agent_id: str) -> AgentConfigurationRecord | None:
+        """Retrieves stored configuration overrides for an agent."""
+        stmt = select(AgentConfigurationRecord).where(AgentConfigurationRecord.agent_id == agent_id)
+        res = await self.session.execute(stmt)
+        return res.scalar_one_or_none()
+
+    async def save_agent_configuration(
+        self,
+        agent_id: str,
+        enabled: bool = True,
+        preferred_model: str | None = None,
+        concurrency_limit: int = 1,
+        timeout_seconds: int = 60,
+        temperature: float = 0.2,
+        max_tokens: int = 2048,
+        local_first: bool = True,
+        cloud_permitted: bool = False,
+        allowed_capabilities: list[str] | None = None,
+        custom_settings: dict[str, Any] | None = None,
+    ) -> AgentConfigurationRecord:
+        """Saves or updates persisted configuration for an agent."""
+        cfg = await self.get_agent_configuration(agent_id)
+        if not cfg:
+            cfg = AgentConfigurationRecord(
+                agent_id=agent_id,
+                enabled=enabled,
+                preferred_model=preferred_model,
+                concurrency_limit=concurrency_limit,
+                timeout_seconds=timeout_seconds,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                local_first=local_first,
+                cloud_permitted=cloud_permitted,
+                allowed_capabilities_json=allowed_capabilities or [],
+                custom_settings_json=custom_settings or {},
+            )
+            self.session.add(cfg)
+        else:
+            cfg.enabled = enabled
+            cfg.preferred_model = preferred_model
+            cfg.concurrency_limit = concurrency_limit
+            cfg.timeout_seconds = timeout_seconds
+            cfg.temperature = temperature
+            cfg.max_tokens = max_tokens
+            cfg.local_first = local_first
+            cfg.cloud_permitted = cloud_permitted
+            if allowed_capabilities is not None:
+                cfg.allowed_capabilities_json = allowed_capabilities
+            if custom_settings is not None:
+                cfg.custom_settings_json = custom_settings
+        await self.session.flush()
+        return cfg
+
     async def record_verification_result(
         self,
         verification_id: str,
@@ -469,6 +555,8 @@ class WorkflowRepository:
         res = await self.session.execute(stmt)
         return list(res.scalars().all())
 
+    get_verification_results = list_verification_results
+
     async def record_recovery_attempt(
         self,
         attempt_id: str,
@@ -508,6 +596,8 @@ class WorkflowRepository:
         )
         res = await self.session.execute(stmt)
         return list(res.scalars().all())
+
+    get_recovery_attempts = list_recovery_attempts
 
     async def get_workflow_summary_stats(self) -> dict[str, Any]:
         """Returns aggregate operational statistics across all workflows."""

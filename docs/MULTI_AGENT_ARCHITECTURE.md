@@ -17,19 +17,25 @@ In addition, the **Safe Capability Worker (`capability_worker`)** executes regis
 
 ## 2. Agent Registry & Specialist Roles
 
-AUTONOM maintains a strongly typed registry of all agents (`app.orchestration.agents.registry`):
+In Stage 12, the initial 5 core orchestration agents and `capability_worker` were introduced. In **Stage 13**, the architecture expanded into the **Specialist AI Agent Framework** with a manifest-driven catalog containing all 24 agents across 9 functional categories.
 
-| Agent Identifier | Role | Concurrency | Capabilities | Status (Stage 12) |
-|---|---|---|---|---|
-| `supervisor` | Workflow Coordinator | 4 | Lifecycle, Checkpoints, Controls | **Active (Stage 12)** |
-| `planner` | Dynamic Planner | 2 | Goal Decomposition, DAG, Cycle Check | **Active (Stage 12)** |
-| `router` | Capability Dispatcher | 4 | Matching, Concurrency, Fallback | **Active (Stage 12)** |
-| `verifier` | Quality Auditor | 2 | Schema Assertions, Semantic Review | **Active (Stage 12)** |
-| `recovery` | Fault Diagnostician | 2 | 13-Class Diagnostics, Bounded Retries | **Active (Stage 12)** |
-| `capability_worker` | Safe Capability Executor | 4 | 7 Initial Safe Capabilities | **Active (Stage 12)** |
-| `job_search_specialist` | Job Discovery Scout | 1 | ATS Feeds, Scoring | *Planned (Stage 14)* |
-| `resume_specialist` | Resume Customizer | 1 | Tailoring, ATS Optimization | *Planned (Stage 15)* |
-| `browser_specialist` | Web Automation Driver | 1 | Form Filling, Navigation | *Planned (Stage 16)* |
+Refer to the complete Stage 13 specifications:
+- [Specialist AI Agent Framework](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_FRAMEWORK.md)
+- [Specialist AI Agent Catalog (All 24 Agents)](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_CATALOG.md)
+- [Agent Manifest Specification](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MANIFESTS.md)
+- [Agent Model Profiles](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MODEL_PROFILES.md)
+
+| Category | Agent Count | Availability Summary | Key Capabilities |
+|---|---|---|---|
+| **Core Orchestration** | 5 | Operational | Dynamic planning, DAG scheduling, routing, verification, recovery |
+| **Capability Worker** | 1 | Operational | General execution worker |
+| **Recruitment** | 6 | Operational / Limited | Job discovery, skill matching, resume tailoring, ATS field classification, recruiter comms, interview prep |
+| **Computer Operations**| 4 | Limited | Visual grounding, structural UIA/DOM trees, browser planning, desktop planning |
+| **Coding** | 1 | Operational | Code explanation, static code review, automated test generation |
+| **Research** | 2 | Operational | Multi-source synthesis, evidence extraction, market salary analysis |
+| **Productivity** | 3 | Operational | Document drafting, spreadsheet analysis & formula explanation, slide deck creation |
+| **Creative & Comms** | 2 | Operational / Limited | Scene specifications, message classification, draft responses |
+| **Automation** | 1 | Operational | Template generation, DAG validation |
 
 ---
 

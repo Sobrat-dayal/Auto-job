@@ -45,3 +45,15 @@ The **Recovery Agent** (`recovery`) intercepts exceptions and verification failu
 To prevent infinite loops, replanning is bounded:
 - At most **2 dynamic replans** per workflow (`replan_count <= max_replans`).
 - Completed steps and valid checkpoints are preserved; only failed or blocked subgraphs are replanned.
+
+---
+
+## 5. Stage 13 Specialist Agent Recovery Integration
+
+In Stage 13, the Recovery Agent interacts directly with `SpecialistAgent` execution results:
+- If a specialist fails with `SecurityViolation` (e.g., restricted keys detected in context), the Recovery Agent immediately marks the step as unrecoverable (`fail`) rather than attempting retries that would repeatedly trigger security warnings.
+- If a specialist times out on heavy LLM inference, the Recovery Agent routes subsequent attempts to deterministic analytical fallback handlers or switches to preferred cloud models.
+
+Refer to:
+- [Specialist AI Agent Framework](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_FRAMEWORK.md)
+- [Agent Security & Isolation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md)

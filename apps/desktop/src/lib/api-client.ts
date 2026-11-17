@@ -34,6 +34,10 @@ import type {
   AIRoutingPreference,
   TaskCategory,
   AgentDefinition,
+  AgentManifest,
+  AgentStatusResponse,
+  AgentConfigurationUpdate,
+  AgentExecutionHistoryItem,
   CapabilityDefinition,
   DAGVisualizationData,
   OrchestrationStats,
@@ -702,6 +706,66 @@ export class ApiClient {
 
   async getOrchestrationStats(): Promise<OrchestrationStats> {
     return this.request<OrchestrationStats>('/api/v1/orchestration/stats');
+  }
+
+  // ==========================================
+  // Specialist Agent Methods (Stage 13)
+  // ==========================================
+
+  async listAgentManifests(params?: {
+    category?: string;
+    status?: string;
+    onlyAvailable?: boolean;
+  }): Promise<AgentManifest[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.append('category', params.category);
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.onlyAvailable) searchParams.append('only_available', 'true');
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<AgentManifest[]>(`/api/v1/agents${query}`);
+  }
+
+  async getAgentManifest(agentId: string): Promise<AgentManifest> {
+    return this.request<AgentManifest>(`/api/v1/agents/${encodeURIComponent(agentId)}`);
+  }
+
+  async getAgentCapabilities(agentId: string): Promise<CapabilityDefinition[]> {
+    return this.request<CapabilityDefinition[]>(`/api/v1/agents/${encodeURIComponent(agentId)}/capabilities`);
+  }
+
+  async getAgentStatus(agentId: string): Promise<AgentStatusResponse> {
+    return this.request<AgentStatusResponse>(`/api/v1/agents/${encodeURIComponent(agentId)}/status`);
+  }
+
+  async getAgentExecutions(agentId: string, limit = 50): Promise<AgentExecutionHistoryItem[]> {
+    return this.request<AgentExecutionHistoryItem[]>(
+      `/api/v1/agents/${encodeURIComponent(agentId)}/executions?limit=${limit}`
+    );
+  }
+
+  async getAgentConfiguration(agentId: string): Promise<any> {
+    return this.request<any>(`/api/v1/agents/${encodeURIComponent(agentId)}/configuration`);
+  }
+
+  async updateAgentConfiguration(
+    agentId: string,
+    patch: AgentConfigurationUpdate
+  ): Promise<AgentManifest> {
+    return this.request<AgentManifest>(`/api/v1/agents/${encodeURIComponent(agentId)}/configuration`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  }
+
+  async testAgent(agentId: string): Promise<{ passed: boolean; details: string; duration_ms: number; tested_at: string }> {
+    return this.request<{ passed: boolean; details: string; duration_ms: number; tested_at: string }>(
+      `/api/v1/agents/${encodeURIComponent(agentId)}/test`,
+      { method: 'POST' }
+    );
+  }
+
+  async listAllCapabilities(): Promise<CapabilityDefinition[]> {
+    return this.request<CapabilityDefinition[]>('/api/v1/agents/capabilities');
   }
 }
 

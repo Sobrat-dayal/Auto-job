@@ -105,14 +105,16 @@ flowchart TD
 
 ### Layer D — Agent Orchestration
 
-- **Technologies**: Python multi-agent execution runtime, asynchronous state machine, dependency DAGs.
+- **Technologies**: Python multi-agent execution runtime, asynchronous state machine, dependency DAGs, Specialist Agent Framework (`SpecialistAgent`).
 - **Responsibilities**:
-  - High-level goal interpretation and plan decomposition (Planning Agent).
+  - High-level goal interpretation and plan decomposition (Planning Agent / Supervisor).
   - Dynamic task dispatching and specialist activation (Task Router Agent).
-  - Swarm message board arbitration and conflict resolution.
-  - Post-action verification and state assertion (Verification Agent).
-  - Self-reflection and automated recovery playbook execution (Recovery Agent).
-- **Boundaries**: Pure reasoning and orchestration logic. Interacts with the real world exclusively through Layer E (Tools) and Layer F (Data).
+  - 24-Agent Manifest-driven catalog with context isolation and model profile allocation.
+  - 32 Granular Specialist Capabilities spanning recruitment, computer operations, coding, research, productivity, creative design, messaging, and automation.
+  - Post-action verification and schema assertion (Verification Agent).
+  - Self-reflection, retry management, and replanning (Recovery Agent).
+  - Single-active-model semaphore hardware protection for NVIDIA RTX 4050 6GB Laptop GPU.
+- **Boundaries**: Pure reasoning and orchestration logic. Interacts with the real world exclusively through Layer E (Tools) and Layer F (Data). Enforces context isolation so specialist agents cannot access raw credentials.
 
 ### Layer E — Tool Execution
 

@@ -157,3 +157,18 @@ flowchart TD
    - Every category enforces one of three tiers: `always_allow`, `require_approval`, or `never_allow`.
 4. **Physical Emergency Killswitch**:
    - Windows global hotkey (`Pause` or `Ctrl+Alt+Esc`) triggers instantaneous child process halt and drains background worker queues.
+
+---
+
+## 9. Specialist Agent Context Isolation & Zero-Leakage Boundaries (Stage 13)
+
+1. **Context Isolation Policy (`AgentContextPolicy`)**:
+   - Every specialist agent explicitly declares an `AgentContextPolicy`.
+   - Specialist agents (`category != AgentCategory.ORCHESTRATION`) **MUST NOT** possess `allow_credentials = True`. The registry validator (`validate_manifest`) enforces this invariant at registration time.
+2. **Runtime Sensitive Data Sanitization**:
+   - Before executing any task via `SpecialistAgent.execute_task()`, the input dictionary is inspected.
+   - If any sensitive keys (`api_key`, `secret`, `password`, `token`, `vault`) are present in the payload, the agent immediately terminates execution with `AgentStatus.FAILED` and a security violation notice.
+3. **Hardware Isolation**:
+   - The AI Gateway uses a single-active-model semaphore (`asyncio.Semaphore(1)`) to isolate GPU memory allocation and prevent out-of-memory crashes on client laptop hardware (NVIDIA RTX 4050 6GB).
+
+For detailed specifications, see [docs/AGENT_SECURITY.md](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md).

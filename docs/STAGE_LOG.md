@@ -988,3 +988,105 @@ Stage 09 transforms the AUTONOM desktop UI into a complete, organized, multi-mod
 - **Stage 13 Readiness**:
   - The multi-agent orchestration runtime is fully operational, verified, and complete.
   - DO NOT begin Stage 13 until explicitly instructed.
+
+---
+
+## Stage 13: Specialist AI Agent Framework, Agent Registry, Recruitment Agents, Computer Agents, Coding Agents, Research Agents, Productivity Agents, Communication Agents, Creative Agents, and Multi-Agent Collaboration
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-18T00:30:00Z
+- **Completed**: 2026-11-18T01:25:00Z
+
+### 1. Objectives & Scope
+
+1. Establish the extensible Specialist Agent Framework with typed definitions, manifests, lifecycle, model profiles, context isolation, tool restrictions, and verification/recovery integration.
+2. Register all 24 logical agents: 5 Core Orchestration Agents (`supervisor`, `planner`, `router`, `verifier`, `recovery`) + 1 General Capability Worker (`capability_worker`) + 19 Specialist Roles across Recruitment (6), Computer Control (4), Coding (1), Research (2), Productivity (3), Creative (1), Communication (1), and Automation (1).
+3. Implement 32 specialist capabilities across all domains with deterministic analytical fallbacks and AI Gateway inference support.
+4. Enforce strict context isolation: automatically reject any payload containing credentials or secret keys sent to specialist agents.
+5. Calibrate hardware resource policies for NVIDIA RTX 4050 6GB Laptop GPU (single-active-model semaphore, bounded token generation).
+6. Implement end-to-end multi-agent collaboration workflows:
+   - Recruitment Pipeline: Job Requirements Extraction -> Semantic Skill Matching -> Quantified Resume Bullet Tailoring -> Verification.
+   - Coding Pipeline: Static Code Review & Anti-pattern Inspection -> Automated Test Generation -> Verification.
+7. Implement SQLite persistence for per-agent configuration overrides (`agent_configurations`) and historical execution tracking (`agent_executions`).
+8. Implement REST API endpoints (`/api/v1/agents/*`) for catalog retrieval, manifest inspection, configuration updating, and live diagnostic checks.
+9. Upgrade desktop frontend Agents Workspace (`/agents`) with category filtering, manifest-driven cards, status badges, and 4-tab interactive detail inspector (Overview, Configuration, History, Diagnostics).
+10. Author comprehensive documentation suite and pass 100% of unit and integration tests.
+
+### 2. Implementation Checklist
+
+- [x] Create contracts and schemas in `services/api/app/orchestration/agents/contracts.py` (`AgentCategory`, `AvailabilityState`, `AgentModelProfile`, `AgentContextPolicy`, `AgentExecutionLimits`, `AgentManifest`, `AgentRequest`, `AgentResult`, `AgentHandoff`, `AgentConfigurationUpdate`, `AgentStatusResponse`).
+- [x] Implement `SpecialistAgent` base class with lifecycle phases and context isolation in `services/api/app/orchestration/agents/base.py`.
+- [x] Define default manifests and validation in `services/api/app/orchestration/agents/manifests.py` (`validate_manifest()`, `build_default_manifests()`).
+- [x] Implement specialist agent classes in `services/api/app/orchestration/agents/specialists/`:
+  - `recruitment.py` (`JobDiscoveryAgent`, `JobMatchingAgent`, `ResumeAgent`, `ApplicationAgent`, `RecruitmentCommsAgent`, `InterviewPrepAgent`).
+  - `coding.py` (`CodingAgent`).
+  - `research.py` (`ResearchAgent`, `MarketIntelligenceAgent`).
+  - `productivity.py` (`DocumentAgent`, `SpreadsheetAgent`, `PresentationAgent`).
+  - `creative_comms.py` (`CreativeAgent`, `MessagingAgent`).
+  - `automation.py` (`WorkflowAutomationAgent`).
+  - `computer.py` (`BrowserAgent`, `WindowsComputerAgent`, `VisualGroundingAgent`, `StructuralUIAgent`).
+- [x] Implement 32 specialist capabilities in `services/api/app/orchestration/capabilities/`:
+  - `recruitment.py` (9 capabilities).
+  - `coding.py` (3 capabilities).
+  - `research.py` (3 capabilities).
+  - `productivity.py` (7 capabilities).
+  - `creative_comms.py` (4 capabilities).
+  - `automation.py` (2 capabilities).
+  - `computer.py` (4 capabilities).
+  - Register all in `CapabilityRegistry` with deterministic fallbacks.
+- [x] Upgrade `AgentRegistry` in `services/api/app/orchestration/agents/registry.py` with manifest validation, legacy aliases (`job_search_specialist`), dynamic configuration updates, telemetry recording, and live diagnostic checks.
+- [x] Update `Planner` in `services/api/app/orchestration/planner.py` with multi-agent deterministic DAG templates for Recruitment Tailoring and Coding Technical Review.
+- [x] Update execution scheduler in `services/api/app/orchestration/scheduler.py` to record execution telemetry into `AgentRegistry`.
+- [x] Create database model `AgentConfigurationRecord` in `services/api/app/db/models.py`.
+- [x] Add persistence and query methods to `services/api/app/repositories/workflow_repository.py`.
+- [x] Implement 9 REST API endpoints in `services/api/app/api/v1/endpoints/agents.py` and register in `router.py`.
+- [x] Define TypeScript schemas in `packages/shared-types/src/orchestration.ts`.
+- [x] Implement frontend API client methods in `apps/desktop/src/lib/api-client.ts`.
+- [x] Upgrade `apps/desktop/src/features/agents/AgentsWorkspace.tsx` with category tabs, manifest cards, and 4-tab detail inspector.
+- [x] Author backend test suites: `test_specialist_agents.py` (6 tests) and `test_specialist_collaboration.py` (4 tests).
+- [x] Author frontend Vitest tests in `apps/desktop/src/test/features/agents-workspace.test.tsx` (5 tests).
+- [x] Author 10 architectural documentation files in `docs/` and update system documentation.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `python -m pytest -v`: **94 passed in 11.69s** (100% pass rate).
+   - `test_specialist_agents.py` (6 tests):
+     - `test_agent_manifest_validation` PASSED
+     - `test_agent_catalog_registration` PASSED
+     - `test_specialist_capability_execution` PASSED
+     - `test_live_recruitment_multi_agent_workflow` PASSED
+     - `test_live_coding_technical_review_workflow` PASSED
+     - `test_agent_api_endpoints` PASSED
+   - `test_specialist_collaboration.py` (4 tests):
+     - `test_context_isolation_credential_rejection` PASSED
+     - `test_disabled_agent_behavior` PASSED
+     - `test_controlled_failure_recovery_and_persistence` PASSED
+     - `test_agent_execution_history_persistence` PASSED
+2. **Frontend Vitest Test Suite (`apps/desktop/src/test`)**:
+   - `npm.cmd run test`: **30 test files passed | 112 tests passed** (100% pass rate).
+   - `agents-workspace.test.tsx` (5 tests):
+     - Renders agents workspace heading and category filter.
+     - Renders agent cards with status and capabilities.
+     - Filters agents by category.
+     - Opens detail inspector when clicking an agent card.
+     - Runs diagnostic check on selected agent.
+3. **Monorepo Build & Typecheck**:
+   - `npm.cmd run typecheck`: 0 errors across all monorepo workspaces.
+   - `npm.cmd run build`: Vite production bundle built 2,426 modules in 8.64s cleanly.
+4. **End-to-End Collaboration Workflows**:
+   - Verified live recruitment 4-agent DAG pipeline: Job requirements extraction -> Skill match scoring (80%) -> Tailored accomplishment bullets -> Verifier contract validation.
+   - Verified live coding review 3-agent DAG pipeline: Static inspection -> Test suite generation -> Verifier review.
+5. **Security & Guardrail Verification**:
+   - Context isolation confirmed: credential keys (`api_key`, `password`) immediately rejected at agent boundary.
+   - Single-active-model semaphore and bounded token budget enforced for RTX 4050 6GB Laptop GPU.
+   - Zero-Fake-Data compliance strictly observed: honest `limited` status declared for external integrations.
+
+### 4. Known Limitations & Stage 14 Hand-off
+
+- **Known Limitations**:
+  - Live external browser automation and native Windows Win32 UI input injection remain gated behind approval safeguards.
+  - Active web scraping and live SMTP/IMAP network submission activate in subsequent roadmap stages.
+- **Stage 14 Readiness**:
+  - The Specialist AI Agent Framework, 24-agent catalog, and 32 capabilities are 100% operational, verified, and complete.
+  - DO NOT begin Stage 14 until explicitly instructed.

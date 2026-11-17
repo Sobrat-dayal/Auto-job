@@ -103,3 +103,14 @@ The gateway handles all standard failure modes through a normalized exception hi
 - `ContextLimitExceededError`: Triggered if prompt length exceeds model ceiling after auto-pruning.
 - `RateLimitError`: Cloud provider 429 backoff handling.
 - `ProviderUnavailableError`: Provider offline or unreachable; triggers fallback sequence.
+
+---
+
+## 7. Specialist Agent Integration & Model Profiles (Stage 13)
+
+In Stage 13, the AI Model Gateway serves as the centralized inference backbone for the Specialist Agent Framework.
+- **`AgentModelProfile` Binding**: Each specialist agent declares preferred local and cloud models, temperature, reasoning effort, and max output tokens. The AI Gateway consumes these profiles during capability execution.
+- **Hardware Semaphore Guardrail**: When multiple specialist agents in a DAG require local LLM reasoning, requests are serialized through `LocalModelResourceController`'s single-active-model semaphore (`asyncio.Semaphore(1)`), preventing memory exhaustion on the NVIDIA RTX 4050 6GB Laptop GPU.
+- **Deterministic Capability Fallbacks**: All 32 specialist capabilities include native Python heuristics (AST parsing, regular expressions, structured text extraction), enabling workflows to succeed even when the local model server is unloaded or offline.
+
+For full details, see [docs/AGENT_MODEL_PROFILES.md](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MODEL_PROFILES.md).

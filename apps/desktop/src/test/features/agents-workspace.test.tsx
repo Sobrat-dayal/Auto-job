@@ -80,4 +80,69 @@ describe('AgentsWorkspace', () => {
       expect(screen.getByText('Target AI Model')).toBeInTheDocument();
     });
   });
+
+  it('switches to Configuration tab and allows editing preferences', async () => {
+    vi.spyOn(apiClient, 'getAgentConfiguration').mockResolvedValue({
+      preferred_model: 'Unified AI Gateway / Router',
+      concurrency_limit: 4,
+      timeout_seconds: 120,
+      temperature: 0.1,
+    });
+    vi.spyOn(apiClient, 'updateAgentConfiguration').mockResolvedValue({} as any);
+
+    render(
+      <MemoryRouter initialEntries={['/agents/all']}>
+        <AgentsWorkspace />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Supervisor Agent')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Supervisor Agent'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Configuration')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Configuration'));
+
+    expect(screen.getByText('Save Configuration')).toBeInTheDocument();
+  });
+
+  it('runs diagnostic self-test in Diagnostics tab', async () => {
+    vi.spyOn(apiClient, 'testAgent').mockResolvedValue({
+      passed: true,
+      details: 'Diagnostic check for Supervisor Agent: manifest valid, 4 capabilities declared.',
+      duration_ms: 12,
+      tested_at: new Date().toISOString(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/agents/all']}>
+        <AgentsWorkspace />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Supervisor Agent')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Supervisor Agent'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Diagnostics')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Diagnostics'));
+
+    const runBtn = screen.getByText('Run Diagnostic Check');
+    fireEvent.click(runBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('PASS')).toBeInTheDocument();
+      expect(screen.getAllByText(/manifest valid/i).length).toBeGreaterThanOrEqual(1);
+    });
+  });
 });

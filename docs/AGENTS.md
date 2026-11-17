@@ -398,3 +398,20 @@ flowchart TD
 - **Verification Requirements**: Validates step inputs and outputs conform to workflow schema.
 - **Resource Limits**: Max workflow step depth: 50 steps; timeout per workflow: 60 minutes.
 - **Escalation Policy**: Prompts user immediately if any workflow step violates security policy.
+
+---
+
+## 4. Stage 13 Implementation Status & Architecture
+
+As of **Stage 13**, all 24 agents have been formally instantiated within the runtime via `AgentManifest` schemas, registered in `AgentRegistry`, and backed by `SpecialistAgent` implementations and 32 granular capabilities in `CapabilityRegistry`:
+
+- **Detailed Framework Specification**: See [docs/SPECIALIST_AGENT_FRAMEWORK.md](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_FRAMEWORK.md)
+- **Detailed Agent Catalog**: See [docs/SPECIALIST_AGENT_CATALOG.md](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_CATALOG.md)
+- **Manifest Schema & Context Policies**: See [docs/AGENT_MANIFESTS.md](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MANIFESTS.md)
+- **Model Profiles & Hardware Budgets**: See [docs/AGENT_MODEL_PROFILES.md](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MODEL_PROFILES.md)
+- **Recruitment Specialists**: See [docs/RECRUITMENT_AGENTS.md](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_AGENTS.md)
+- **Computer & OS Operations**: See [docs/COMPUTER_AGENTS.md](file:///e:/proooo/AUTO%20JOB/docs/COMPUTER_AGENTS.md)
+- **Productivity Specialists**: See [docs/PRODUCTIVITY_AGENTS.md](file:///e:/proooo/AUTO%20JOB/docs/PRODUCTIVITY_AGENTS.md)
+- **Creative, Comms, Coding, & Automation**: See [docs/CREATIVE_AND_COMMUNICATION_AGENTS.md](file:///e:/proooo/AUTO%20JOB/docs/CREATIVE_AND_COMMUNICATION_AGENTS.md)
+- **Agent Security & Isolation**: See [docs/AGENT_SECURITY.md](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md)
+- **Agent Testing & Verification**: See [docs/AGENT_TESTING.md](file:///e:/proooo/AUTO%20JOB/docs/AGENT_TESTING.md)

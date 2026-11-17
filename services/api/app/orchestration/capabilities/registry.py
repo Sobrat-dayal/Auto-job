@@ -3,10 +3,56 @@
 import logging
 from typing import Any
 
+from app.orchestration.capabilities.automation import (
+    WorkflowProposeTemplateCapability,
+    WorkflowValidateConfigCapability,
+)
 from app.orchestration.capabilities.base import BaseCapability
 from app.orchestration.capabilities.code_inspect import CodeInspectCapability
+from app.orchestration.capabilities.coding import (
+    CodeExplainCapability,
+    CodeGenerateTestsCapability,
+    CodeReviewStaticCapability,
+)
+from app.orchestration.capabilities.computer import (
+    BrowserPlanNavigationCapability,
+    DesktopPlanOperationCapability,
+    StructuralParseAccessibilityTreeCapability,
+    VisualInspectImageMetadataCapability,
+)
+from app.orchestration.capabilities.creative_comms import (
+    CreativeSceneSpecificationCapability,
+    MarketAnalyzeSuppliedDataCapability,
+    MsgClassifyMessageCapability,
+    MsgDraftResponseCapability,
+)
 from app.orchestration.capabilities.data_transform import DataTransformCapability
 from app.orchestration.capabilities.output_validate import OutputValidateCapability
+from app.orchestration.capabilities.productivity import (
+    DocDraftReportCapability,
+    DocGenerateOutlineCapability,
+    DocRewriteTextCapability,
+    PresDraftSpeakerNotesCapability,
+    PresGenerateOutlineCapability,
+    SheetExplainFormulaCapability,
+    SheetSummarizeTabularCapability,
+)
+from app.orchestration.capabilities.recruitment import (
+    ClassifyApplicationFieldsCapability,
+    DraftRecruiterReplyCapability,
+    DraftResumeBulletsCapability,
+    ExtractJobRequirementsCapability,
+    GenerateInterviewQuestionsCapability,
+    MatchSkillsCapability,
+    NormalizeJobListingCapability,
+    ParseSearchCriteriaCapability,
+    SummarizeConversationCapability,
+)
+from app.orchestration.capabilities.research import (
+    ResearchCompareSourcesCapability,
+    ResearchExtractEvidenceCapability,
+    ResearchSummarizeSourcesCapability,
+)
 from app.orchestration.capabilities.structured_extract import StructuredExtractCapability
 from app.orchestration.capabilities.text_classify import TextClassifyCapability
 from app.orchestration.capabilities.text_compare import TextCompareCapability
@@ -25,6 +71,7 @@ class CapabilityRegistry:
 
     def _register_default_capabilities(self) -> None:
         defaults: list[BaseCapability] = [
+            # 1. Stage 12 Baseline Capabilities
             TextSummarizeCapability(),
             TextClassifyCapability(),
             StructuredExtractCapability(),
@@ -32,6 +79,52 @@ class CapabilityRegistry:
             DataTransformCapability(),
             OutputValidateCapability(),
             CodeInspectCapability(),
+
+            # 2. Recruitment Specialist Capabilities
+            ExtractJobRequirementsCapability(),
+            MatchSkillsCapability(),
+            DraftResumeBulletsCapability(),
+            NormalizeJobListingCapability(),
+            ParseSearchCriteriaCapability(),
+            ClassifyApplicationFieldsCapability(),
+            SummarizeConversationCapability(),
+            DraftRecruiterReplyCapability(),
+            GenerateInterviewQuestionsCapability(),
+
+            # 3. Coding Specialist Capabilities
+            CodeExplainCapability(),
+            CodeReviewStaticCapability(),
+            CodeGenerateTestsCapability(),
+
+            # 4. Research Specialist Capabilities
+            ResearchSummarizeSourcesCapability(),
+            ResearchExtractEvidenceCapability(),
+            ResearchCompareSourcesCapability(),
+
+            # 5. Productivity Specialist Capabilities
+            DocGenerateOutlineCapability(),
+            DocDraftReportCapability(),
+            DocRewriteTextCapability(),
+            SheetSummarizeTabularCapability(),
+            SheetExplainFormulaCapability(),
+            PresGenerateOutlineCapability(),
+            PresDraftSpeakerNotesCapability(),
+
+            # 6. Creative, Communication, and Market Intelligence Capabilities
+            CreativeSceneSpecificationCapability(),
+            MsgClassifyMessageCapability(),
+            MsgDraftResponseCapability(),
+            MarketAnalyzeSuppliedDataCapability(),
+
+            # 7. Workflow Automation Capabilities
+            WorkflowProposeTemplateCapability(),
+            WorkflowValidateConfigCapability(),
+
+            # 8. Computer and UI Inspection Capabilities
+            VisualInspectImageMetadataCapability(),
+            StructuralParseAccessibilityTreeCapability(),
+            BrowserPlanNavigationCapability(),
+            DesktopPlanOperationCapability(),
         ]
         for cap in defaults:
             self.register(cap)

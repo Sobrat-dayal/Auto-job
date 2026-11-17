@@ -84,6 +84,16 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Recovery Agent & Fault Remediation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_RECOVERY.md)
 - [Orchestration Security & Governance](file:///e:/proooo/AUTO%20JOB/docs/ORCHESTRATION_SECURITY.md)
 - [Orchestration Testing & Verification Guide](file:///e:/proooo/AUTO%20JOB/docs/ORCHESTRATION_TESTING.md)
+- [Specialist AI Agent Framework](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_FRAMEWORK.md)
+- [Specialist AI Agent Catalog](file:///e:/proooo/AUTO%20JOB/docs/SPECIALIST_AGENT_CATALOG.md)
+- [Agent Manifest Specification](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MANIFESTS.md)
+- [Agent Model Profiles & Hardware Optimization](file:///e:/proooo/AUTO%20JOB/docs/AGENT_MODEL_PROFILES.md)
+- [Recruitment Specialist Agents](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_AGENTS.md)
+- [Computer & OS Operation Agents](file:///e:/proooo/AUTO%20JOB/docs/COMPUTER_AGENTS.md)
+- [Productivity Specialist Agents](file:///e:/proooo/AUTO%20JOB/docs/PRODUCTIVITY_AGENTS.md)
+- [Creative, Comms, Coding, & Automation Agents](file:///e:/proooo/AUTO%20JOB/docs/CREATIVE_AND_COMMUNICATION_AGENTS.md)
+- [Agent Security & Context Isolation](file:///e:/proooo/AUTO%20JOB/docs/AGENT_SECURITY.md)
+- [Agent Testing & Verification Guide](file:///e:/proooo/AUTO%20JOB/docs/AGENT_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

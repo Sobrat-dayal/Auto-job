@@ -441,6 +441,24 @@ Authenticated HTTP endpoints under `/api/v1/orchestration/`:
 | `GET`   | `/api/v1/orchestration/capabilities`                | Lists registered capabilities with typed input/output schemas and verification policies.                  |
 | `GET`   | `/api/v1/orchestration/stats`                       | Retrieves aggregate workflow execution statistics and completion rates.                                   |
 
+---
+
+## 9. Specialist Agent Framework Endpoints (Stage 13)
+
+Authenticated HTTP endpoints under `/api/v1/agents/`:
+
+| Method  | Endpoint                             | Description                                                                                               |
+| :------ | :----------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/api/v1/agents`                     | Lists all registered agents with manifest summaries, categories, availability states, and counts.        |
+| `GET`   | `/api/v1/agents/capabilities`        | Lists all 32 registered capabilities across domains with descriptions, schemas, and provider types.       |
+| `GET`   | `/api/v1/agents/{id}`                | Returns the full `AgentManifest` for an agent (model profiles, context policies, limits, capabilities).   |
+| `GET`   | `/api/v1/agents/{id}/capabilities`   | Returns the detailed capability objects assigned to this agent.                                           |
+| `GET`   | `/api/v1/agents/{id}/status`         | Returns runtime status (`operational`, `limited`, `planned`), active state, assignment counts, and stats. |
+| `GET`   | `/api/v1/agents/{id}/executions`     | Returns historical execution records with durations, token estimates, and error traces.                  |
+| `GET`   | `/api/v1/agents/{id}/configuration`  | Returns persistent configuration overrides from SQLite `agent_configurations`.                            |
+| `PATCH` | `/api/v1/agents/{id}/configuration`  | Dynamically updates agent configuration (is_active, temperature, token limits, timeouts) at runtime.      |
+| `POST`  | `/api/v1/agents/{id}/test`           | Executes a non-destructive diagnostic check on the agent, testing manifest, capabilities, and readiness. |
+
 
 ---
 
@@ -491,4 +509,22 @@ Authenticated HTTP endpoints under `/api/v1/orchestration/`:
 | `GET`   | `/api/v1/orchestration/agents`                      | Lists all registered autonomous coordination agents and specialist roadmap catalog.                       |
 | `GET`   | `/api/v1/orchestration/capabilities`                | Lists registered capabilities with typed input/output schemas and verification policies.                  |
 | `GET`   | `/api/v1/orchestration/stats`                       | Retrieves aggregate workflow execution statistics and completion rates.                                   |
+
+---
+
+## 9. Specialist Agent Framework Endpoints (Stage 13)
+
+Authenticated HTTP endpoints under `/api/v1/agents/`:
+
+| Method  | Endpoint                             | Description                                                                                               |
+| :------ | :----------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/api/v1/agents`                     | Lists all registered agents with manifest summaries, categories, availability states, and counts.        |
+| `GET`   | `/api/v1/agents/capabilities`        | Lists all 32 registered capabilities across domains with descriptions, schemas, and provider types.       |
+| `GET`   | `/api/v1/agents/{id}`                | Returns the full `AgentManifest` for an agent (model profiles, context policies, limits, capabilities).   |
+| `GET`   | `/api/v1/agents/{id}/capabilities`   | Returns the detailed capability objects assigned to this agent.                                           |
+| `GET`   | `/api/v1/agents/{id}/status`         | Returns runtime status (`operational`, `limited`, `planned`), active state, assignment counts, and stats. |
+| `GET`   | `/api/v1/agents/{id}/executions`     | Returns historical execution records with durations, token estimates, and error traces.                  |
+| `GET`   | `/api/v1/agents/{id}/configuration`  | Returns persistent configuration overrides from SQLite `agent_configurations`.                            |
+| `PATCH` | `/api/v1/agents/{id}/configuration`  | Dynamically updates agent configuration (is_active, temperature, token limits, timeouts) at runtime.      |
+| `POST`  | `/api/v1/agents/{id}/test`           | Executes a non-destructive diagnostic check on the agent, testing manifest, capabilities, and readiness. |
 
