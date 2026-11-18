@@ -45,6 +45,15 @@ from app.orchestration.capabilities.computer import (
     VisualExecuteActionCapability,
     VisualClickCapability,
     VisualEnterTextCapability,
+    HybridResolveTargetCapability,
+    HybridProbeMethodsCapability,
+    HybridRouteActionCapability,
+    HybridObserveCapability,
+    HybridExecuteCapability,
+    HybridClickCapability,
+    HybridTypeCapability,
+    HybridFallbackCapability,
+    HybridExecuteTaskCapability,
 )
 from app.orchestration.capabilities.creative_comms import (
     CreativeSceneSpecificationCapability,
@@ -179,6 +188,16 @@ class CapabilityRegistry:
             VisualExecuteActionCapability(),
             VisualClickCapability(),
             VisualEnterTextCapability(),
+            # Stage 19: Intelligent Hybrid Computer Automation
+            HybridResolveTargetCapability(),
+            HybridProbeMethodsCapability(),
+            HybridRouteActionCapability(),
+            HybridObserveCapability(),
+            HybridExecuteCapability(),
+            HybridClickCapability(),
+            HybridTypeCapability(),
+            HybridFallbackCapability(),
+            HybridExecuteTaskCapability(),
         ]
         for cap in defaults:
             self.register(cap)

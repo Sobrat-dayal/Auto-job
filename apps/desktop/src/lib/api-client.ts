@@ -110,6 +110,17 @@ import type {
   CaptureSessionResponse,
   VisualTaskRequest,
   VisualTaskResponse,
+  InteractionMethod,
+  InteractionTarget,
+  CapabilityProbe,
+  ObservationRequest,
+  InteractionObservation,
+  InteractionAction,
+  InteractionResult,
+  RoutingDecisionRecord,
+  HybridTaskRequest,
+  HybridTaskResponse,
+  HybridDiagnosticsInfo,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1472,6 +1483,120 @@ export class ApiClient {
 
   async listVisualRecoveryEvents(): Promise<any[]> {
     return this.request<any[]>('/api/v1/visual/recovery-events');
+  }
+
+  // =========================================================================
+  // Stage 19: Hybrid Computer Interaction & Multi-Method Automation
+  // =========================================================================
+
+  async getHybridStatus(): Promise<any> {
+    return this.request<any>('/api/v1/hybrid/status');
+  }
+
+  async listHybridMethods(): Promise<InteractionMethod[]> {
+    return this.request<InteractionMethod[]>('/api/v1/hybrid/methods');
+  }
+
+  async getHybridCapabilities(): Promise<any[]> {
+    return this.request<any[]>('/api/v1/hybrid/capabilities');
+  }
+
+  async resolveHybridTarget(req: {
+    target_hint?: string;
+    session_id?: string;
+    dom_selector?: string;
+    window_title?: string;
+    window_handle?: number;
+    coordinates?: Record<string, any>;
+    process_name?: string;
+  }): Promise<InteractionTarget> {
+    return this.request<InteractionTarget>('/api/v1/hybrid/targets/resolve', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async probeHybridMethods(target: InteractionTarget): Promise<Record<string, CapabilityProbe>> {
+    return this.request<Record<string, CapabilityProbe>>('/api/v1/hybrid/methods/probe', {
+      method: 'POST',
+      body: JSON.stringify(target),
+    });
+  }
+
+  async previewHybridRoute(req: {
+    target: InteractionTarget;
+    action_type?: string;
+    preferred_method?: InteractionMethod;
+  }): Promise<RoutingDecisionRecord> {
+    return this.request<RoutingDecisionRecord>('/api/v1/hybrid/route/preview', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async observeHybrid(req: ObservationRequest): Promise<InteractionObservation> {
+    return this.request<InteractionObservation>('/api/v1/hybrid/observe', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async executeHybridAction(action: InteractionAction): Promise<InteractionResult> {
+    return this.request<InteractionResult>('/api/v1/hybrid/actions', {
+      method: 'POST',
+      body: JSON.stringify(action),
+    });
+  }
+
+  async getHybridAction(actionId: string): Promise<InteractionResult> {
+    return this.request<InteractionResult>(`/api/v1/hybrid/actions/${encodeURIComponent(actionId)}`);
+  }
+
+  async listHybridTasks(limit: number = 50): Promise<HybridTaskResponse[]> {
+    return this.request<HybridTaskResponse[]>(`/api/v1/hybrid/tasks?limit=${limit}`);
+  }
+
+  async submitHybridTask(req: HybridTaskRequest): Promise<HybridTaskResponse> {
+    return this.request<HybridTaskResponse>('/api/v1/hybrid/tasks', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getHybridTask(taskId: string): Promise<HybridTaskResponse> {
+    return this.request<HybridTaskResponse>(`/api/v1/hybrid/tasks/${encodeURIComponent(taskId)}`);
+  }
+
+  async cancelHybridTask(taskId: string): Promise<{ task_id: string; status: string }> {
+    return this.request<{ task_id: string; status: string }>(
+      `/api/v1/hybrid/tasks/${encodeURIComponent(taskId)}/cancel`,
+      { method: 'POST' }
+    );
+  }
+
+  async getHybridTaskHistory(taskId: string): Promise<any> {
+    return this.request<any>(`/api/v1/hybrid/tasks/${encodeURIComponent(taskId)}/history`);
+  }
+
+  async getHybridTaskRouting(taskId: string): Promise<RoutingDecisionRecord> {
+    return this.request<RoutingDecisionRecord>(`/api/v1/hybrid/tasks/${encodeURIComponent(taskId)}/routing`);
+  }
+
+  async getHybridDiagnostics(): Promise<HybridDiagnosticsInfo> {
+    return this.request<HybridDiagnosticsInfo>('/api/v1/hybrid/diagnostics');
+  }
+
+  async activateHybridKillswitch(reason?: string): Promise<{ status: string; reason: string }> {
+    return this.request<{ status: string; reason: string }>('/api/v1/hybrid/killswitch/activate', {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason || 'Operator hybrid killswitch activation' }),
+    });
+  }
+
+  async deactivateHybridKillswitch(): Promise<{ status: string }> {
+    return this.request<{ status: string }>('/api/v1/hybrid/killswitch/deactivate', {
+      method: 'POST',
+    });
   }
 }
 

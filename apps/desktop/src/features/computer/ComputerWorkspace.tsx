@@ -12,12 +12,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrowserWorkspace } from './browser/BrowserWorkspace';
 import { DesktopWorkspace } from './desktop/DesktopWorkspace';
 import { VisualWorkspace } from './visual/VisualWorkspace';
+import { HybridWorkspace } from './hybrid/HybridWorkspace';
 
 export const ComputerWorkspace: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const getInitialTab = (): string => {
+    if (location.pathname.includes('/computer/hybrid')) return 'hybrid';
     if (location.pathname.includes('/computer/visual')) return 'visual';
     if (location.pathname.includes('/computer/desktop')) return 'desktop';
     if (location.pathname.includes('/computer/browser')) return 'browser';
@@ -36,13 +38,15 @@ export const ComputerWorkspace: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === 'visual') navigate('/computer/visual');
+    if (tabId === 'hybrid') navigate('/computer/hybrid');
+    else if (tabId === 'visual') navigate('/computer/visual');
     else if (tabId === 'desktop') navigate('/computer/desktop');
     else if (tabId === 'live') navigate('/computer/live');
     else navigate(`/computer/${tabId}`);
   };
 
   const tabs = [
+    { id: 'hybrid', label: 'Hybrid Computer Engine', badge: 'Stage 19 Active' },
     { id: 'visual', label: 'Visual Automation & OCR', badge: 'Stage 18 Active' },
     { id: 'desktop', label: 'Windows Structural Automation', badge: 'Stage 17 Active' },
     { id: 'browser', label: 'Chromium Browser Automation', badge: 'Stage 16 Active' },
@@ -56,13 +60,25 @@ export const ComputerWorkspace: React.FC = () => {
     <ModulePage>
       <ModuleHeader
         title="Computer Control & Automation"
-        description="Tri-modality computer interaction: Visual coordinate automation with offline OCR, Microsoft UI Automation native application control, and Playwright Chromium browser automation."
+        description="Unified hybrid computer automation: Intelligent routing between Chromium browser DOM, Microsoft UI Automation structural control, Win32 messaging, and visual coordinate grounding with context-aware fallback."
         icon={Monitor}
-        stageTag="Stage 18 Production Active"
-        badgeLabel="Stage 17 Production Active"
+        stageTag="Stage 19 Production Active"
+        badgeLabel="Stage 18 Production Active"
         badgeVariant="outline"
         actions={
           <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-slate-700 bg-slate-800/40 text-xs font-mono text-slate-300"
+            >
+              Stage 17 Production Active
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-blue-500/30 bg-blue-500/10 text-xs font-mono text-blue-400"
+            >
+              Hybrid Engine: Operational
+            </Badge>
             <Badge
               variant="outline"
               className="border-purple-500/30 bg-purple-500/10 text-xs font-mono text-purple-400"
@@ -73,13 +89,13 @@ export const ComputerWorkspace: React.FC = () => {
               variant="outline"
               className="border-cyan-500/30 bg-cyan-500/10 text-xs font-mono text-cyan-400"
             >
-              UIA Engine: Operational
+              UIA: Operational
             </Badge>
             <Badge
               variant="outline"
               className="border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-400"
             >
-              Browser Engine: Operational
+              Browser: Operational
             </Badge>
             <Badge
               variant="outline"
@@ -93,6 +109,7 @@ export const ComputerWorkspace: React.FC = () => {
 
       <ModuleTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
+      {activeTab === 'hybrid' && <HybridWorkspace />}
       {activeTab === 'visual' && <VisualWorkspace />}
       {activeTab === 'desktop' && <DesktopWorkspace />}
       {activeTab === 'browser' && <BrowserWorkspace />}

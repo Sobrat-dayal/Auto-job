@@ -1878,3 +1878,15 @@ class VisualEnterTextCapability(BaseCapability):
                 await visual_computer_service.close_session(session_id)
 
 
+# Stage 19: Hybrid Computer Capabilities
+from app.hybrid.capabilities import (
+    HybridResolveTargetCapability,
+    HybridProbeMethodsCapability,
+    HybridRouteActionCapability,
+    HybridObserveCapability,
+    HybridExecuteCapability,
+    HybridClickCapability,
+    HybridTypeCapability,
+    HybridFallbackCapability,
+    HybridExecuteTaskCapability,
+)

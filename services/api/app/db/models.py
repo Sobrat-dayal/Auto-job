@@ -1089,6 +1089,63 @@ class VisualTaskRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
 
+# =============================================================================
+# Stage 19: Hybrid Computer Interaction & Multi-Method Automation Models
+# =============================================================================
+
+class HybridSessionRecord(Base):
+    __tablename__ = "hybrid_sessions"
+
+    session_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(128), default="Unified Session", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="active", nullable=False)
+    browser_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    desktop_window_ref: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class HybridTaskRecord(Base):
+    __tablename__ = "hybrid_tasks"
+
+    task_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    instruction: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    selected_method: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    target_surface: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    fallback_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    result_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class RoutingDecisionRecord(Base):
+    __tablename__ = "routing_decisions"
+
+    decision_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    task_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    target_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    selected_method: Mapped[str] = mapped_column(String(32), nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class MethodAttemptRecord(Base):
+    __tablename__ = "method_attempts"
+
+    attempt_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    task_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    step_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    method: Mapped[str] = mapped_column(String(32), nullable=False)
+    success: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    verification_status: Mapped[str] = mapped_column(String(32), default="not_verified", nullable=False)
+    duration_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+
 
 
 

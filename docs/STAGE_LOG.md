@@ -1491,4 +1491,78 @@ Stage 18 establishes genuine vision-based desktop automation for AUTONOM, comple
 ### 3. Stage 18 Completion & Hand-off
 
 - **Stage 18 is 100% complete, fully tested, and verified.**
-- **DO NOT begin Stage 19 until explicitly instructed.**
+
+---
+
+## Stage 19: Intelligent Hybrid Computer Interaction Engine, Multi-Method Control Routing, DOM + UIA + Vision Integration, Context-Aware Fallback, Unified Action Execution, and Cross-Application Coordination
+
+- **Date**: 2026-11-18
+- **Status**: COMPLETE
+- **Lead Roles**: Principal Computer-Use AI Architect, Senior Windows Systems Engineer, Browser Automation Architect, Computer Vision Engineer, Multi-Agent Systems Architect, Python Backend Engineer, Rust/Tauri Developer, Security Architect, React Engineer, QA Lead
+
+### 1. Deliverables Summary
+
+Stage 19 unifies Stage 16 (Playwright Browser DOM), Stage 17 (Windows UIA/Win32 Structural Control), and Stage 18 (Visual Grounding & WinRT OCR) into a cohesive, production-grade **Intelligent Hybrid Computer Interaction Engine**:
+
+1. **Unified Target Identity & Surface Classification (`services/api/app/hybrid/targets/`)**:
+   - `classifier.py`: `SurfaceClassifier` classifying target elements into `BROWSER_DOM`, `NATIVE_UIA`, `NATIVE_WIN32`, `CUSTOM_RENDERED`, `EMBEDDED_WEBVIEW`, or `UNKNOWN`.
+   - `identity.py`: `TargetIdentityValidator` performing pre-execution sanity checks, negative coordinate rejection, empty selector guardrails, and recycled HWND defense (validating HWND against current OS process ID).
+   - `resolver.py`: `TargetResolver` resolving vague target hints, DOM selectors, window titles, or coordinates into a canonical `InteractionTarget`.
+2. **Normalized Interaction Adapters (`services/api/app/hybrid/adapters/`)**:
+   - `base.py`: Protocol `InteractionAdapter` and `BaseInteractionAdapter` defining `probe()`, `observe()`, `execute()`, and `verify()`.
+   - `browser.py`: `BrowserDOMAdapter` bridging Stage 16 `BrowserService` and active Playwright sessions without moving the physical OS cursor.
+   - `uia.py`: `WindowsUIAAdapter` bridging Stage 17 `DesktopAutomationService` via COM accessibility tree patterns (`InvokePattern`, `ValuePattern`).
+   - `win32.py`: `Win32Adapter` dispatching native Win32 window messages (`WM_COMMAND`, `WM_SETTEXT`, `WM_LBUTTONDOWN`) for legacy dialogs.
+   - `visual.py`: `VisualAdapter` bridging Stage 18 `VisualComputerService` (screen capture, WinRT OCR, coordinate grounding, SendInput).
+   - `registry.py`: `InteractionAdapterRegistry` managing dynamic adapter discovery, concurrent probe fan-out, and rolling health metrics.
+3. **Dynamic Control Routing Engine (`services/api/app/hybrid/routing/`)**:
+   - `policies.py`: Deterministic surface preference orders and idempotency classifications.
+   - `scoring.py`: `MethodScorer` transparent 0..100 scoring model across capability fit (40%), reliability (25%), cost (15%), and surface preference bonus (20%).
+   - `fallback.py`: `FallbackController` validating fallback eligibility, bounding switch depth (max 3), loop prevention, and blocking non-idempotent action replay on uncertain outcomes.
+   - `health.py`: `MethodHealthTracker` recording execution counts, failure counters, and latency moving averages.
+   - `router.py`: `HybridMethodRouter` ranking candidates and producing explainable `RoutingDecisionRecordSchema`.
+4. **Unified Observation Coordinator (`services/api/app/hybrid/observations/`)**:
+   - `coordinator.py`: `ObservationCoordinator` extracting normalized cross-method observations, structural outlines, text extractions, and on-demand visual perception with stale cache invalidation.
+5. **Action Execution, State Machine & Verification (`services/api/app/hybrid/execution/`)**:
+   - `coordinator.py`: `HybridActionCoordinator` executing the full Observe -> Route -> Authorize -> Act -> Verify cycle with automatic context-aware fallback.
+   - `input_ownership.py`: `HybridInputOwnershipCoordinator` coordinating exclusive foreground mouse/keyboard leases to eliminate race conditions between physical input methods.
+   - `verification.py`: `HybridVerificationCoordinator` evaluating post-action state mutations.
+   - `state_machine.py`: `HybridStateMachine` managing task lifecycle states.
+6. **Fail-Closed Security & Authorization Integration (`services/api/app/hybrid/security/`)**:
+   - `execution_guard.py`: `HybridExecutionGuard` integrating with Stage 14 Emergency Stop and Win32 session lock detection (`OpenInputDesktop`).
+   - `authorization.py`: `HybridAuthorizationBridge` evaluating Stage 14 policy engine permissions and preventing privilege escalation on fallback.
+7. **Database Storage (`services/api/app/db/models.py`)**:
+   - `HybridSessionRecord`, `HybridTaskRecord`, `RoutingDecisionRecord`, and `MethodAttemptRecord` added to persistent SQLite storage.
+8. **Multi-Agent Capabilities & Manifests (`services/api/app/orchestration/`)**:
+   - 9 hybrid capabilities registered (`hybrid_resolve_target`, `hybrid_probe_methods`, `hybrid_route_action`, `hybrid_observe`, `hybrid_execute`, `hybrid_click`, `hybrid_type`, `hybrid_fallback`, `hybrid_execute_task`).
+   - `windows_computer_agent` upgraded to version 1.1.0 as the primary hybrid desktop coordinator.
+   - Default security baseline policies updated with hybrid read and execute permissions.
+9. **Central Service & REST API (`services/api/app/hybrid/service.py` & `api/v1/endpoints/hybrid.py`)**:
+   - `HybridComputerService`: Singleton facade.
+   - 18 authenticated REST API endpoints under `/api/v1/hybrid/*`.
+10. **Desktop Frontend Workspace (`apps/desktop/src/features/computer/hybrid/`)**:
+    - `HybridWorkspace.tsx`: Top-level hybrid automation console mounted in `ComputerWorkspace.tsx` under `/computer/hybrid`.
+    - 6 feature tabs: `HybridOverviewTab`, `CapabilityMatrixTab`, `RoutingInspectorTab`, `UnifiedSessionsTab`, `HybridTasksTab`, `HybridDiagnosticsTab`.
+    - 18 typed API client methods in `apps/desktop/src/lib/api-client.ts`.
+    - Shared types exported in `@autonom/shared-types`.
+11. **11 Architectural & Operational Documents in `docs/`**:
+    - `HYBRID_COMPUTER_ARCHITECTURE.md`, `INTERACTION_ADAPTERS.md`, `HYBRID_TARGET_IDENTITY.md`, `HYBRID_ROUTING.md`, `HYBRID_FALLBACK.md`, `HYBRID_OBSERVATION.md`, `HYBRID_ACTION_CONTRACTS.md`, `HYBRID_SECURITY.md`, `HYBRID_RESOURCE_MANAGEMENT.md`, `HYBRID_AGENT_INTEGRATION.md`, `HYBRID_TESTING.md`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - Stage 19 hybrid test suite: **40 passed in 4.15s** (100% pass rate).
+   - Full regression test run: **229 passed in 78.34s** (100% pass rate across entire backend).
+   - Zero test regressions from previous stages.
+2. **Frontend Vitest Suite (`apps/desktop/src/test`)**:
+   - `hybrid-automation.test.tsx` (7 tests): All PASSED.
+   - `computer-workspace.test.tsx`, `browser-automation.test.tsx`, `desktop-automation.test.tsx`, `visual-automation.test.tsx`: All PASSED.
+   - Full monorepo Vitest suite: **37 test files passed, 146 passed tests (100%)**.
+3. **Monorepo Build & Typecheck**:
+   - `@autonom/shared-types`, `@autonom/shared`, `desktop`: `tsc --noEmit` passed with 0 errors.
+   - `vite build`: Production bundle compiled cleanly (2456 modules transformed, 0 errors in 11.49s).
+
+### 3. Stage 19 Completion & Hand-off
+
+- **Stage 19 is 100% complete, fully tested, and verified.**
+- **DO NOT begin Stage 20 until explicitly instructed.**

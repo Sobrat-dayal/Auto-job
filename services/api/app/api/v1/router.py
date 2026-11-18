@@ -12,6 +12,7 @@ from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.desktop import router as desktop_router
 from app.api.v1.endpoints.events import router as events_router
 from app.api.v1.endpoints.health import router as health_router
+from app.api.v1.endpoints.hybrid import router as hybrid_router
 from app.api.v1.endpoints.integrations import router as integrations_router
 from app.api.v1.endpoints.jobs import router as jobs_router
 from app.api.v1.endpoints.orchestration import router as orchestration_router
@@ -56,3 +57,4 @@ api_v1_router.include_router(memory_router)
 api_v1_router.include_router(browser_router)
 api_v1_router.include_router(desktop_router)
 api_v1_router.include_router(visual_router)
+api_v1_router.include_router(hybrid_router)

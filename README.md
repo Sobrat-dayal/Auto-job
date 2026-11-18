@@ -150,6 +150,17 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Visual Resource Management & Protection](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_RESOURCE_MANAGEMENT.md)
 - [Visual Agent Integration & Capabilities](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_AGENT_INTEGRATION.md)
 - [Stage 18 Visual Automation Testing Report](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_AUTOMATION_TESTING.md)
+- [Hybrid Computer Interaction Architecture](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_COMPUTER_ARCHITECTURE.md)
+- [Interaction Adapters Specification](file:///e:/proooo/AUTO%20JOB/docs/INTERACTION_ADAPTERS.md)
+- [Unified Target Identity & Surface Classification](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_TARGET_IDENTITY.md)
+- [Dynamic Control Routing Engine](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_ROUTING.md)
+- [Context-Aware Fallback & Recovery Engine](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_FALLBACK.md)
+- [Cross-Method Observation & Unified Perception](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_OBSERVATION.md)
+- [Unified Action Contracts & Execution Lifecycle](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_ACTION_CONTRACTS.md)
+- [Hybrid Engine Security & Session Guards](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_SECURITY.md)
+- [Hardware & Resource-Conscious Interaction](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_RESOURCE_MANAGEMENT.md)
+- [Multi-Agent Coordination & Hybrid Capabilities](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_AGENT_INTEGRATION.md)
+- [Stage 19 Hybrid Engine Testing & Verification Report](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

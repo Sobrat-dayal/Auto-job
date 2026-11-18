@@ -17,3 +17,4 @@ export * from './memory';
 export * from './browser';
 export * from './desktop';
 export * from './visual';
+export * from './hybrid';
