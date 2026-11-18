@@ -211,6 +211,14 @@ class EducationRecord(BaseModel):
     def status(self) -> AcademicStatus:
         return self.academic_status
 
+    @property
+    def institution_name(self) -> str:
+        return self.institution
+
+    @property
+    def degree_name(self) -> str:
+        return self.degree
+
 
 class EmploymentRecord(BaseModel):
     id: str = Field(default_factory=lambda: f"exp_{uuid4().hex[:8]}")
@@ -510,6 +518,14 @@ class ApplicantProfile(BaseModel):
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @property
+    def education_records(self) -> list[EducationRecord]:
+        return self.education
+
+    @property
+    def employment_records(self) -> list[EmploymentRecord]:
+        return self.experience
 
 
 # =============================================================================
