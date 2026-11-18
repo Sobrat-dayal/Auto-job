@@ -15,7 +15,15 @@ from app.orchestration.capabilities.coding import (
     CodeReviewStaticCapability,
 )
 from app.orchestration.capabilities.computer import (
+    BrowserClickCapability,
+    BrowserDownloadCapability,
+    BrowserFillCapability,
+    BrowserInspectDOMCapability,
+    BrowserManageTabsCapability,
+    BrowserNavigateCapability,
     BrowserPlanNavigationCapability,
+    BrowserSubmitFormCapability,
+    BrowserTakeScreenshotCapability,
     DesktopPlanOperationCapability,
     StructuralParseAccessibilityTreeCapability,
     VisualInspectImageMetadataCapability,
@@ -125,6 +133,14 @@ class CapabilityRegistry:
             StructuralParseAccessibilityTreeCapability(),
             BrowserPlanNavigationCapability(),
             DesktopPlanOperationCapability(),
+            BrowserNavigateCapability(),
+            BrowserInspectDOMCapability(),
+            BrowserClickCapability(),
+            BrowserFillCapability(),
+            BrowserDownloadCapability(),
+            BrowserSubmitFormCapability(),
+            BrowserTakeScreenshotCapability(),
+            BrowserManageTabsCapability(),
         ]
         for cap in defaults:
             self.register(cap)

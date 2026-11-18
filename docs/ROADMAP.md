@@ -308,16 +308,30 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - REST APIs: 20 typed endpoints in `services/api/app/api/v1/endpoints/memory.py` for search, CRUD, conflicts, procedures, and stats.
   - Desktop Frontend Workspace: Full React workspace (`/memory`) with Overview Dashboard, Memory Explorer, Semantic Search, Procedural Knowledge, Conflict Review, and Diagnostics.
   - Automated Verification: 125/125 pytest tests passing (100%), 126/126 Vitest tests passing (100%), clean TypeScript typecheck, and clean production Vite bundle.
-- **Acceptance Criteria**: Phase 3 AI Intelligence Engine is 100% complete. DO NOT begin Stage 16 until explicitly instructed.
+- **Acceptance Criteria**: Phase 3 AI Intelligence Engine is 100% complete. Ready for Phase 4.
 
-#### Stage 16: Model Context Protocol (MCP) Client Core & Server Discovery
+---
 
-- **Goal**: Implement Model Context Protocol (MCP) client supporting stdio and SSE transports to connect to third-party tools and data sources.
+### Phase 4: Computer and Browser Automation (Stages 16–30)
+
+#### Stage 16: Production-Oriented Browser Automation, Playwright Integration, Browser Session Management, DOM Interaction, Web Navigation, Secure Authentication, Downloads, Execution Recovery, and Multi-Agent Browser Control [COMPLETE]
+
+- **Status**: COMPLETE (2026-11-18)
+- **Goal**: Implement a production-grade browser automation engine based on Playwright, enabling multi-agent navigation, session isolation, token-efficient DOM extraction, form field classification, DPAPI-encrypted authentication profiles, safe file downloads with SHA-256 verification, execution recovery, and desktop live controller workspace.
 - **Key Deliverables**:
-  - MCP client implementation following official spec (JSON-RPC 2.0).
-  - Server configuration loader (command, arguments, environment).
-  - Tool, resource, and prompt discovery and mapping to AUTONOM agent tools.
-- **Acceptance Criteria**: Successfully connect to standard MCP servers (e.g., SQLite MCP, Filesystem MCP) and execute discovered tools.
+  - Playwright browser runtime manager with automatic discovery of bundled Chromium, Microsoft Edge, and Google Chrome on Windows 11.
+  - Context isolation architecture with multi-tab management, popup interception, and deduplication.
+  - Origin security validator blocking `file:`, `javascript:`, private RFC 1918 subnets, and cloud metadata addresses (`169.254.169.254`, `metadata.google.internal`).
+  - Windows DPAPI-encrypted browser profiles protecting session cookies and local storage.
+  - Interactive DOM extractor with 94-98% token reduction and smart multi-strategy locators (`role=`, `text=`, `placeholder=`, `label=`, `test-id=`, CSS, XPath).
+  - Form analyzer mapping form controls to verified applicant profile data with submission boundary checks.
+  - Safe download manager with size quota enforcement, filename sanitization, SHA-256 hash tracking, and isolated storage.
+  - 9 registered browser capabilities and `browser_agent` upgraded to `AvailabilityState.OPERATIONAL`.
+  - 20 typed REST endpoints under `/api/v1/browser/` with fail-closed Emergency Stop integration.
+  - Desktop frontend workspace (`/computer/live` under `'browser'` tab) with Overview, Live Controller, DOM Inspector, Downloads, and Profiles.
+  - 11 architectural documents (`BROWSER_AUTOMATION_ARCHITECTURE.md`, `BROWSER_RUNTIME.md`, `BROWSER_SESSIONS.md`, `BROWSER_AUTHENTICATION.md`, `DOM_INTERACTION.md`, `BROWSER_TOOL_CONTRACTS.md`, `BROWSER_SECURITY.md`, `BROWSER_DOWNLOADS.md`, `BROWSER_RECOVERY.md`, `BROWSER_AGENT_INTEGRATION.md`, `BROWSER_TESTING.md`).
+  - Automated Verification: 145/145 pytest backend tests passing (100%), 131/131 Vitest desktop tests passing (100% across 34 files), clean TypeScript typecheck across monorepo, clean Vite production build.
+- **Acceptance Criteria**: All Stage 16 requirements satisfied with zero fake data and fail-closed security. Ready for Stage 17. DO NOT begin Stage 17 until explicitly instructed.
 
 #### Stage 17: Extensible Tool Registry & Dynamic Plugin Loading
 

@@ -810,5 +810,121 @@ class MemoryAccessEventRecord(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
 
 
+# ---------------------------------------------------------------------------
+# Stage 16: Browser Automation Models
+# ---------------------------------------------------------------------------
+class BrowserSessionRecord(Base):
+    __tablename__ = "browser_sessions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    profile_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    browser_type: Mapped[str] = mapped_column(String(32), default="chromium", nullable=False)
+    channel: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="created", nullable=False, index=True)  # created, launching, running, paused, error, closed
+    is_headless: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    active_tab_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    pid: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    viewport_width: Mapped[int] = mapped_column(Integer, default=1280, nullable=False)
+    viewport_height: Mapped[int] = mapped_column(Integer, default=800, nullable=False)
+    user_agent: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    locale: Mapped[str] = mapped_column(String(32), default="en-US", nullable=False)
+    timezone_id: Mapped[str] = mapped_column(String(64), default="America/New_York", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    last_activity_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+    tabs: Mapped[list["BrowserTabRecord"]] = relationship(back_populates="session", cascade="all, delete-orphan")
+
+
+class BrowserTabRecord(Base):
+    __tablename__ = "browser_tabs"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), ForeignKey("browser_sessions.id", ondelete="CASCADE"), nullable=False, index=True)
+    tab_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    title: Mapped[str] = mapped_column(String(256), default="", nullable=False)
+    url: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="ready", nullable=False, index=True)  # active, navigating, ready, crashed, closed
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    session: Mapped["BrowserSessionRecord"] = relationship(back_populates="tabs")
+
+
+class BrowserTaskRecord(Base):
+    __tablename__ = "browser_tasks"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    step_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_id: Mapped[str] = mapped_column(String(64), default="browser_agent", nullable=False, index=True)
+    session_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    goal: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)  # pending, running, completed, failed, cancelled
+    current_step: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_steps: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class BrowserActionRecord(Base):
+    __tablename__ = "browser_actions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    tab_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    task_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    action_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)  # navigate, click, fill, select, check, press_key, inspect_dom, download, screenshot
+    target_locator: Mapped[str | None] = mapped_column(Text, nullable=True)
+    parameters_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)  # pending, executing, succeeded, failed, blocked
+    result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    screenshot_path: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    duration_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+
+class BrowserProfileRecord(Base):
+    __tablename__ = "browser_profiles"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    storage_path: Mapped[str] = mapped_column(String(256), nullable=False)
+    is_authenticated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    domain_scopes_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class BrowserDownloadRecord(Base):
+    __tablename__ = "browser_downloads"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    tab_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    suggested_filename: Mapped[str] = mapped_column(String(256), nullable=False)
+    destination_path: Mapped[str] = mapped_column(String(256), nullable=False)
+    file_size_bytes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    sha256_checksum: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    mime_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    source_url: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="in_progress", nullable=False, index=True)  # in_progress, completed, failed, cancelled
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+
 
 

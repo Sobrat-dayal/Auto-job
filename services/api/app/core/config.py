@@ -108,6 +108,22 @@ class Settings(BaseSettings):
     def config_dir(self) -> Path:
         return self.data_dir / "config"
 
+    @property
+    def browser_downloads_dir(self) -> Path:
+        return self.artifacts_dir / "browser_downloads"
+
+    @property
+    def browser_screenshots_dir(self) -> Path:
+        return self.artifacts_dir / "browser_screenshots"
+
+    @property
+    def browser_profiles_dir(self) -> Path:
+        return self.data_dir / "browser_profiles"
+
+    @property
+    def browser_traces_dir(self) -> Path:
+        return self.data_dir / "browser_traces"
+
     def ensure_directories(self) -> None:
         """Creates the full application directory layout if missing."""
         for d in (
@@ -116,6 +132,10 @@ class Settings(BaseSettings):
             self.artifacts_dir / "documents",
             self.artifacts_dir / "reports",
             self.artifacts_dir / "generated",
+            self.browser_downloads_dir,
+            self.browser_screenshots_dir,
+            self.browser_profiles_dir,
+            self.browser_traces_dir,
             self.backups_dir,
             self.logs_dir,
             self.cache_dir,

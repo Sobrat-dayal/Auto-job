@@ -6,6 +6,7 @@ from app.api.v1.endpoints.agents import router as agents_router
 from app.api.v1.endpoints.ai import router as ai_router
 from app.api.v1.endpoints.applications import router as applications_router
 from app.api.v1.endpoints.artifacts import router as artifacts_router
+from app.api.v1.endpoints.browser import router as browser_router
 from app.api.v1.endpoints.credentials import router as credentials_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.events import router as events_router
@@ -50,3 +51,4 @@ api_v1_router.include_router(agents_router)
 api_v1_router.include_router(orchestration_router)
 api_v1_router.include_router(security_router)
 api_v1_router.include_router(memory_router)
+api_v1_router.include_router(browser_router)

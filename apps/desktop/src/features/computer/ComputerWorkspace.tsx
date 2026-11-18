@@ -10,17 +10,19 @@ import {
 } from '@/components/module';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BrowserWorkspace } from './browser/BrowserWorkspace';
 
 export const ComputerWorkspace: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const getInitialTab = (): string => {
+    if (location.pathname.includes('/computer/live')) return 'live';
     if (location.pathname.includes('/computer/tasks')) return 'tasks';
     if (location.pathname.includes('/computer/browser')) return 'browser';
     if (location.pathname.includes('/computer/history')) return 'history';
     if (location.pathname.includes('/computer/permissions')) return 'permissions';
-    return 'live';
+    return 'browser'; // Default to browser in Stage 16
   };
 
   const [activeTab, setActiveTab] = React.useState<string>(getInitialTab());
@@ -36,9 +38,9 @@ export const ComputerWorkspace: React.FC = () => {
   };
 
   const tabs = [
+    { id: 'browser', label: 'Chromium Browser Automation', badge: 'Stage 16 Active' },
     { id: 'live', label: 'Live Desktop Viewport' },
     { id: 'tasks', label: 'Computer Tasks', badge: 0 },
-    { id: 'browser', label: 'Chromium Browser Automation' },
     { id: 'history', label: 'Action & Keystroke Logs' },
     { id: 'permissions', label: 'Safety Boundaries & Killswitch' },
   ];
@@ -47,13 +49,19 @@ export const ComputerWorkspace: React.FC = () => {
     <ModulePage>
       <ModuleHeader
         title="Computer Control & Automation"
-        description="Dual-modality computer interaction: Visual Grounding perception and native Windows UI Automation."
+        description="Dual-modality computer interaction: Playwright Chromium browser automation and native Windows UI Automation."
         icon={Monitor}
-        stageTag="Stage 16-18 Planned"
-        badgeLabel="Safety Gate Active"
+        stageTag="Stage 16 Production Active"
+        badgeLabel="Stage 14 Safety Gate Enforced"
         badgeVariant="outline"
         actions={
           <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-400"
+            >
+              Browser Engine: Operational
+            </Badge>
             <Badge
               variant="outline"
               className="border-amber-500/30 bg-amber-500/10 text-xs font-mono text-amber-400"
@@ -64,20 +72,24 @@ export const ComputerWorkspace: React.FC = () => {
         }
       />
 
-      <ModuleUnavailableState
-        moduleName="Dual-Modality Computer Interaction"
-        stageTag="Stage 16, 17 & 18"
-        stageName="Desktop Perception & Action Drivers"
-        description="Autonomous mouse clicks, keystrokes, and accessibility tree traversal will activate in Stages 16–18. The system combines coordinate vision models with sub-millisecond Windows UI Automation. All computer actions operate under strict safety boundaries."
-        plannedCapabilities={[
-          'Chromium CDP browser automation & form filling (Stage 16)',
-          'Visual grounding screen perception with coordinate masks (Stage 17)',
-          'Sub-millisecond Windows UI Automation (UIA) tree traversal (Stage 18)',
-          'Hardware-level panic abort hotkey and human gatekeeping (Stage 19)',
-        ]}
-      />
+      {activeTab !== 'browser' && (
+        <ModuleUnavailableState
+          moduleName="Native Desktop Automation (Stage 17-18)"
+          stageTag="Stage 17 & 18"
+          stageName="Desktop Perception & Action Drivers"
+          description="Autonomous mouse clicks, keystrokes, and native Windows accessibility tree traversal will activate in Stages 17–18. Browser automation is now live on the 'Chromium Browser Automation' tab."
+          plannedCapabilities={[
+            'Chromium CDP browser automation & form filling (Stage 16 - Active)',
+            'Visual grounding screen perception with coordinate masks (Stage 17)',
+            'Sub-millisecond Windows UI Automation (UIA) tree traversal (Stage 18)',
+            'Hardware-level panic abort hotkey and human gatekeeping (Stage 19)',
+          ]}
+        />
+      )}
 
       <ModuleTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {activeTab === 'browser' && <BrowserWorkspace />}
 
       {activeTab === 'live' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -164,10 +176,10 @@ export const ComputerWorkspace: React.FC = () => {
         </div>
       )}
 
-      {activeTab !== 'live' && (
+      {activeTab !== 'live' && activeTab !== 'browser' && (
         <ModuleEmptyState
           title={`No active ${activeTab} data`}
-          description={`Computer control ${activeTab} capabilities will become fully interactive when Stage 16-18 engines are operational.`}
+          description={`Computer control ${activeTab} capabilities will become fully interactive when Stage 17-18 engines are operational.`}
         />
       )}
     </ModulePage>

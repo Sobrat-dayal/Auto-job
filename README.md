@@ -117,6 +117,17 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Memory Lifecycle, Retention, and Secure Deletion](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_LIFECYCLE.md)
 - [Memory Quality Evaluation Benchmark](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_EVALUATION.md)
 - [Stage 15 Memory Testing & Verification Matrix](file:///e:/proooo/AUTO%20JOB/docs/MEMORY_TESTING.md)
+- [Browser Automation Architecture](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_AUTOMATION_ARCHITECTURE.md)
+- [Browser Runtime & Engine Discovery](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_RUNTIME.md)
+- [Browser Session & Tab Management](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_SESSIONS.md)
+- [Browser Authentication & DPAPI Encrypted Profiles](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_AUTHENTICATION.md)
+- [DOM Interaction & Form Analysis](file:///e:/proooo/AUTO%20JOB/docs/DOM_INTERACTION.md)
+- [Browser Tool Contracts & API Endpoints](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_TOOL_CONTRACTS.md)
+- [Browser Security & Origin Controls](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_SECURITY.md)
+- [Browser Downloads & Artifact Storage](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_DOWNLOADS.md)
+- [Browser Execution Recovery & Self-Healing](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_RECOVERY.md)
+- [Multi-Agent Browser Integration](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_AGENT_INTEGRATION.md)
+- [Stage 16 Browser Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

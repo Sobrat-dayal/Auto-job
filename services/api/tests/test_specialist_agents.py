@@ -95,7 +95,7 @@ async def test_agent_catalog_registration():
 
     # 4 Computer Control Roles
     computer_roles = [
-        ("browser_agent", AvailabilityState.PLANNED),
+        ("browser_agent", AvailabilityState.OPERATIONAL),
         ("windows_computer_agent", AvailabilityState.PLANNED),
         ("visual_grounding_agent", AvailabilityState.LIMITED),
         ("structural_ui_agent", AvailabilityState.LIMITED),

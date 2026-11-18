@@ -14,7 +14,7 @@ describe('ComputerWorkspace', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'Computer Control & Automation'
     );
-    expect(screen.getByText('Stage 16-18 Planned')).toBeInTheDocument();
+    expect(screen.getByText('Stage 16 Production Active')).toBeInTheDocument();
     expect(screen.getByText(/Killswitch: Pause \/ Break/i)).toBeInTheDocument();
     expect(screen.getByText('Global Panic Killswitch')).toBeInTheDocument();
     expect(screen.getByText('Dual-Modality Arbitration')).toBeInTheDocument();

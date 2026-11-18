@@ -64,6 +64,27 @@ import type {
   SearchMode,
   MemoryType,
   MemoryScope,
+  BrowserRuntimeStatus,
+  BrowserSessionSummary,
+  BrowserSessionResponse,
+  BrowserSessionCreateRequest,
+  BrowserNavigateRequest,
+  BrowserNavigateResponse,
+  DOMInspectionRequest,
+  DOMInspectionResponse,
+  BrowserActionRequest,
+  BrowserActionResponse,
+  BrowserBatchActionsRequest,
+  BrowserBatchActionsResponse,
+  BrowserScreenshotRequest,
+  BrowserScreenshotResponse,
+  BrowserTabInfo,
+  BrowserTabCreateRequest,
+  BrowserProfileResponse,
+  BrowserProfileCreateRequest,
+  BrowserDownloadResponse,
+  BrowserTaskResponse,
+  BrowserTaskCreateRequest,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1092,6 +1113,124 @@ export class ApiClient {
         method: 'POST',
       }
     );
+  }
+
+  // -------------------------------------------------------------------------
+  // Stage 16 Browser Automation Methods
+  // -------------------------------------------------------------------------
+
+  async getBrowserRuntimeStatus(): Promise<BrowserRuntimeStatus> {
+    return this.request<BrowserRuntimeStatus>('/api/v1/browser/status');
+  }
+
+  async listBrowserSessions(): Promise<BrowserSessionSummary[]> {
+    return this.request<BrowserSessionSummary[]>('/api/v1/browser/sessions');
+  }
+
+  async createBrowserSession(req: BrowserSessionCreateRequest = {}): Promise<BrowserSessionResponse> {
+    return this.request<BrowserSessionResponse>('/api/v1/browser/sessions', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getBrowserSession(sessionId: string): Promise<BrowserSessionResponse> {
+    return this.request<BrowserSessionResponse>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}`);
+  }
+
+  async closeBrowserSession(sessionId: string): Promise<void> {
+    await this.request<void>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async navigateBrowser(sessionId: string, req: BrowserNavigateRequest): Promise<BrowserNavigateResponse> {
+    return this.request<BrowserNavigateResponse>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/navigate`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getBrowserActivePage(sessionId: string): Promise<{ session_id: string; tab_id: string; title: string; url: string; status: string }> {
+    return this.request(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/page`);
+  }
+
+  async inspectBrowserDOM(sessionId: string, req?: DOMInspectionRequest): Promise<DOMInspectionResponse> {
+    return this.request<DOMInspectionResponse>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/inspect`, {
+      method: 'POST',
+      body: JSON.stringify(req || {}),
+    });
+  }
+
+  async executeBrowserAction(sessionId: string, req: BrowserActionRequest): Promise<BrowserActionResponse> {
+    return this.request<BrowserActionResponse>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/actions`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async executeBatchBrowserActions(sessionId: string, req: BrowserBatchActionsRequest): Promise<BrowserBatchActionsResponse> {
+    return this.request<BrowserBatchActionsResponse>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/batch-actions`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async captureBrowserScreenshot(sessionId: string, req?: BrowserScreenshotRequest): Promise<BrowserScreenshotResponse> {
+    return this.request<BrowserScreenshotResponse>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/screenshot`, {
+      method: 'POST',
+      body: JSON.stringify(req || {}),
+    });
+  }
+
+  async listBrowserTabs(sessionId: string): Promise<BrowserTabInfo[]> {
+    return this.request<BrowserTabInfo[]>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/tabs`);
+  }
+
+  async createBrowserTab(sessionId: string, req?: BrowserTabCreateRequest): Promise<BrowserTabInfo> {
+    return this.request<BrowserTabInfo>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/tabs`, {
+      method: 'POST',
+      body: JSON.stringify(req || {}),
+    });
+  }
+
+  async switchBrowserTab(sessionId: string, tabId: string): Promise<{ session_id: string; active_tab_id: string; success: boolean }> {
+    return this.request(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/tabs/switch`, {
+      method: 'PUT',
+      body: JSON.stringify({ tab_id: tabId }),
+    });
+  }
+
+  async closeBrowserTab(sessionId: string, tabId: string): Promise<void> {
+    await this.request<void>(`/api/v1/browser/sessions/${encodeURIComponent(sessionId)}/tabs/${encodeURIComponent(tabId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listBrowserProfiles(): Promise<BrowserProfileResponse[]> {
+    return this.request<BrowserProfileResponse[]>('/api/v1/browser/profiles');
+  }
+
+  async createBrowserProfile(req: BrowserProfileCreateRequest): Promise<BrowserProfileResponse> {
+    return this.request<BrowserProfileResponse>('/api/v1/browser/profiles', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listBrowserDownloads(): Promise<BrowserDownloadResponse[]> {
+    return this.request<BrowserDownloadResponse[]>('/api/v1/browser/downloads');
+  }
+
+  async listBrowserTasks(): Promise<BrowserTaskResponse[]> {
+    return this.request<BrowserTaskResponse[]>('/api/v1/browser/tasks');
+  }
+
+  async createBrowserTask(req: BrowserTaskCreateRequest): Promise<BrowserTaskResponse> {
+    return this.request<BrowserTaskResponse>('/api/v1/browser/tasks', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
 }
 

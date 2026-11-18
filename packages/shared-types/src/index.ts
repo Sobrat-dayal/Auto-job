@@ -14,3 +14,4 @@ export * from './settings';
 export * from './ai';
 export * from './orchestration';
 export * from './memory';
+export * from './browser';

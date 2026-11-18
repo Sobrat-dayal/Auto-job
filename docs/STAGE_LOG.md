@@ -1234,3 +1234,78 @@ Instead of treating every workflow as a blank slate, AUTONOM retains verified pr
 - **Stage 15 is 100% complete and fully verified.**
 - **Phase 3: AI Intelligence Engine is complete.**
 - **DO NOT begin Stage 16 until explicitly instructed.**
+
+
+---
+
+## Stage 16: Production-Oriented Browser Automation, Playwright Integration, Browser Session Management, DOM Interaction, Web Navigation, Secure Authentication, Downloads, Execution Recovery, and Multi-Agent Browser Control
+
+### 1. Executive Summary
+
+Stage 16 inaugurates **Phase 4: Computer and Browser Automation** by delivering a production-grade, secure, multi-agent browser automation engine built on Microsoft Playwright.
+
+The browser engine enables AUTONOM agents to launch Chromium and Microsoft Edge browser contexts, isolate sessions, navigate allowed domains, extract token-compacted interactive DOM elements, interact with form controls, download recruitment artifacts with cryptographic SHA-256 integrity, recover from transient page errors, and execute within strict Stage 14 authorization boundaries and fail-closed Emergency Stop protections.
+
+### 2. Core Subsystems Implemented
+
+1. **Database Schema & Storage (`services/api/app/db/models.py`)**:
+   - `BrowserSessionRecord`: Tracks session contexts, browser engine, headless mode, status, and activity timestamps.
+   - `BrowserTabRecord`: Tracks individual tab/page states, active focus, titles, and URLs with automatic popup interception.
+   - `BrowserTaskRecord`: Records high-level multi-step browser automation tasks with goal descriptions.
+   - `BrowserActionRecord`: Granular audit trail for every dispatched browser action (click, fill, navigate, screenshot, etc.) with latency and outcome.
+   - `BrowserProfileRecord`: Encrypted browser profile slots storing DPAPI-protected session cookies and storage states.
+   - `BrowserDownloadRecord`: Tracks downloaded files, original URLs, MIME types, sizes, SHA-256 hashes, and disk paths.
+2. **Security & Origin Controls (`services/api/app/browser/security/`)**:
+   - `origins.py`: Strict URL and origin validator blocking dangerous schemes (`file:`, `javascript:`, `data:`), private RFC 1918 subnets, loopback addresses, and cloud metadata IP endpoints (`169.254.169.254`, `metadata.google.internal`).
+   - `authentication.py`: Encrypted storage state management backed by Windows DPAPI (`dpapi_protect`, `dpapi_unprotect`).
+3. **Runtime & Context Lifecycle (`services/api/app/browser/runtime/`)**:
+   - `manager.py`: Dynamic browser engine discovery (bundled Chromium, Microsoft Edge, Google Chrome) with Windows sandbox arguments.
+   - `sessions.py`: Isolated Playwright `BrowserContext` lifecycle management with session timeout sweeps.
+   - `tabs.py`: Tab manager with active tab tracking, deduplicated page registration, and popup interception.
+   - `profiles.py`: Database-persisted profile slots with DPAPI encrypted state import and export.
+4. **DOM Extraction & Interaction Engine (`services/api/app/browser/interaction/`)**:
+   - `dom.py`: In-page JavaScript extraction producing token-efficient hierarchical interactive element trees with 94-98% token reduction.
+   - `locators.py`: Multi-strategy smart locator resolver (`role=`, `text=`, `placeholder=`, `label=`, `test-id=`, `[id]`, CSS, XPath).
+   - `actions.py`: Typed Action Executor dispatching navigate, click, fill, select, check, press_key, hover, scroll, and evaluate.
+   - `forms.py`: Automated form analyzer classifying application fields and mapping them to verified applicant profile data.
+   - `verification.py`: Action verification asserting post-action URL mutations, element visibility, and field values.
+5. **Artifacts & Forensics (`services/api/app/browser/artifacts/`)**:
+   - `downloads.py`: Safe download manager with path sanitization, 50MB size budget, SHA-256 hash calculation, and isolated disk storage.
+   - `screenshots.py`: Viewport and full-page PNG capture with base64 thumbnail generation.
+   - `traces.py`: Playwright zip diagnostic trace recording and export for audit replays.
+6. **Central Browser Service (`services/api/app/browser/service.py`)**:
+   - Coordinates session lifecycle, tab routing, action dispatching, and fail-closed Emergency Stop integration.
+7. **Multi-Agent Capabilities & Manifest (`services/api/app/orchestration/`)**:
+   - Registered 9 browser capabilities in `capabilities/computer.py` and `registry.py`: `browser_navigate`, `browser_inspect_dom`, `browser_click`, `browser_fill`, `browser_download`, `browser_submit_form`, `browser_take_screenshot`, `browser_manage_tabs`, `browser_plan_navigation`.
+   - Upgraded `browser_agent` to `AvailabilityState.OPERATIONAL` in `manifests.py`.
+8. **FastAPI Endpoints (`services/api/app/api/v1/endpoints/browser.py`)**:
+   - 20 typed REST endpoints covering engines, sessions, tabs, actions, DOM extraction, screenshots, forms, downloads, profiles, and URL validation.
+9. **Desktop Frontend Workspace (`apps/desktop/src/features/computer/browser/`)**:
+   - Integrated into `ComputerWorkspace.tsx` under the default active `'browser'` tab.
+   - 5 comprehensive sub-views: `BrowserOverviewTab`, `BrowserLiveControllerTab`, `BrowserDOMInspectorTab`, `BrowserDownloadsTab`, and `BrowserProfilesTab`.
+10. **11 Architectural Documents in `docs/`**:
+    - `BROWSER_AUTOMATION_ARCHITECTURE.md`, `BROWSER_RUNTIME.md`, `BROWSER_SESSIONS.md`, `BROWSER_AUTHENTICATION.md`, `DOM_INTERACTION.md`, `BROWSER_TOOL_CONTRACTS.md`, `BROWSER_SECURITY.md`, `BROWSER_DOWNLOADS.md`, `BROWSER_RECOVERY.md`, `BROWSER_AGENT_INTEGRATION.md`, `BROWSER_TESTING.md`.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - Full test run: **145 passed in 54.35s** (100% pass rate).
+   - `test_browser_security.py` (5 tests): All PASSED.
+   - `test_browser_runtime.py` (3 tests): All PASSED.
+   - `test_browser_dom.py` (4 tests): All PASSED.
+   - `test_browser_downloads.py` (3 tests): All PASSED.
+   - `test_api_browser.py` (5 tests): All PASSED.
+   - `test_specialist_agents.py` (6 tests): All PASSED (asserts `browser_agent` is operational).
+2. **Frontend Vitest Suite (`apps/desktop/src/test`)**:
+   - Full test run: **34 test files passed | 131 tests passed** (100% pass rate in 23.46s).
+   - `browser-automation.test.tsx` (5 tests): All PASSED.
+   - `computer-workspace.test.tsx` (1 test): All PASSED.
+3. **Monorepo Build & Typecheck**:
+   - `npm.cmd --prefix packages/shared-types run typecheck`: 0 errors.
+   - `npm.cmd --prefix apps/desktop run typecheck`: 0 errors.
+   - `npm.cmd --prefix apps/desktop run build`: Production Vite bundle compiled cleanly (34 chunks, 0 errors in 9.75s).
+
+### 4. Stage 16 Completion & Hand-off
+
+- **Stage 16 is 100% complete, fully tested, and verified.**
+- **DO NOT begin Stage 17 until explicitly instructed.**
