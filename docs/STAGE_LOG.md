@@ -1692,3 +1692,69 @@ Stage 21 marks the successful inauguration of **Phase 5: Recruitment Intelligenc
 - **Stage 21 is 100% complete, fully tested, and verified.**
 - **Phase 5: Recruitment Intelligence Foundation has successfully begun.**
 - **DO NOT begin Stage 22 (GitHub & Developer Portfolio Intelligence) until explicitly instructed.**
+
+---
+
+## Stage 22: GitHub Account Integration, Repository Discovery, Source Code Intelligence, Technology Stack Analysis, Contribution Attribution, Developer Portfolio Intelligence, Evidence-Backed Skill Extraction, and Applicant Profile Synchronization
+
+### 1. Architectural Summary & Scope
+
+Stage 22 extends the Recruitment Intelligence Foundation with real GitHub account connectivity, repository discovery, source code inspection, dependency manifest parsing, multi-tier contribution attribution, secret redaction, and human-in-the-loop candidate skill and project synchronization into the Stage 21 canonical Applicant Profile:
+
+1. **GitHub Connection & DPAPI Vault Management (`app.recruitment.github.auth`, `client`)**:
+   - `GitHubConnectionManager`: Supports `PUBLIC_ONLY`, `PAT` (Personal Access Token), and `MANUAL_URL` connection modes.
+   - Encrypts GitHub PATs with Windows Data Protection API (DPAPI) and AES-256-GCM via Stage 04 `CredentialManager`. Masks tokens in all API responses and logs.
+   - Audits granted OAuth scopes (`read:user`, `repo`) and prohibits write access.
+2. **API Client, Rate Limiting & ETag Caching (`app.recruitment.github.client`)**:
+   - `GitHubRestClient`: Asynchronous HTTP client targeting GitHub REST API version `2022-11-28` with standard headers and outbound token scrubbing.
+   - `RateLimitController`: Monitors primary and secondary limits (`x-ratelimit-remaining`, `x-ratelimit-reset`, `retry-after`) and enforces proactive backoff.
+   - `ETagCacheManager`: Implements RFC 7232 conditional caching (`If-None-Match`), handling `304 Not Modified` responses to conserve API budget.
+3. **Repository Discovery & Selection Management (`app.recruitment.github.repositories`)**:
+   - `RepositoryDiscoveryService`: Lists accessible public, private, or organization repositories and normalizes metadata (stars, forks, languages, topics, default branch commit SHA).
+   - Ingests standalone public repository URLs via `parse_github_repo_url`.
+   - Manages applicant repository selection toggles (`is_selected`).
+4. **Safe Source Inspection & Secret Redaction (`app.recruitment.github.source`)**:
+   - `SourceTreeInspector`: Retrieves entire repository file hierarchies using recursive Git Trees (`GET /repos/{owner}/{repo}/git/trees/{sha}?recursive=1`) in a single network call.
+   - `SourceFilter`: Enforces safety boundaries (bounds files $<500\text{ KB}$, maximum 60 files per repo, excludes `node_modules`, `target`, `.git`, binaries, minified bundles) and guards against path traversal.
+   - `SecretRedactor`: High-entropy regex scanner masking RSA/OpenSSH private keys, GitHub tokens, AWS keys, JWTs, and database connection strings before display or storage.
+5. **Technology Stack & Architecture Intelligence (`app.recruitment.github.analysis`)**:
+   - `DependencyManifestParser`: Statically parses `package.json`, `requirements.txt`, `pyproject.toml`, `Cargo.toml`, and `go.mod`.
+   - `TechnologyClassifier`: Maps raw dependencies to standardized taxonomy (Language, Framework, Database, ORM, Testing, AI/ML, Containerization).
+   - `ArchitectureAnalyzer`: Classifies repository architectural archetypes (`MONOREPO`, `MICROSERVICE`, `BACKEND_SERVICE`, `FRONTEND_SPA`, `FULLSTACK`, `CLI_TOOL`, `LIBRARY`) and verifies presence of CI, Docker, and unit tests.
+6. **Multi-Signal Contribution Attribution (`app.recruitment.github.contributions`)**:
+   - `ContributionAttributionEngine`: Differentiates Git author vs. committer, accounts for squash merges and PR review events, detects and separates forked upstream lineage, and filters automated bot accounts.
+   - Assigns a 6-tier attribution confidence rating from `REPOSITORY_ASSOCIATED` to `INDEPENDENTLY_CORROBORATED`.
+7. **Candidate Review Queue & Stage 21 Profile Promotion (`app.recruitment.github.evidence`)**:
+   - `CandidateGenerator`: Emits `CandidateSkill` and `CandidateProject` proposals with evidence provenance.
+   - `CandidateReviewManager`: Quarantine queue where applicants accept, modify, or reject candidates.
+   - Upon explicit acceptance, calls Stage 21's `ApplicantProfileService.add_or_update_skill()` and `add_project()`, and registers atomic claims in `ClaimRegistry` without silent mutations.
+8. **Master Facade & REST API (`services/api/app/recruitment/github/service.py` & `api/v1/endpoints/github.py`)**:
+   - `GitHubIntelligenceService`: Singleton orchestrator coordinating connections, discovery, metadata, trees, source fetching, analysis, contribution attribution, and review queue.
+   - 31 authenticated FastAPI endpoints mounted under `/api/v1/github/*`.
+9. **Desktop Frontend Workspace (`apps/desktop/src/features/recruitment/github/`)**:
+   - `GitHubPortfolioWorkspace.tsx`: Top-level workspace mounted under `/recruitment/github` with 8 full-featured tabs: `GitHubOverviewTab`, `GitHubConnectionsTab`, `GitHubRepositoriesTab`, `GitHubRepoDetailTab`, `GitHubTechStackTab`, `GitHubContributionsTab`, `GitHubEvidenceTab`, `GitHubCandidatesTab`, `GitHubDiagnosticsTab`.
+   - 31 typed API client methods in `apps/desktop/src/lib/api-client.ts`.
+   - Complete TypeScript contracts exported in `@autonom/shared-types/github.ts`.
+10. **Technical Documentation Suite**:
+    - 12 comprehensive specifications authored in `docs/`: `GITHUB_INTEGRATION_ARCHITECTURE.md`, `GITHUB_AUTHENTICATION.md`, `GITHUB_API_CLIENT.md`, `GITHUB_REPOSITORY_SYNC.md`, `REPOSITORY_INTELLIGENCE.md`, `TECHNOLOGY_STACK_ANALYSIS.md`, `GITHUB_CONTRIBUTION_ATTRIBUTION.md`, `GITHUB_EVIDENCE_MODEL.md`, `GITHUB_APPLICANT_PROFILE_INTEGRATION.md`, `GITHUB_PRIVACY_AND_SECURITY.md`, `GITHUB_RESOURCE_MANAGEMENT.md`, `GITHUB_TESTING.md`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `test_github_models.py` (5 tests): PASSED
+   - `test_github_client.py` (4 tests): PASSED
+   - `test_github_analysis.py` (7 tests): PASSED
+   - `test_github_attribution.py` (3 tests): PASSED
+   - `test_github_security.py` (6 tests): PASSED
+   - `test_api_github.py` (4 tests): PASSED
+   - Total Backend: **29 passed in 4.90s** (100% pass rate).
+2. **Frontend Vitest Suite (`apps/desktop/src/test/features/github-portfolio.test.tsx`)**:
+   - 6 component integration tests: PASSED in 5.61s (100% pass rate).
+3. **Monorepo Build & Typecheck**:
+   - `@autonom/shared-types`, `@autonom/shared`, `desktop`: `tsc --noEmit` passed with 0 errors.
+
+### 3. Stage 22 Completion & Hand-off
+
+- **Stage 22 is 100% complete, fully tested, and verified.**
+- **Phase 5 Stage 22 completed successfully.**
+- **DO NOT begin Stage 23 (Resume Intelligence) until explicitly instructed.**

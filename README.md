@@ -185,6 +185,18 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Recruitment Specialist Agent Integration](file:///e:/proooo/AUTO%20JOB/docs/APPLICANT_AGENT_INTEGRATION.md)
 - [Data Quality Engine & Completeness Scoring](file:///e:/proooo/AUTO%20JOB/docs/APPLICANT_DATA_QUALITY.md)
 - [Stage 21 Applicant Profile Testing & Verification Report](file:///e:/proooo/AUTO%20JOB/docs/APPLICANT_PROFILE_TESTING.md)
+- [GitHub Integration Architecture & System Design](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_INTEGRATION_ARCHITECTURE.md)
+- [GitHub Authentication & DPAPI Credential Security](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_AUTHENTICATION.md)
+- [GitHub API Client & Rate Limit Governance](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_API_CLIENT.md)
+- [GitHub Repository Discovery & Deep Sync](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_REPOSITORY_SYNC.md)
+- [Repository Intelligence & Architecture Classification](file:///e:/proooo/AUTO%20JOB/docs/REPOSITORY_INTELLIGENCE.md)
+- [Technology Stack Analysis & Manifest Parsing](file:///e:/proooo/AUTO%20JOB/docs/TECHNOLOGY_STACK_ANALYSIS.md)
+- [GitHub Contribution Attribution Engine](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_CONTRIBUTION_ATTRIBUTION.md)
+- [GitHub Technical Evidence Model](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_EVIDENCE_MODEL.md)
+- [GitHub Applicant Profile Integration & HITL Review](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_APPLICANT_PROFILE_INTEGRATION.md)
+- [GitHub Privacy, Secret Redaction & Security Perimeter](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_PRIVACY_AND_SECURITY.md)
+- [GitHub Resource Management & Quota Economics](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_RESOURCE_MANAGEMENT.md)
+- [Stage 22 GitHub Testing & Verification Report](file:///e:/proooo/AUTO%20JOB/docs/GITHUB_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

@@ -194,6 +194,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         badge: 'v1',
       },
       {
+        id: 'github-portfolio',
+        title: 'GitHub & Code Portfolio',
+        icon: Code2,
+        path: '/recruitment/github',
+        group: 'recruitment',
+        availability: 'implemented',
+        roadmapStage: 'Stage 22',
+        description: 'GitHub account connectivity, repository discovery, code intelligence, and candidate skills extraction.',
+        badge: 'v1',
+      },
+      {
         id: 'jobs',
         title: 'Jobs & Applications',
         icon: BriefcaseBusiness,

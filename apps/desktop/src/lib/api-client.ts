@@ -145,6 +145,24 @@ import type {
   DataQualityReport,
   ProfileSnapshot,
   ProfileVersionRecord,
+  GitHubConnection,
+  GitHubDiagnostics,
+  GitHubStatusSummary,
+  RepositoryMetadata,
+  TechnologyFinding,
+  RepositoryArchitecture,
+  CommitEvidence,
+  PullRequestEvidence,
+  ContributionFinding,
+  CandidateSkill,
+  CandidateProject,
+  SyncJobRecord,
+  SourceTreeEntry,
+  FileContentSnippet,
+  ConnectGitHubRequest,
+  ManualRepoRequest,
+  SelectRepoRequest,
+  ConfirmCandidateRequest,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1950,6 +1968,171 @@ export class ApiClient {
 
   async getApplicantVersions(profileId: string): Promise<ProfileVersionRecord[]> {
     return this.request<ProfileVersionRecord[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/versions`);
+  }
+
+  // =========================================================================
+  // Stage 22: GitHub & Technical Portfolio Intelligence
+  // =========================================================================
+
+  async getGitHubStatus(): Promise<GitHubStatusSummary> {
+    return this.request<GitHubStatusSummary>('/api/v1/github/status');
+  }
+
+  async getGitHubDiagnostics(): Promise<GitHubDiagnostics> {
+    return this.request<GitHubDiagnostics>('/api/v1/github/diagnostics');
+  }
+
+  async listGitHubConnections(profileId?: string): Promise<GitHubConnection[]> {
+    const query = profileId ? `?profile_id=${encodeURIComponent(profileId)}` : '';
+    return this.request<GitHubConnection[]>(`/api/v1/github/connections${query}`);
+  }
+
+  async connectGitHubAccount(payload: ConnectGitHubRequest): Promise<GitHubConnection> {
+    return this.request<GitHubConnection>('/api/v1/github/connections', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getGitHubConnection(connectionId: string): Promise<GitHubConnection> {
+    return this.request<GitHubConnection>(`/api/v1/github/connections/${encodeURIComponent(connectionId)}`);
+  }
+
+  async disconnectGitHubAccount(connectionId: string): Promise<{ connection_id: string; disconnected: boolean }> {
+    return this.request<{ connection_id: string; disconnected: boolean }>(`/api/v1/github/connections/${encodeURIComponent(connectionId)}/disconnect`, {
+      method: 'POST',
+    });
+  }
+
+  async getGitHubConnectionPermissions(connectionId: string): Promise<any> {
+    return this.request<any>(`/api/v1/github/connections/${encodeURIComponent(connectionId)}/permissions`);
+  }
+
+  async listGitHubRepositories(connectionId?: string, onlySelected?: boolean): Promise<RepositoryMetadata[]> {
+    const params = new URLSearchParams();
+    if (connectionId) params.append('connection_id', connectionId);
+    if (onlySelected) params.append('only_selected', 'true');
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request<RepositoryMetadata[]>(`/api/v1/github/repositories${query}`);
+  }
+
+  async discoverGitHubRepositories(connectionId: string): Promise<RepositoryMetadata[]> {
+    return this.request<RepositoryMetadata[]>('/api/v1/github/repositories/discover', {
+      method: 'POST',
+      body: JSON.stringify({ connection_id: connectionId }),
+    });
+  }
+
+  async addManualGitHubRepository(payload: ManualRepoRequest): Promise<RepositoryMetadata> {
+    return this.request<RepositoryMetadata>('/api/v1/github/repositories/manual', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getGitHubRepository(repoId: string): Promise<RepositoryMetadata> {
+    return this.request<RepositoryMetadata>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}`);
+  }
+
+  async selectGitHubRepository(repoId: string, payload: SelectRepoRequest = { allow_source_inspection: true }): Promise<RepositoryMetadata> {
+    return this.request<RepositoryMetadata>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/select`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deselectGitHubRepository(repoId: string): Promise<RepositoryMetadata> {
+    return this.request<RepositoryMetadata>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/deselect`, {
+      method: 'POST',
+    });
+  }
+
+  async syncGitHubRepository(repoId: string): Promise<RepositoryMetadata> {
+    return this.request<RepositoryMetadata>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/sync`, {
+      method: 'POST',
+    });
+  }
+
+  async getGitHubRepositorySyncStatus(repoId: string): Promise<any> {
+    return this.request<any>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/sync-status`);
+  }
+
+  async getGitHubRepositoryLanguages(repoId: string): Promise<{ repo_id: string; total_bytes: number; raw_bytes: Record<string, number>; percentages: Record<string, number> }> {
+    return this.request<{ repo_id: string; total_bytes: number; raw_bytes: Record<string, number>; percentages: Record<string, number> }>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/languages`);
+  }
+
+  async getGitHubRepositoryTechnologies(repoId: string): Promise<TechnologyFinding[]> {
+    return this.request<TechnologyFinding[]>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/technologies`);
+  }
+
+  async getGitHubRepositoryArchitecture(repoId: string): Promise<RepositoryArchitecture | null> {
+    return this.request<RepositoryArchitecture | null>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/architecture`);
+  }
+
+  async getGitHubRepositoryContributions(repoId: string): Promise<ContributionFinding[]> {
+    return this.request<ContributionFinding[]>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/contributions`);
+  }
+
+  async getGitHubRepositoryCommits(repoId: string): Promise<CommitEvidence[]> {
+    return this.request<CommitEvidence[]>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/commits`);
+  }
+
+  async getGitHubRepositoryPullRequests(repoId: string): Promise<PullRequestEvidence[]> {
+    return this.request<PullRequestEvidence[]>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/pull-requests`);
+  }
+
+  async getGitHubRepositoryTree(repoId: string, forceRefresh: boolean = false): Promise<SourceTreeEntry[]> {
+    const query = forceRefresh ? '?force_refresh=true' : '';
+    return this.request<SourceTreeEntry[]>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/tree${query}`);
+  }
+
+  async getGitHubRepositoryFile(repoId: string, path: string): Promise<FileContentSnippet> {
+    return this.request<FileContentSnippet>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/file?path=${encodeURIComponent(path)}`);
+  }
+
+  async triggerGitHubRepositoryAnalysis(repoId: string): Promise<SyncJobRecord> {
+    return this.request<SyncJobRecord>(`/api/v1/github/repositories/${encodeURIComponent(repoId)}/analyze`, {
+      method: 'POST',
+    });
+  }
+
+  async listGitHubAnalysisJobs(repoId?: string): Promise<SyncJobRecord[]> {
+    const query = repoId ? `?repo_id=${encodeURIComponent(repoId)}` : '';
+    return this.request<SyncJobRecord[]>(`/api/v1/github/analysis-jobs${query}`);
+  }
+
+  async getGitHubAnalysisJob(jobId: string): Promise<SyncJobRecord> {
+    return this.request<SyncJobRecord>(`/api/v1/github/analysis-jobs/${encodeURIComponent(jobId)}`);
+  }
+
+  async listGitHubSkillCandidates(repoId?: string): Promise<CandidateSkill[]> {
+    const query = repoId ? `?repo_id=${encodeURIComponent(repoId)}` : '';
+    return this.request<CandidateSkill[]>(`/api/v1/github/skill-candidates${query}`);
+  }
+
+  async listGitHubProjectCandidates(repoId?: string): Promise<CandidateProject[]> {
+    const query = repoId ? `?repo_id=${encodeURIComponent(repoId)}` : '';
+    return this.request<CandidateProject[]>(`/api/v1/github/project-candidates${query}`);
+  }
+
+  async confirmGitHubSkillCandidate(candidateId: string, payload: ConfirmCandidateRequest = { profile_id: 'prof_primary_applicant' }): Promise<CandidateSkill> {
+    return this.request<CandidateSkill>(`/api/v1/github/skill-candidates/${encodeURIComponent(candidateId)}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async confirmGitHubProjectCandidate(candidateId: string, payload: ConfirmCandidateRequest = { profile_id: 'prof_primary_applicant' }): Promise<CandidateProject> {
+    return this.request<CandidateProject>(`/api/v1/github/project-candidates/${encodeURIComponent(candidateId)}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async rejectGitHubCandidate(candidateId: string): Promise<{ status: string; candidate_id: string }> {
+    return this.request<{ status: string; candidate_id: string }>(`/api/v1/github/candidates/${encodeURIComponent(candidateId)}/reject`, {
+      method: 'POST',
+    });
   }
 }
 

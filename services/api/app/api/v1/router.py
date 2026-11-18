@@ -12,6 +12,7 @@ from app.api.v1.endpoints.credentials import router as credentials_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.desktop import router as desktop_router
 from app.api.v1.endpoints.events import router as events_router
+from app.api.v1.endpoints.github import router as github_router
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.hybrid import router as hybrid_router
 from app.api.v1.endpoints.integrations import router as integrations_router
@@ -62,3 +63,4 @@ api_v1_router.include_router(visual_router)
 api_v1_router.include_router(hybrid_router)
 api_v1_router.include_router(reliability_router)
 api_v1_router.include_router(applicants_router)
+api_v1_router.include_router(github_router)
