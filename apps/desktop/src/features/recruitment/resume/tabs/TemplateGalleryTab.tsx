@@ -23,6 +23,7 @@ export const TemplateGalleryTab: React.FC<TemplateGalleryTabProps> = ({
   templates,
   currentResume,
   onApplyTemplate,
+  onNavigateTab: _onNavigateTab,
 }) => {
   const [isApplying, setIsApplying] = React.useState<boolean>(false);
 
@@ -136,3 +137,4 @@ export const TemplateGalleryTab: React.FC<TemplateGalleryTabProps> = ({
     </div>
   );
 };
+

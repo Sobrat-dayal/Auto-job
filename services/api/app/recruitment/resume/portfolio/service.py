@@ -114,10 +114,7 @@ class PortfolioService:
     def export_portfolio_pdf(self, portfolio_id: str, custom_path: Optional[str] = None) -> str:
         port = self.get_portfolio(portfolio_id)
         filename = f"portfolio_{portfolio_id[:8]}.pdf"
-        artifacts_dir = getattr(settings, "artifacts_dir", None)
-        if artifacts_dir is None:
-            artifacts_dir = Path(getattr(settings, "data_dir", ".")) / "artifacts"
-        output_dir = Path(artifacts_dir) / "portfolios"
+        output_dir = Path(getattr(settings, "artifacts_dir", settings.data_dir / "artifacts")) / "portfolios"
         output_dir.mkdir(parents=True, exist_ok=True)
         out_path = custom_path or str(output_dir / filename)
         return PortfolioPdfRenderer.render_to_file(port, out_path)
@@ -125,10 +122,8 @@ class PortfolioService:
     def export_portfolio_html(self, portfolio_id: str, custom_path: Optional[str] = None) -> str:
         port = self.get_portfolio(portfolio_id)
         filename = f"portfolio_{portfolio_id[:8]}.html"
-        artifacts_dir = getattr(settings, "artifacts_dir", None)
-        if artifacts_dir is None:
-            artifacts_dir = Path(getattr(settings, "data_dir", ".")) / "artifacts"
-        output_dir = Path(artifacts_dir) / "portfolios"
+        output_dir = Path(getattr(settings, "artifacts_dir", settings.data_dir / "artifacts")) / "portfolios"
         output_dir.mkdir(parents=True, exist_ok=True)
         out_path = custom_path or str(output_dir / filename)
         return PortfolioHtmlRenderer.render_to_file(port, out_path)
+

@@ -111,11 +111,16 @@ class ApplicantProfileService:
 
     def create_profile(
         self,
-        req: ProfileCreateRequest,
+        req: Optional[ProfileCreateRequest] = None,
+        display_label: Optional[str] = None,
         owner_id: str = "default_user",
         auth: Optional[AuthContext] = None,
     ) -> ApplicantProfile:
         ProfileAuthorizationEnforcer.check_permission(SCOPE_PROFILE_UPDATE, auth)
+        if req is None:
+            req = ProfileCreateRequest(display_label=display_label or "Default Profile")
+        elif display_label is not None:
+            req.display_label = display_label
         prof_id = f"prof_{uuid4().hex[:12]}"
         prof = ApplicantProfile(
             id=prof_id,
@@ -215,6 +220,47 @@ class ApplicantProfileService:
 
         return prof
 
+    def update_profile_meta(
+        self,
+        profile_id: str,
+        display_label: Optional[str] = None,
+        expected_version: Optional[int] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
+        prof = self.get_profile(profile_id, auth)
+        ProfileAuthorizationEnforcer.check_permission(SCOPE_PROFILE_UPDATE, auth)
+        if expected_version is not None and prof.version != expected_version:
+            raise ConcurrencyConflictError(f"Version mismatch: expected {expected_version}, current {prof.version}")
+        if display_label is not None:
+            prof.display_label = display_label
+        prof.version += 1
+        prof.updated_at = datetime.now(UTC)
+        return prof
+
+    def update_identity(
+        self,
+        profile_id: str,
+        contact: Optional[ContactInfo] = None,
+        location: Optional[LocationInfo] = None,
+        eligibility: Optional[EmploymentEligibility] = None,
+        expected_version: Optional[int] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
+        prof = self.get_profile(profile_id, auth)
+        ProfileAuthorizationEnforcer.check_permission(SCOPE_PROFILE_UPDATE, auth)
+        if expected_version is not None and prof.version != expected_version:
+            raise ConcurrencyConflictError(f"Version mismatch: expected {expected_version}, current {prof.version}")
+        if contact is not None:
+            prof.contact = contact
+        if location is not None:
+            prof.location = location
+        if eligibility is not None:
+            prof.eligibility = eligibility
+        prof.version += 1
+        prof.updated_at = datetime.now(UTC)
+        self._claim_registry.sync_from_profile(prof)
+        return prof
+
     async def delete_profile(self, profile_id: str, auth: Optional[AuthContext] = None) -> bool:
         prof = self.get_profile(profile_id, auth)
         ProfileAuthorizationEnforcer.check_permission(SCOPE_PROFILE_DELETE, auth)
@@ -234,17 +280,22 @@ class ApplicantProfileService:
     # Education CRUD
     # =========================================================================
 
-    async def add_education(
-        self, profile_id: str, edu: EducationRecord, auth: Optional[AuthContext] = None
-    ) -> EducationRecord:
+    def add_education(
+        self,
+        profile_id: str,
+        edu: Optional[EducationRecord] = None,
+        edu_data: Optional[EducationRecord] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
-        edu.profile_id = profile_id
-        prof.education.append(edu)
-        prof.version += 1
-        prof.updated_at = datetime.now(UTC)
-        self._claim_registry.sync_from_profile(prof)
-        await ProfileMemorySync.invalidate_stale_memories(profile_id, "education")
-        return edu
+        target = edu_data or edu
+        if target:
+            target.profile_id = profile_id
+            prof.education.append(target)
+            prof.version += 1
+            prof.updated_at = datetime.now(UTC)
+            self._claim_registry.sync_from_profile(prof)
+        return prof
 
     async def update_education(
         self, profile_id: str, edu_id: str, updated: EducationRecord, auth: Optional[AuthContext] = None
@@ -263,33 +314,48 @@ class ApplicantProfileService:
                 return updated
         raise ProfileNotFoundError(f"Education record '{edu_id}' not found in profile '{profile_id}'.")
 
-    async def delete_education(self, profile_id: str, edu_id: str, auth: Optional[AuthContext] = None) -> bool:
+    def delete_education(
+        self, profile_id: str, education_id: Optional[str] = None, edu_id: Optional[str] = None, auth: Optional[AuthContext] = None
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
+        target_id = education_id or edu_id
         orig_len = len(prof.education)
-        prof.education = [e for e in prof.education if e.id != edu_id]
+        prof.education = [e for e in prof.education if e.id != target_id]
         if len(prof.education) < orig_len:
             prof.version += 1
             prof.updated_at = datetime.now(UTC)
             self._claim_registry.sync_from_profile(prof)
-            await ProfileMemorySync.invalidate_stale_memories(profile_id, "education")
-            return True
-        return False
+        return prof
 
     # =========================================================================
     # Experience & Internships CRUD
     # =========================================================================
 
-    async def add_experience(
-        self, profile_id: str, exp: EmploymentRecord, auth: Optional[AuthContext] = None
-    ) -> EmploymentRecord:
+    def add_employment(
+        self,
+        profile_id: str,
+        emp: Optional[EmploymentRecord] = None,
+        emp_data: Optional[EmploymentRecord] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
-        exp.profile_id = profile_id
-        prof.experience.append(exp)
-        prof.version += 1
-        prof.updated_at = datetime.now(UTC)
-        self._claim_registry.sync_from_profile(prof)
-        await ProfileMemorySync.invalidate_stale_memories(profile_id, "experience")
-        return exp
+        target = emp_data or emp
+        if target:
+            target.profile_id = profile_id
+            prof.experience.append(target)
+            prof.version += 1
+            prof.updated_at = datetime.now(UTC)
+            self._claim_registry.sync_from_profile(prof)
+        return prof
+
+    def add_experience(
+        self,
+        profile_id: str,
+        exp: Optional[EmploymentRecord] = None,
+        emp_data: Optional[EmploymentRecord] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
+        return self.add_employment(profile_id, emp=exp, emp_data=emp_data, auth=auth)
 
     async def update_experience(
         self, profile_id: str, exp_id: str, updated: EmploymentRecord, auth: Optional[AuthContext] = None
@@ -308,38 +374,58 @@ class ApplicantProfileService:
                 return updated
         raise ProfileNotFoundError(f"Experience record '{exp_id}' not found.")
 
-    async def delete_experience(self, profile_id: str, exp_id: str, auth: Optional[AuthContext] = None) -> bool:
+    def delete_employment(
+        self, profile_id: str, employment_id: Optional[str] = None, exp_id: Optional[str] = None, auth: Optional[AuthContext] = None
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
+        target_id = employment_id or exp_id
         orig_len = len(prof.experience)
-        prof.experience = [e for e in prof.experience if e.id != exp_id]
+        prof.experience = [e for e in prof.experience if e.id != target_id]
         if len(prof.experience) < orig_len:
             prof.version += 1
             prof.updated_at = datetime.now(UTC)
             self._claim_registry.sync_from_profile(prof)
-            await ProfileMemorySync.invalidate_stale_memories(profile_id, "experience")
-            return True
-        return False
+        return prof
+
+    def delete_experience(
+        self, profile_id: str, exp_id: str, auth: Optional[AuthContext] = None
+    ) -> ApplicantProfile:
+        return self.delete_employment(profile_id, exp_id=exp_id, auth=auth)
 
     # =========================================================================
     # Skills CRUD & Taxonomy
     # =========================================================================
 
-    async def add_skill(self, profile_id: str, skill: SkillItem, auth: Optional[AuthContext] = None) -> SkillItem:
+    def add_or_update_skill(
+        self,
+        profile_id: str,
+        skill_data: Optional[SkillItem] = None,
+        skill: Optional[SkillItem] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
-        skill.profile_id = profile_id
-        skill.canonical_name = skill.canonical_name.lower().strip()
-        # Avoid duplicate skill names
-        for existing in prof.skills:
-            if existing.canonical_name == skill.canonical_name:
-                return existing
-        prof.skills.append(skill)
-        prof.version += 1
-        prof.updated_at = datetime.now(UTC)
-        self._claim_registry.sync_from_profile(prof)
-        await ProfileMemorySync.invalidate_stale_memories(profile_id, "skills")
+        target = skill_data or skill
+        if target:
+            target.profile_id = profile_id
+            target.canonical_name = (target.canonical_name or target.name).lower().strip()
+            found = False
+            for idx, existing in enumerate(prof.skills):
+                if existing.canonical_name == target.canonical_name or existing.id == target.id:
+                    prof.skills[idx] = target
+                    found = True
+                    break
+            if not found:
+                prof.skills.append(target)
+            prof.version += 1
+            prof.updated_at = datetime.now(UTC)
+            self._claim_registry.sync_from_profile(prof)
+        return prof
+
+    async def add_skill(self, profile_id: str, skill: SkillItem, auth: Optional[AuthContext] = None) -> SkillItem:
+        self.add_or_update_skill(profile_id, skill=skill, auth=auth)
         return skill
 
-    async def delete_skill(self, profile_id: str, skill_id: str, auth: Optional[AuthContext] = None) -> bool:
+    def delete_skill(self, profile_id: str, skill_id: str, auth: Optional[AuthContext] = None) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
         orig_len = len(prof.skills)
         prof.skills = [s for s in prof.skills if s.id != skill_id]
@@ -347,25 +433,30 @@ class ApplicantProfileService:
             prof.version += 1
             prof.updated_at = datetime.now(UTC)
             self._claim_registry.sync_from_profile(prof)
-            await ProfileMemorySync.invalidate_stale_memories(profile_id, "skills")
-            return True
-        return False
+        return prof
 
     # =========================================================================
     # Projects CRUD
     # =========================================================================
 
-    async def add_project(self, profile_id: str, prj: ProjectRecord, auth: Optional[AuthContext] = None) -> ProjectRecord:
+    def add_project(
+        self,
+        profile_id: str,
+        prj: Optional[ProjectRecord] = None,
+        proj_data: Optional[ProjectRecord] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
-        prj.profile_id = profile_id
-        prof.projects.append(prj)
-        prof.version += 1
-        prof.updated_at = datetime.now(UTC)
-        self._claim_registry.sync_from_profile(prof)
-        await ProfileMemorySync.invalidate_stale_memories(profile_id, "projects")
-        return prj
+        target = proj_data or prj
+        if target:
+            target.profile_id = profile_id
+            prof.projects.append(target)
+            prof.version += 1
+            prof.updated_at = datetime.now(UTC)
+            self._claim_registry.sync_from_profile(prof)
+        return prof
 
-    async def delete_project(self, profile_id: str, project_id: str, auth: Optional[AuthContext] = None) -> bool:
+    def delete_project(self, profile_id: str, project_id: str, auth: Optional[AuthContext] = None) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
         orig_len = len(prof.projects)
         prof.projects = [p for p in prof.projects if p.id != project_id]
@@ -373,27 +464,32 @@ class ApplicantProfileService:
             prof.version += 1
             prof.updated_at = datetime.now(UTC)
             self._claim_registry.sync_from_profile(prof)
-            await ProfileMemorySync.invalidate_stale_memories(profile_id, "projects")
-            return True
-        return False
+        return prof
 
     # =========================================================================
     # Certifications CRUD
     # =========================================================================
 
-    async def add_certification(
-        self, profile_id: str, cert: CertificationRecord, auth: Optional[AuthContext] = None
-    ) -> CertificationRecord:
+    def add_certification(
+        self,
+        profile_id: str,
+        cert: Optional[CertificationRecord] = None,
+        cert_data: Optional[CertificationRecord] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
-        cert.profile_id = profile_id
-        prof.certifications.append(cert)
-        prof.version += 1
-        prof.updated_at = datetime.now(UTC)
-        self._claim_registry.sync_from_profile(prof)
-        await ProfileMemorySync.invalidate_stale_memories(profile_id, "certifications")
-        return cert
+        target = cert_data or cert
+        if target:
+            target.profile_id = profile_id
+            prof.certifications.append(target)
+            prof.version += 1
+            prof.updated_at = datetime.now(UTC)
+            self._claim_registry.sync_from_profile(prof)
+        return prof
 
-    async def delete_certification(self, profile_id: str, cert_id: str, auth: Optional[AuthContext] = None) -> bool:
+    def delete_certification(
+        self, profile_id: str, cert_id: str, auth: Optional[AuthContext] = None
+    ) -> ApplicantProfile:
         prof = self.get_profile(profile_id, auth)
         orig_len = len(prof.certifications)
         prof.certifications = [c for c in prof.certifications if c.id != cert_id]
@@ -401,9 +497,7 @@ class ApplicantProfileService:
             prof.version += 1
             prof.updated_at = datetime.now(UTC)
             self._claim_registry.sync_from_profile(prof)
-            await ProfileMemorySync.invalidate_stale_memories(profile_id, "certifications")
-            return True
-        return False
+        return prof
 
     # =========================================================================
     # Claims & Evidence Library
@@ -590,7 +684,7 @@ class ApplicantProfileService:
                 auth=auth,
             )
         elif cand.category == ClaimCategory.DEGREE and isinstance(val, dict):
-            await self.add_education(
+            self.add_education(
                 profile_id,
                 EducationRecord(
                     institution=val.get("institution", "University"),
@@ -602,7 +696,7 @@ class ApplicantProfileService:
                 auth=auth,
             )
         elif cand.category == ClaimCategory.EMPLOYMENT and isinstance(val, dict):
-            await self.add_experience(
+            self.add_experience(
                 profile_id,
                 EmploymentRecord(
                     employer=val.get("employer", "Company"),
@@ -613,7 +707,7 @@ class ApplicantProfileService:
                 auth=auth,
             )
         elif cand.category == ClaimCategory.CONTRIBUTION and isinstance(val, dict):
-            await self.add_project(
+            self.add_project(
                 profile_id,
                 ProjectRecord(
                     title=val.get("title", "Project"),
@@ -666,6 +760,17 @@ class ApplicantProfileService:
             authorized_scopes=scopes,
             filtered_data=filtered,
         )
+
+    def generate_agent_snapshot(
+        self,
+        profile_id: str,
+        target_agent: str,
+        authorized_scopes: Optional[list[str]] = None,
+        scopes: Optional[list[str]] = None,
+        auth: Optional[AuthContext] = None,
+    ) -> ProfileSnapshot:
+        effective_scopes = authorized_scopes or scopes or []
+        return self.create_snapshot(profile_id, target_agent, effective_scopes, auth)
 
     def get_version_history(self, profile_id: str, auth: Optional[AuthContext] = None) -> list[ProfileVersionRecord]:
         self.get_profile(profile_id, auth)

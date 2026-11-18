@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   UserCheck,
   FileText,
+  PenTool,
 } from 'lucide-react';
 import type {
   NavigationGroup,
@@ -214,6 +215,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         availability: 'implemented',
         roadmapStage: 'Stage 23',
         description: 'ATS resume builder, job tailoring, DOCX/PDF export, version diffs, and developer portfolio.',
+        badge: 'v1',
+      },
+      {
+        id: 'recruitment-writing',
+        title: 'Cover Letters & Answers',
+        icon: PenTool,
+        path: '/recruitment/writing',
+        group: 'recruitment',
+        availability: 'implemented',
+        roadmapStage: 'Stage 24',
+        description: 'Factual cover letter generation, screening question intelligence, reusable answer library, and application writing packages.',
         badge: 'v1',
       },
       {

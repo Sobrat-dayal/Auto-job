@@ -20,6 +20,7 @@ class AuthContext(BaseModel):
     client_id: str
     authenticated: bool
     scopes: list[str] = ["tasks:read", "tasks:write", "events:read", "system:read"]
+    is_admin: bool = False
 
 
 def redact_sensitive_data(obj: Any) -> Any:

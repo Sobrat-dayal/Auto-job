@@ -6,9 +6,9 @@
 import * as React from 'react';
 import {
   History,
-  CheckCircle2,
   GitCommit,
   FileCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,7 @@ interface ResumeVersionsTabProps {
 export const ResumeVersionsTab: React.FC<ResumeVersionsTabProps> = ({
   resume,
   onApproveResume,
-  onNavigateTab,
+  onNavigateTab: _onNavigateTab,
 }) => {
   const [versions, setVersions] = React.useState<ResumeVersionRecord[]>([]);
   const [selectedVerId, setSelectedVerId] = React.useState<string | null>(null);
@@ -37,10 +37,10 @@ export const ResumeVersionsTab: React.FC<ResumeVersionsTabProps> = ({
       const data = await apiClient.listResumeVersions(resume.id);
       setVersions(data);
       if (data.length > 0) {
-        setSelectedVerId(data[data.length - 1].id);
+        setSelectedVerId(data[0].id);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Ignored
     }
   }, [resume]);
 
@@ -67,16 +67,6 @@ export const ResumeVersionsTab: React.FC<ResumeVersionsTabProps> = ({
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Select a resume to inspect its version timeline and immutable historical snapshots.
           </p>
-          {onNavigateTab && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-slate-700 text-slate-300 text-xs"
-              onClick={() => onNavigateTab('my_resumes')}
-            >
-              Go to My Resumes
-            </Button>
-          )}
         </CardContent>
       </Card>
     );
@@ -222,3 +212,4 @@ export const ResumeVersionsTab: React.FC<ResumeVersionsTabProps> = ({
     </div>
   );
 };
+

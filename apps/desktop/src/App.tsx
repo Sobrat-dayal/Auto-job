@@ -28,6 +28,9 @@ const GitHubPortfolioWorkspace = React.lazy(
 const ResumePortfolioWorkspace = React.lazy(
   () => import('@/features/recruitment/resume/ResumePortfolioWorkspace')
 );
+const RecruitmentWritingWorkspace = React.lazy(
+  () => import('@/features/recruitment/writing/RecruitmentWritingWorkspace')
+);
 const ComputerWorkspace = React.lazy(() => import('@/features/computer/ComputerWorkspace'));
 const CommunicationsWorkspace = React.lazy(
   () => import('@/features/communications/CommunicationsWorkspace')
@@ -90,6 +93,9 @@ export const AppContent: React.FC = () => {
 
               <Route path="/recruitment/resumes" element={<ResumePortfolioWorkspace />} />
               <Route path="/recruitment/resumes/*" element={<ResumePortfolioWorkspace />} />
+
+              <Route path="/recruitment/writing" element={<RecruitmentWritingWorkspace />} />
+              <Route path="/recruitment/writing/*" element={<RecruitmentWritingWorkspace />} />
 
               <Route path="/recruitment" element={<RecruitmentWorkspace />} />
               <Route path="/recruitment/*" element={<RecruitmentWorkspace />} />

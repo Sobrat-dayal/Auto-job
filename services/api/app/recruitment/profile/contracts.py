@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, EmailStr, HttpUrl, field_validator
 
 class AcademicStatus(StrEnum):
     CURRENTLY_ENROLLED = "currently_enrolled"
+    IN_PROGRESS = "currently_enrolled"
     COMPLETED = "completed"
     GRADUATED = "graduated"
     ON_LEAVE = "on_leave"
@@ -177,6 +178,14 @@ class AchievementItem(BaseModel):
     measurement_source: Optional[str] = Field(default=None, description="Data source proving the metric")
     verification_status: VerificationStatus = Field(default=VerificationStatus.USER_REPORTED)
 
+    @property
+    def description(self) -> str:
+        return self.statement
+
+    @property
+    def metric_name(self) -> Optional[str]:
+        return self.metric_unit
+
 
 class EducationRecord(BaseModel):
     id: str = Field(default_factory=lambda: f"edu_{uuid4().hex[:8]}")
@@ -198,6 +207,10 @@ class EducationRecord(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
+    @property
+    def status(self) -> AcademicStatus:
+        return self.academic_status
+
 
 class EmploymentRecord(BaseModel):
     id: str = Field(default_factory=lambda: f"exp_{uuid4().hex[:8]}")
@@ -218,6 +231,16 @@ class EmploymentRecord(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
+    @property
+    def company(self) -> str:
+        return self.employer
+
+    @property
+    def summary(self) -> Optional[str]:
+        if self.responsibilities:
+            return " ".join(self.responsibilities)
+        return None
+
 
 class SkillItem(BaseModel):
     id: str = Field(default_factory=lambda: f"skl_{uuid4().hex[:8]}")
@@ -231,6 +254,10 @@ class SkillItem(BaseModel):
     evidence_refs: list[str] = Field(default_factory=list, description="Linked projects or certs")
     verification_status: VerificationStatus = Field(default=VerificationStatus.USER_REPORTED)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @property
+    def proficiency_level(self) -> ProficiencyLevel:
+        return self.proficiency
 
 
 class ProjectRecord(BaseModel):
@@ -253,6 +280,28 @@ class ProjectRecord(BaseModel):
     verification_status: VerificationStatus = Field(default=VerificationStatus.USER_REPORTED)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @property
+    def deliverables(self) -> list[str]:
+        if self.results:
+            return self.results
+        if self.responsibilities:
+            return self.responsibilities
+        if self.description:
+            return [self.description]
+        return []
+
+    @property
+    def role(self) -> Optional[str]:
+        return self.team_context or (self.applicant_contribution if self.applicant_contribution else None)
+
+    @property
+    def name(self) -> str:
+        return self.title
+
+    @property
+    def repository_url(self) -> Optional[str]:
+        return self.repo_url
 
 
 class CertificationRecord(BaseModel):

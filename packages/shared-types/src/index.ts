@@ -22,3 +22,4 @@ export * from './reliability';
 export * from './applicant';
 export * from './github';
 export * from './resume';
+export * from './writing';

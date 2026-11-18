@@ -179,6 +179,31 @@ import type {
   PortfolioCreateRequest,
   PortfolioUpdateRequest,
   ResumeOverviewStats,
+  WritingOverviewStats,
+  CoverLetterDocument,
+  CoverLetterTemplateDefinition,
+  CoverLetterVersionRecord,
+  ApplicationQuestionRecord,
+  ApplicationAnswer,
+  ApplicationQuestionSet,
+  AnswerLibraryEntry,
+  MissingInformationItem,
+  SensitiveDecisionItem,
+  ConflictItem,
+  ApplicationWritingPackage,
+  CoverLetterCreateRequest,
+  CoverLetterUpdateRequest,
+  CoverLetterGenerateRequest,
+  CoverLetterExportRequest,
+  ParagraphRewriteRequest,
+  QuestionParseRequest,
+  QuestionSetCreateRequest,
+  AnswerUpdateRequest,
+  AnswerLibraryCreateRequest,
+  AnswerLibraryUpdateRequest,
+  AnswerReusePreviewRequest,
+  UserAttestationRequest,
+  WritingPackageCreateRequest,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -2308,6 +2333,209 @@ export class ApiClient {
 
   async exportPortfolioHtml(portfolioId: string): Promise<{ portfolio_id: string; file_path: string; format: string }> {
     return this.request<{ portfolio_id: string; file_path: string; format: string }>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/export/html`, {
+      method: 'POST',
+    });
+  }
+
+  // =========================================================================
+  // Stage 24: Recruitment Writing & Application Question Intelligence
+  // =========================================================================
+
+  async getWritingOverview(): Promise<WritingOverviewStats> {
+    return this.request<WritingOverviewStats>('/api/v1/recruitment/writing/overview');
+  }
+
+  async listCoverLetters(): Promise<CoverLetterDocument[]> {
+    return this.request<CoverLetterDocument[]>('/api/v1/cover-letters');
+  }
+
+  async getCoverLetter(id: string): Promise<CoverLetterDocument> {
+    return this.request<CoverLetterDocument>(`/api/v1/cover-letters/${encodeURIComponent(id)}`);
+  }
+
+  async createCoverLetter(req: CoverLetterCreateRequest): Promise<CoverLetterDocument> {
+    return this.request<CoverLetterDocument>('/api/v1/cover-letters', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateCoverLetter(id: string, req: CoverLetterUpdateRequest): Promise<CoverLetterDocument> {
+    return this.request<CoverLetterDocument>(`/api/v1/cover-letters/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteCoverLetter(id: string): Promise<{ status: string; id: string }> {
+    return this.request<{ status: string; id: string }>(`/api/v1/cover-letters/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async generateCoverLetter(req: CoverLetterGenerateRequest): Promise<CoverLetterDocument> {
+    return this.request<CoverLetterDocument>('/api/v1/cover-letters/generate', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async validateCoverLetter(id: string): Promise<{ is_valid: boolean; errors: string[]; warnings: string[]; total_words: number; verified_facts_count: number }> {
+    return this.request<{ is_valid: boolean; errors: string[]; warnings: string[]; total_words: number; verified_facts_count: number }>(`/api/v1/cover-letters/${encodeURIComponent(id)}/validate`);
+  }
+
+  async approveCoverLetter(id: string): Promise<CoverLetterDocument> {
+    return this.request<CoverLetterDocument>(`/api/v1/cover-letters/${encodeURIComponent(id)}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async listCoverLetterVersions(id: string): Promise<CoverLetterVersionRecord[]> {
+    return this.request<CoverLetterVersionRecord[]>(`/api/v1/cover-letters/${encodeURIComponent(id)}/versions`);
+  }
+
+  async restoreCoverLetterVersion(id: string, versionNumber: number): Promise<CoverLetterDocument> {
+    return this.request<CoverLetterDocument>(`/api/v1/cover-letters/${encodeURIComponent(id)}/versions/${versionNumber}/restore`, {
+      method: 'POST',
+    });
+  }
+
+  async exportCoverLetter(id: string, req: CoverLetterExportRequest): Promise<{ cover_letter_id: string; format: string; file_path: string; sha256_checksum: string; text_extracted?: string }> {
+    return this.request<{ cover_letter_id: string; format: string; file_path: string; sha256_checksum: string; text_extracted?: string }>(`/api/v1/cover-letters/${encodeURIComponent(id)}/export`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async rewriteCoverLetterParagraph(id: string, req: ParagraphRewriteRequest): Promise<{ paragraph_id: string; rewritten_text: string }> {
+    return this.request<{ paragraph_id: string; rewritten_text: string }>(`/api/v1/cover-letters/${encodeURIComponent(id)}/rewrite-paragraph`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listCoverLetterTemplates(): Promise<CoverLetterTemplateDefinition[]> {
+    return this.request<CoverLetterTemplateDefinition[]>('/api/v1/cover-letter-templates');
+  }
+
+  async parseApplicationQuestions(req: QuestionParseRequest): Promise<ApplicationQuestionRecord[]> {
+    return this.request<ApplicationQuestionRecord[]>('/api/v1/application-questions/parse', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listQuestionSets(): Promise<ApplicationQuestionSet[]> {
+    return this.request<ApplicationQuestionSet[]>('/api/v1/application-questions/sets');
+  }
+
+  async getQuestionSet(id: string): Promise<ApplicationQuestionSet> {
+    return this.request<ApplicationQuestionSet>(`/api/v1/application-questions/sets/${encodeURIComponent(id)}`);
+  }
+
+  async createQuestionSet(req: QuestionSetCreateRequest): Promise<ApplicationQuestionSet> {
+    return this.request<ApplicationQuestionSet>('/api/v1/application-questions/sets', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async generateAnswersForQuestionSet(setId: string): Promise<ApplicationAnswer[]> {
+    return this.request<ApplicationAnswer[]>(`/api/v1/application-questions/sets/${encodeURIComponent(setId)}/generate-answers`, {
+      method: 'POST',
+    });
+  }
+
+  async updateAnswer(setId: string, questionId: string, req: AnswerUpdateRequest): Promise<ApplicationAnswer> {
+    return this.request<ApplicationAnswer>(`/api/v1/application-questions/sets/${encodeURIComponent(setId)}/questions/${encodeURIComponent(questionId)}/answer`, {
+      method: 'PUT',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listAnswerLibrary(category?: string, search?: string): Promise<AnswerLibraryEntry[]> {
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (search) params.set('search', search);
+    const qs = params.toString();
+    return this.request<AnswerLibraryEntry[]>(`/api/v1/application-answers/library${qs ? `?${qs}` : ''}`);
+  }
+
+  async createAnswerLibraryEntry(req: AnswerLibraryCreateRequest): Promise<AnswerLibraryEntry> {
+    return this.request<AnswerLibraryEntry>('/api/v1/application-answers/library', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateAnswerLibraryEntry(id: string, req: AnswerLibraryUpdateRequest): Promise<AnswerLibraryEntry> {
+    return this.request<AnswerLibraryEntry>(`/api/v1/application-answers/library/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async previewAnswerReuse(id: string, req: AnswerReusePreviewRequest): Promise<{ original_template: string; resolved_text: string; target_employer?: string; target_role?: string; detected_placeholders: string[] }> {
+    return this.request<{ original_template: string; resolved_text: string; target_employer?: string; target_role?: string; detected_placeholders: string[] }>(`/api/v1/application-answers/library/${encodeURIComponent(id)}/preview-reuse`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteAnswerLibraryEntry(id: string): Promise<{ status: string; id: string }> {
+    return this.request<{ status: string; id: string }>(`/api/v1/application-answers/library/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async checkAnswerLibraryFreshness(): Promise<{ total_entries: number; outdated_count: number; updated_entries?: string[] }> {
+    return this.request<{ total_entries: number; outdated_count: number; updated_entries?: string[] }>('/api/v1/application-answers/library-check-freshness', {
+      method: 'POST',
+    });
+  }
+
+  async getMissingInformation(): Promise<MissingInformationItem[]> {
+    return this.request<MissingInformationItem[]>('/api/v1/recruitment/writing/missing-information');
+  }
+
+  async getSensitiveDecisions(): Promise<SensitiveDecisionItem[]> {
+    return this.request<SensitiveDecisionItem[]>('/api/v1/recruitment/writing/sensitive-decisions');
+  }
+
+  async recordUserAttestation(req: UserAttestationRequest): Promise<{ status: string; decision_id: string; timestamp: string }> {
+    return this.request<{ status: string; decision_id: string; timestamp: string }>('/api/v1/application-sensitive-decisions/attest', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getWritingConflicts(): Promise<ConflictItem[]> {
+    return this.request<ConflictItem[]>('/api/v1/recruitment/writing/conflicts');
+  }
+
+  async listWritingPackages(): Promise<ApplicationWritingPackage[]> {
+    return this.request<ApplicationWritingPackage[]>('/api/v1/application-writing-packages');
+  }
+
+  async createWritingPackage(req: WritingPackageCreateRequest): Promise<ApplicationWritingPackage> {
+    return this.request<ApplicationWritingPackage>('/api/v1/application-writing-packages', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getWritingPackage(id: string): Promise<ApplicationWritingPackage> {
+    return this.request<ApplicationWritingPackage>(`/api/v1/application-writing-packages/${encodeURIComponent(id)}`);
+  }
+
+  async validateWritingPackage(id: string): Promise<{ is_valid: boolean; errors: string[]; warnings: string[]; ready_for_approval: boolean }> {
+    return this.request<{ is_valid: boolean; errors: string[]; warnings: string[]; ready_for_approval: boolean }>(`/api/v1/application-writing-packages/${encodeURIComponent(id)}/validate`, {
+      method: 'POST',
+    });
+  }
+
+  async approveWritingPackage(id: string): Promise<ApplicationWritingPackage> {
+    return this.request<ApplicationWritingPackage>(`/api/v1/application-writing-packages/${encodeURIComponent(id)}/approve`, {
       method: 'POST',
     });
   }

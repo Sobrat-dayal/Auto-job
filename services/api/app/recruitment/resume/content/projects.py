@@ -16,12 +16,8 @@ class ProjectEntryEngine:
     def transform_project(cls, prj: ProjectRecord) -> ResumeEntry:
         bullets: list[str] = []
 
-        title = getattr(prj, "title", None) or getattr(prj, "name", "Project")
-        role = getattr(prj, "role", None) or getattr(prj, "applicant_contribution", "Engineer")
-        deliverables = getattr(prj, "deliverables", [])
-
         # Deliverables or achievements
-        for d in deliverables:
+        for d in prj.deliverables:
             cleaned = d.strip()
             if cleaned:
                 if not cleaned.endswith("."):
@@ -29,8 +25,8 @@ class ProjectEntryEngine:
                 bullets.append(cleaned)
 
         # Highlight individual contribution
-        if role and not any(role.lower() in b.lower() for b in bullets):
-            bullets.insert(0, f"Served as {role}, contributing to system architecture and core implementation.")
+        if prj.role and not any(prj.role.lower() in b.lower() for b in bullets):
+            bullets.insert(0, f"Served as {prj.role}, contributing to system architecture and core implementation.")
 
         # If summary exists and bullets are sparse
         if len(bullets) < 2 and prj.description:
@@ -44,18 +40,17 @@ class ProjectEntryEngine:
             tech_bullet = f"Engineered system using {', '.join(prj.technologies[:5])} with automated testing and continuous integration."
             bullets.append(tech_bullet)
 
-        repo_link = getattr(prj, "repo_url", None) or getattr(prj, "repository_url", None)
         source_ref = SourceFactReference(
             source_entity_id=prj.id,
-            verification_status="evidence_backed" if repo_link else "user_confirmed",
+            verification_status="evidence_backed" if prj.repository_url else "user_confirmed",
             applicant_profile_version=1,
-            source_excerpt=f"Project: {title} ({repo_link or 'Local'})",
+            source_excerpt=f"Project: {prj.name} ({prj.repository_url or 'Local'})",
         )
 
         return ResumeEntry(
             entry_type="project",
-            title=title,
-            subtitle=role,
+            title=prj.name,
+            subtitle=prj.role or "Engineer",
             organization=None,
             location=None,
             start_date=prj.start_date,
@@ -66,3 +61,4 @@ class ProjectEntryEngine:
             tags=prj.technologies,
             source_refs=[source_ref],
         )
+

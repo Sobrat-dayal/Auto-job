@@ -24,8 +24,7 @@ class ContentValidationEngine:
 
         # 1. Graduation Status Check
         for edu in profile.education:
-            edu_status = getattr(edu, "academic_status", getattr(edu, "status", None))
-            if edu_status == AcademicStatus.CURRENTLY_ENROLLED or (edu.end_date and "2026" in edu.end_date or "2027" in edu.end_date):
+            if edu.status == AcademicStatus.IN_PROGRESS or (edu.end_date and "2026" in edu.end_date or "2027" in edu.end_date):
                 # Ensure no resume section claims "Graduated" or "Degree Completed" for this institution
                 for sec in doc.sections:
                     if sec.section_type == SectionType.EDUCATION:
@@ -100,3 +99,4 @@ class ContentValidationEngine:
                             })
 
         return issues
+

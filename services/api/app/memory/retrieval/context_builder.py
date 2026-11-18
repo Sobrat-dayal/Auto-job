@@ -40,6 +40,8 @@ class ContextBuilder:
         repo = MemoryRepository(session)
         provider = embedding_registry.get_active_provider()
 
+        target_scope_id = request.scope_ids[0] if (request.scope_ids and len(request.scope_ids) == 1) else None
+
         # 1. Search for relevant memories matching task description
         search_results = await self.retrieval_engine.search(
             session=session,
@@ -47,9 +49,10 @@ class ContextBuilder:
             embedding_provider=provider,
             search_mode=SearchMode.HYBRID,
             memory_types=request.memory_types,
+            scope_id=target_scope_id,
             allowed_memory_ids=allowed_memory_ids,
             exclude_superseded=True,
-            min_score=0.15,
+            min_score=0.0 if request.scope_ids else 0.15,
             limit=25,
         )
 
@@ -72,6 +75,9 @@ class ContextBuilder:
 
             record = await repo.get_memory_by_id(item.memory_id)
             if not record:
+                continue
+
+            if request.scope_ids and record.scope_id and record.scope_id not in request.scope_ids:
                 continue
 
             entry_text = f"- {record.title}: {record.content} [Verification: {record.verification_status}, Source: {record.source_type}]"

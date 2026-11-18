@@ -34,14 +34,12 @@ class EvidenceMatchingEngine:
             tech_lower = tech.lower().strip()
             if tech_lower in profile_skills:
                 skill_obj = profile_skills[tech_lower]
-                prof_val = getattr(skill_obj, "proficiency", getattr(skill_obj, "proficiency_level", "verified"))
-                prof_str = prof_val.value if hasattr(prof_val, "value") else str(prof_val)
                 mappings.append(
                     RequirementEvidenceMapping(
                         requirement_text=f"Experience with {tech}",
                         is_required=True,
                         claim_id=skill_obj.id,
-                        claim_text=f"Verified skill: {skill_obj.name} (Proficiency: {prof_str})",
+                        claim_text=f"Verified skill: {skill_obj.name} (Proficiency: {skill_obj.proficiency_level.value})",
                         match_category=RequirementMatchCategory.DIRECTLY_SUPPORTED,
                         explanation=f"Direct match with verified technical skill '{skill_obj.name}'.",
                         uncertainty=0.0,
@@ -126,3 +124,4 @@ class EvidenceMatchingEngine:
                 )
 
         return mappings
+

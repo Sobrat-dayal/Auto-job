@@ -58,12 +58,9 @@ class ExportManager:
         filename = req.custom_filename or f"Resume_{clean_name}_{role}_v{doc.current_version}.{ext}"
 
         # 2. Resolve Output Path
-        artifacts_dir = getattr(settings, "artifacts_dir", None)
-        if artifacts_dir is None:
-            artifacts_dir = Path(getattr(settings, "data_dir", ".")) / "artifacts"
-        resumes_dir = Path(artifacts_dir) / "resumes"
-        resumes_dir.mkdir(parents=True, exist_ok=True)
-        file_path = str(resumes_dir / filename)
+        artifacts_dir = Path(getattr(settings, "artifacts_dir", settings.data_dir / "artifacts")) / "resumes"
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+        file_path = str(artifacts_dir / filename)
 
         # 3. Render
         if req.format == ExportFormat.DOCX:
@@ -105,3 +102,4 @@ class ExportManager:
         self._exports[artifact.export_id] = artifact
         logger.info(f"Completed {req.format.value.upper()} export: {artifact.export_id} ({filename}, {file_size} bytes)")
         return artifact
+

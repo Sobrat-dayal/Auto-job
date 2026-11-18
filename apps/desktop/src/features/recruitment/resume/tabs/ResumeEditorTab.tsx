@@ -423,3 +423,4 @@ export const ResumeEditorTab: React.FC<ResumeEditorTabProps> = ({
     </div>
   );
 };
+

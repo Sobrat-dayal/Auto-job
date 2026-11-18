@@ -34,8 +34,7 @@ class ProfessionalSummaryGenerator:
                     degree_str += f" in {latest_edu.field_of_study}"
             if latest_edu.institution:
                 institution_str = latest_edu.institution
-            edu_status = getattr(latest_edu, "academic_status", getattr(latest_edu, "status", None))
-            if edu_status == AcademicStatus.CURRENTLY_ENROLLED or (latest_edu.end_date and "2026" in latest_edu.end_date):
+            if latest_edu.status == AcademicStatus.IN_PROGRESS or (latest_edu.end_date and "2026" in latest_edu.end_date):
                 is_student = True
 
         # Extract top skills
@@ -68,7 +67,7 @@ class ProfessionalSummaryGenerator:
 
         elif exp_count > 0:
             latest_exp = profile.experience[0]
-            company = getattr(latest_exp, "employer", None) or getattr(latest_exp, "company", None) or "industry organizations"
+            company = latest_exp.company or "industry organizations"
             exp_role = latest_exp.job_title or role
             return (
                 f"{exp_role} with verified track record at {company} and proficiency across {skills_phrase}. "
@@ -82,3 +81,4 @@ class ProfessionalSummaryGenerator:
                 f"Experienced in full-lifecycle software delivery, structural test automation, and modular systems design across "
                 f"{project_count} evidenced engineering projects. Focused on high-availability architectures and dependable software execution."
             )
+

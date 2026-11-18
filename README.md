@@ -212,6 +212,18 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Resume & Portfolio Security](file:///e:/proooo/AUTO%20JOB/docs/RESUME_SECURITY.md)
 - [Recruitment Agent Integration](file:///e:/proooo/AUTO%20JOB/docs/RESUME_AGENT_INTEGRATION.md)
 - [Resume Testing & Verification Report](file:///e:/proooo/AUTO%20JOB/docs/RESUME_TESTING.md)
+- [Recruitment Writing Architecture](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_WRITING_ARCHITECTURE.md)
+- [Cover Letter Generation Engine](file:///e:/proooo/AUTO%20JOB/docs/COVER_LETTER_GENERATION.md)
+- [Cover Letter Design Templates](file:///e:/proooo/AUTO%20JOB/docs/COVER_LETTER_TEMPLATES.md)
+- [Application Question Intelligence](file:///e:/proooo/AUTO%20JOB/docs/APPLICATION_QUESTION_INTELLIGENCE.md)
+- [Application Answer Generation](file:///e:/proooo/AUTO%20JOB/docs/APPLICATION_ANSWER_GENERATION.md)
+- [Reusable Answer Library](file:///e:/proooo/AUTO%20JOB/docs/APPLICATION_ANSWER_LIBRARY.md)
+- [Sensitive Application Questions & Attestations](file:///e:/proooo/AUTO%20JOB/docs/APPLICATION_SENSITIVE_QUESTIONS.md)
+- [Application Fact Validation](file:///e:/proooo/AUTO%20JOB/docs/APPLICATION_FACT_VALIDATION.md)
+- [Recruitment Writing Packages](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_WRITING_PACKAGES.md)
+- [Recruitment Writing Security & Privacy](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_WRITING_SECURITY.md)
+- [Recruitment Writing Agent Integration](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_WRITING_AGENT_INTEGRATION.md)
+- [Recruitment Writing Testing Report](file:///e:/proooo/AUTO%20JOB/docs/RECRUITMENT_WRITING_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup
