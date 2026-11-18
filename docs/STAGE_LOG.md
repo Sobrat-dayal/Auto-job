@@ -1633,3 +1633,62 @@ Stage 20 completes Phase 4 (Computer and Browser Automation) by delivering a com
 - **Stage 20 is 100% complete, fully tested, and verified.**
 - **Phase 4: Computer and Browser Automation is COMPLETE.**
 - **DO NOT begin Stage 21 until explicitly instructed.**
+
+
+---
+
+## Stage 21: Applicant Identity Management, Verified Professional Profile, Education, Skills, Experience, Projects, Certifications, Evidence Provenance, Secure Data Import, Profile Intelligence, and Recruitment Agent Integration
+
+### 1. Architectural Summary & Scope
+
+Stage 21 marks the successful inauguration of **Phase 5: Recruitment Intelligence Foundation** by delivering the authoritative **Single Source of Truth** for applicant identity, professional background, academic qualifications, categorized skills, technical projects, evidence provenance, and scoped agent access:
+
+1. **Top-Level Canonical Profile & Contracts (`services/api/app/recruitment/profile/contracts.py`)**:
+   - Comprehensive Pydantic models: `ApplicantProfile`, `ContactInfo`, `LocationInfo`, `EmploymentEligibility`, `EducationRecord`, `EmploymentRecord`, `AchievementItem`, `SkillItem`, `ProjectRecord`, `CertificationRecord`, `PublicationRecord`, `AwardRecord`, `ProfessionalLink`, `ApplicantClaim`, `EvidenceMetadata`, `ExtractionCandidate`, `ImportJob`, `ProfileConflict`, `DataQualityReport`, `ProfileSnapshot`, `ProfileVersionRecord`.
+   - Strict enums: `AcademicStatus`, `EmploymentType`, `WorkArrangement`, `RemotePreference`, `SkillCategory`, `ProficiencyLevel`, `ProjectCategory`, `ClaimCategory`, `VerificationStatus`, `CandidateStatus`, `ImportStatus`, `PrivacyClassification`, `QualitySeverity`.
+2. **Atomic Claim Registry & Conflict Engine (`services/api/app/recruitment/profile/claims/`)**:
+   - `ClaimRegistry`: Decomposes high-level profile entities into atomic verifiable statements (`ApplicantClaim`) with 7 verification states (`USER_REPORTED`, `EXTRACTED`, `USER_CONFIRMED`, `EVIDENCE_BACKED`, `THIRD_PARTY_VERIFIED`, `SUPERSEDED`, `REJECTED`).
+   - Conflict Detection & Resolution: `detect_conflicts` finds contradictory dates or assertions; `resolve_conflict` executes user-selected resolution strategies (`keep_a`, `keep_b`, `manual`, `dismiss`).
+3. **Multi-Format Ingestion & Candidate Review Queue (`services/api/app/recruitment/profile/import_pipeline/`)**:
+   - `DocumentParser`: Parses PDF (`pypdf`), DOCX (`python-docx`), TXT, Markdown, and JSON with magic byte verification and a 15 MB safety limit, immediately computing SHA-256 digests.
+   - `CandidateExtractor`: Deterministic extraction scanning email, phone, URLs, academic degrees, and 100+ technology skills taxonomy with automated duplicate detection against existing profile records.
+   - Review Queue: Extracted entities enter `AWAITING_REVIEW` and are committed to the canonical profile only upon explicit user approval, modification, or rejection.
+4. **Deterministic Data Quality & Completeness Engine (`services/api/app/recruitment/profile/quality/`)**:
+   - `DataQualityEngine`: Evaluates profile completeness across 6 weighted categories (identity 20%, contact 15%, education 20%, skills 20%, experience/projects 15%, evidence 10%).
+   - Recruitment Readiness: Enforces mandatory minimum fields (legal name, valid email, >=1 degree, >=3 skills, >=1 job/project) before flagging `is_recruitment_ready: true`.
+5. **Scoped Downstream Agent Adapters & Privacy Redaction (`services/api/app/recruitment/profile/integrations/`)**:
+   - `AgentProfileAdapter`: Produces tailored, zero-leakage snapshots (`ProfileSnapshot`) for `JobMatchingAgent`, `ResumeAgent`, `ApplicationAgent`, and `InterviewPrepAgent`.
+   - Contact info (name, email, phone) is strictly omitted from `JobMatchingAgent` queries.
+   - `ProfileAuthorizationEnforcer`: Enforces 15 granular Stage 14 permission scopes and tenant isolation (`owner_id`).
+   - `ProfileMemorySync`: Coordinates Stage 15 episodic memory invalidation on profile edits via central event bus.
+6. **Central Facade & REST API (`services/api/app/recruitment/profile/service.py` & `api/v1/endpoints/applicants.py`)**:
+   - `ApplicantProfileService`: Singleton service orchestrating profiles, claims, evidence vault, import jobs, and quality checks.
+   - 37 authenticated FastAPI REST API endpoints mounted under `/api/v1/applicants/*` covering profile CRUD, identity, education, experience, skills, projects, certifications, claims, conflicts, evidence upload/delete, document imports, review queue, quality report, agent snapshots, versions, and JSON export.
+7. **Shared TypeScript Contracts & Frontend API Client (`packages/shared-types/` & `apps/desktop/src/lib/api-client.ts`)**:
+   - `packages/shared-types/src/applicant.ts`: Full TypeScript contract mirroring backend models.
+   - Added 30+ typed API client methods in `apps/desktop/src/lib/api-client.ts`.
+8. **Desktop Frontend Workspace (`apps/desktop/src/features/recruitment/profile/`)**:
+   - `ApplicantProfileWorkspace.tsx`: Top-level workspace mounted under `/recruitment/profile` with real-time React Query synchronization.
+   - 10 full-featured tabs: `ApplicantOverviewTab`, `ApplicantIdentityTab`, `ApplicantEducationTab`, `ApplicantExperienceTab`, `ApplicantSkillsTab`, `ApplicantProjectsTab`, `ApplicantEvidenceTab`, `ApplicantImportsTab`, `ApplicantVerificationTab`, `ApplicantHistoryTab`.
+9. **Technical Documentation**:
+   - 13 comprehensive specifications authored in `docs/`: `APPLICANT_PROFILE_ARCHITECTURE.md`, `APPLICANT_DATA_MODEL.md`, `APPLICANT_IDENTITY.md`, `APPLICANT_EDUCATION_EXPERIENCE.md`, `APPLICANT_SKILLS_AND_PROJECTS.md`, `APPLICANT_CLAIM_VERIFICATION.md`, `APPLICANT_EVIDENCE_LIBRARY.md`, `APPLICANT_IMPORT_PIPELINE.md`, `APPLICANT_PROFILE_VERSIONING.md`, `APPLICANT_PROFILE_SECURITY.md`, `APPLICANT_AGENT_INTEGRATION.md`, `APPLICANT_DATA_QUALITY.md`, `APPLICANT_PROFILE_TESTING.md`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `test_applicant_models.py` (8 tests): PASSED
+   - `test_applicant_claims.py` (3 tests): PASSED
+   - `test_applicant_imports.py` (6 tests): PASSED
+   - `test_applicant_security.py` (5 tests): PASSED
+   - `test_api_applicants.py` (1 test with 12 lifecycle assertions): PASSED
+   - Total: **23 passed in 3.40s** (100% pass rate).
+2. **Frontend Vitest Suite (`apps/desktop/src/test/features/applicant-profile.test.tsx`)**:
+   - 3 component integration tests: PASSED (100% pass rate).
+3. **Monorepo Build & Typecheck**:
+   - `@autonom/shared-types`, `@autonom/shared`, `desktop`: `tsc --noEmit` passed with 0 errors.
+
+### 3. Stage 21 Completion & Hand-off
+
+- **Stage 21 is 100% complete, fully tested, and verified.**
+- **Phase 5: Recruitment Intelligence Foundation has successfully begun.**
+- **DO NOT begin Stage 22 (GitHub & Developer Portfolio Intelligence) until explicitly instructed.**

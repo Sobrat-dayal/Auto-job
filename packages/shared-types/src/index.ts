@@ -19,3 +19,4 @@ export * from './desktop';
 export * from './visual';
 export * from './hybrid';
 export * from './reliability';
+export * from './applicant';

@@ -132,6 +132,19 @@ import type {
   RecoveryPlan,
   ReliabilityDiagnosticsInfo,
   ReplayMode,
+  ApplicantProfile,
+  EducationRecord,
+  EmploymentRecord,
+  SkillItem,
+  ProjectRecord,
+  CertificationRecord,
+  EvidenceMetadata,
+  ApplicantClaim,
+  ProfileConflict,
+  ImportJob,
+  DataQualityReport,
+  ProfileSnapshot,
+  ProfileVersionRecord,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1739,6 +1752,204 @@ export class ApiClient {
 
   async getReliabilityDiagnostics(): Promise<ReliabilityDiagnosticsInfo> {
     return this.request<ReliabilityDiagnosticsInfo>('/api/v1/reliability/diagnostics');
+  }
+
+  // ================= Stage 21: Applicant Profile Intelligence =================
+
+  async listApplicantProfiles(): Promise<ApplicantProfile[]> {
+    return this.request<ApplicantProfile[]>('/api/v1/applicants');
+  }
+
+  async getApplicantProfile(profileId: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}`);
+  }
+
+  async createApplicantProfile(displayLabel: string = 'Primary Career Profile', ownerId?: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>('/api/v1/applicants', {
+      method: 'POST',
+      body: JSON.stringify({ display_label: displayLabel, owner_id: ownerId }),
+    });
+  }
+
+  async updateApplicantProfileMeta(profileId: string, displayLabel: string, expectedVersion?: number): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ display_label: displayLabel, expected_version: expectedVersion }),
+    });
+  }
+
+  async updateApplicantIdentity(profileId: string, payload: { contact?: any; location?: any; eligibility?: any; expected_version?: number }): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/identity`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async listApplicantEducation(profileId: string): Promise<EducationRecord[]> {
+    return this.request<EducationRecord[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/education`);
+  }
+
+  async addApplicantEducation(profileId: string, record: Partial<EducationRecord>): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/education`, {
+      method: 'POST',
+      body: JSON.stringify(record),
+    });
+  }
+
+  async deleteApplicantEducation(profileId: string, educationId: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/education/${encodeURIComponent(educationId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listApplicantExperience(profileId: string): Promise<EmploymentRecord[]> {
+    return this.request<EmploymentRecord[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/experience`);
+  }
+
+  async addApplicantExperience(profileId: string, record: Partial<EmploymentRecord>): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/experience`, {
+      method: 'POST',
+      body: JSON.stringify(record),
+    });
+  }
+
+  async deleteApplicantExperience(profileId: string, experienceId: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/experience/${encodeURIComponent(experienceId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listApplicantSkills(profileId: string): Promise<SkillItem[]> {
+    return this.request<SkillItem[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/skills`);
+  }
+
+  async upsertApplicantSkill(profileId: string, skill: Partial<SkillItem>): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/skills`, {
+      method: 'POST',
+      body: JSON.stringify(skill),
+    });
+  }
+
+  async deleteApplicantSkill(profileId: string, skillId: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/skills/${encodeURIComponent(skillId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listApplicantProjects(profileId: string): Promise<ProjectRecord[]> {
+    return this.request<ProjectRecord[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/projects`);
+  }
+
+  async addApplicantProject(profileId: string, project: Partial<ProjectRecord>): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/projects`, {
+      method: 'POST',
+      body: JSON.stringify(project),
+    });
+  }
+
+  async deleteApplicantProject(profileId: string, projectId: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/projects/${encodeURIComponent(projectId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listApplicantCertifications(profileId: string): Promise<CertificationRecord[]> {
+    return this.request<CertificationRecord[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/certifications`);
+  }
+
+  async addApplicantCertification(profileId: string, cert: Partial<CertificationRecord>): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/certifications`, {
+      method: 'POST',
+      body: JSON.stringify(cert),
+    });
+  }
+
+  async deleteApplicantCertification(profileId: string, certId: string): Promise<ApplicantProfile> {
+    return this.request<ApplicantProfile>(`/api/v1/applicants/${encodeURIComponent(profileId)}/certifications/${encodeURIComponent(certId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listApplicantClaims(profileId: string, category?: string, status?: string): Promise<ApplicantClaim[]> {
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (status) params.append('status', status);
+    const qs = params.toString();
+    return this.request<ApplicantClaim[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/claims${qs ? `?${qs}` : ''}`);
+  }
+
+  async confirmApplicantClaim(profileId: string, claimId: string, notes?: string): Promise<ApplicantClaim> {
+    return this.request<ApplicantClaim>(`/api/v1/applicants/${encodeURIComponent(profileId)}/claims/${encodeURIComponent(claimId)}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({ notes }),
+    });
+  }
+
+  async rejectApplicantClaim(profileId: string, claimId: string, reason?: string): Promise<ApplicantClaim> {
+    return this.request<ApplicantClaim>(`/api/v1/applicants/${encodeURIComponent(profileId)}/claims/${encodeURIComponent(claimId)}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async listApplicantConflicts(profileId: string): Promise<ProfileConflict[]> {
+    return this.request<ProfileConflict[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/conflicts`);
+  }
+
+  async resolveApplicantConflict(profileId: string, conflictId: string, payload: { resolution_choice: string; chosen_claim_id?: string; manual_value?: any; rationale?: string }): Promise<ProfileConflict> {
+    return this.request<ProfileConflict>(`/api/v1/applicants/${encodeURIComponent(profileId)}/conflicts/${encodeURIComponent(conflictId)}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async listApplicantEvidence(profileId: string): Promise<EvidenceMetadata[]> {
+    return this.request<EvidenceMetadata[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/evidence`);
+  }
+
+  async deleteApplicantEvidence(profileId: string, evidenceId: string): Promise<any> {
+    return this.request<any>(`/api/v1/applicants/${encodeURIComponent(profileId)}/evidence/${encodeURIComponent(evidenceId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createApplicantImport(profileId: string, payload: { filename: string; raw_text?: string; content_base64?: string }): Promise<ImportJob> {
+    return this.request<ImportJob>(`/api/v1/applicants/${encodeURIComponent(profileId)}/imports`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getApplicantImport(profileId: string, importId: string): Promise<ImportJob> {
+    return this.request<ImportJob>(`/api/v1/applicants/${encodeURIComponent(profileId)}/imports/${encodeURIComponent(importId)}`);
+  }
+
+  async reviewImportCandidate(profileId: string, importId: string, candidateId: string, action: string, modifiedData?: any, notes?: string): Promise<any> {
+    return this.request<any>(`/api/v1/applicants/${encodeURIComponent(profileId)}/imports/${encodeURIComponent(importId)}/candidates/${encodeURIComponent(candidateId)}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ action, modified_data: modifiedData, notes }),
+    });
+  }
+
+  async getApplicantQualityReport(profileId: string): Promise<DataQualityReport> {
+    return this.request<DataQualityReport>(`/api/v1/applicants/${encodeURIComponent(profileId)}/quality`);
+  }
+
+  async generateApplicantSnapshot(profileId: string, targetAgent: string, scopes?: string[]): Promise<ProfileSnapshot> {
+    return this.request<ProfileSnapshot>(`/api/v1/applicants/${encodeURIComponent(profileId)}/snapshot`, {
+      method: 'POST',
+      body: JSON.stringify({ target_agent: targetAgent, authorized_scopes: scopes }),
+    });
+  }
+
+  async exportApplicantProfile(profileId: string): Promise<any> {
+    return this.request<any>(`/api/v1/applicants/${encodeURIComponent(profileId)}/export`, {
+      method: 'POST',
+    });
+  }
+
+  async getApplicantVersions(profileId: string): Promise<ProfileVersionRecord[]> {
+    return this.request<ProfileVersionRecord[]>(`/api/v1/applicants/${encodeURIComponent(profileId)}/versions`);
   }
 }
 

@@ -2,7 +2,7 @@
  * Flagship Career & Job Automation Domain Models
  */
 
-export interface ApplicantProfile {
+export interface LegacyApplicantProfile {
   id: string;
   fullName: string;
   email: string;

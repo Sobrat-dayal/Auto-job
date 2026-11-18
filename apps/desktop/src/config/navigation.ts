@@ -20,6 +20,7 @@ import {
   Database,
   Sparkles,
   ShieldAlert,
+  UserCheck,
 } from 'lucide-react';
 import type {
   NavigationGroup,
@@ -181,6 +182,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
     title: 'RECRUITMENT',
     order: 2,
     items: [
+      {
+        id: 'applicant-profile',
+        title: 'Applicant Profile & Identity',
+        icon: UserCheck,
+        path: '/recruitment/profile',
+        group: 'recruitment',
+        availability: 'implemented',
+        roadmapStage: 'Stage 21',
+        description: 'Verified professional identity, credentials, skills, experience, and evidence provenance.',
+        badge: 'v1',
+      },
       {
         id: 'jobs',
         title: 'Jobs & Applications',

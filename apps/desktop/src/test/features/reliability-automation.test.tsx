@@ -8,7 +8,6 @@ import type {
   RecordingSession,
   ReusableProcedure,
   ProcedureExecution,
-  ExecutionCheckpoint,
   RecoveryPlan,
   ReliabilityDiagnosticsInfo,
   PreflightReport,

@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints.agents import router as agents_router
 from app.api.v1.endpoints.ai import router as ai_router
+from app.api.v1.endpoints.applicants import router as applicants_router
 from app.api.v1.endpoints.applications import router as applications_router
 from app.api.v1.endpoints.artifacts import router as artifacts_router
 from app.api.v1.endpoints.browser import router as browser_router
@@ -60,3 +61,4 @@ api_v1_router.include_router(desktop_router)
 api_v1_router.include_router(visual_router)
 api_v1_router.include_router(hybrid_router)
 api_v1_router.include_router(reliability_router)
+api_v1_router.include_router(applicants_router)

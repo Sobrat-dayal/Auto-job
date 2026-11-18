@@ -19,6 +19,9 @@ const AgentsWorkspace = React.lazy(() => import('@/features/agents/AgentsWorkspa
 const RecruitmentWorkspace = React.lazy(
   () => import('@/features/recruitment/RecruitmentWorkspace')
 );
+const ApplicantProfileWorkspace = React.lazy(
+  () => import('@/features/recruitment/profile/ApplicantProfileWorkspace')
+);
 const ComputerWorkspace = React.lazy(() => import('@/features/computer/ComputerWorkspace'));
 const CommunicationsWorkspace = React.lazy(
   () => import('@/features/communications/CommunicationsWorkspace')
@@ -72,6 +75,9 @@ export const AppContent: React.FC = () => {
               {/* 13 Core Stage 09 Workspace Modules */}
               <Route path="/agents" element={<AgentsWorkspace />} />
               <Route path="/agents/*" element={<AgentsWorkspace />} />
+
+              <Route path="/recruitment/profile" element={<ApplicantProfileWorkspace />} />
+              <Route path="/recruitment/profile/*" element={<ApplicantProfileWorkspace />} />
 
               <Route path="/recruitment" element={<RecruitmentWorkspace />} />
               <Route path="/recruitment/*" element={<RecruitmentWorkspace />} />

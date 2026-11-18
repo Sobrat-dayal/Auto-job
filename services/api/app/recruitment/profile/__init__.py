@@ -1,0 +1,46 @@
+"""Applicant profile management package."""
+from app.recruitment.profile.contracts import (
+    ApplicantProfile,
+    ContactInfo,
+    LocationInfo,
+    EmploymentEligibility,
+    EducationRecord,
+    EmploymentRecord,
+    AchievementItem,
+    SkillItem,
+    ProjectRecord,
+    CertificationRecord,
+    ApplicantClaim,
+    EvidenceMetadata,
+    ExtractionCandidate,
+    ImportJob,
+    ProfileConflict,
+    DataQualityReport,
+    ProfileSnapshot,
+)
+from app.recruitment.profile.service import (
+    ApplicantProfileService,
+    get_profile_service,
+)
+
+__all__ = [
+    "ApplicantProfile",
+    "ContactInfo",
+    "LocationInfo",
+    "EmploymentEligibility",
+    "EducationRecord",
+    "EmploymentRecord",
+    "AchievementItem",
+    "SkillItem",
+    "ProjectRecord",
+    "CertificationRecord",
+    "ApplicantClaim",
+    "EvidenceMetadata",
+    "ExtractionCandidate",
+    "ImportJob",
+    "ProfileConflict",
+    "DataQualityReport",
+    "ProfileSnapshot",
+    "ApplicantProfileService",
+    "get_profile_service",
+]
