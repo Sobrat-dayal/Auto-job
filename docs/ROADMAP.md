@@ -393,14 +393,25 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Automated Verification: 40/40 hybrid backend tests passed (100%), 229/229 full backend test suite passed (100%), 146/146 frontend vitest tests passed (100% across 37 files), clean TypeScript typecheck across monorepo, clean Vite production build (2456 modules transformed).
 - **Acceptance Criteria**: All Stage 19 requirements satisfied with zero fake data, deterministic routing, safe bounded fallback, fail-closed security, and verified desktop UI. Ready for Stage 20. DO NOT begin Stage 20 until explicitly instructed.
 
-#### Stage 20: Audit Logging, Decision Lineage & Replay Debugger
+#### Stage 20: Advanced Computer Action Recording, Reusable Procedure Generation, State-Aware Workflow Replay, Persistent Checkpoints, Crash Recovery, Cross-Application Execution, and Autonomous Workflow Reliability [COMPLETED]
 
-- **Goal**: Comprehensive immutable audit trail capturing every decision, prompt, tool execution, and state change with step-by-step replay capability.
+- **Status**: COMPLETE
+- **Goal**: Implement a production-grade action recording, procedure compilation, state-aware replay, persistent checkpointing, and autonomous crash recovery engine across browser DOM, native Windows UIA, Win32, and visual grounding, completing Phase 4 (Computer and Browser Automation).
 - **Key Deliverables**:
-  - Append-only audit log store in SQLite.
-  - Decision lineage graph linking user intent to sub-agent actions.
-  - Replay viewer in desktop UI allowing visual inspection of past executions.
-- **Acceptance Criteria**: Complete audit log generated for every agent run; replay viewer reconstructs exact execution timeline.
+  - Full-stack Action Recording Engine (`RecordingManager`) capturing multi-modal events across browser DOM, Windows UIA, Win32, and visual grounding with automatic monotonic sequence ordering and SQLite WAL persistence.
+  - Zero-Trust Privacy Gateway (`is_app_allowed`, `is_origin_allowed`, `filter_parameters`) performing scope enforcement and regular-expression scrubbing of sensitive tokens (`[REDACTED_PASSWORD]`, `[REDACTED_TOKEN]`).
+  - Immutable Reusable Procedure Specification (`ReusableProcedure`, `ProcedureStep`, `ProcedureParameter`) supporting mustache-style variable templating (`{{param}}`), pre/postcondition step assertions, and static risk analysis scoring.
+  - Procedure Compiler (`ProcedureCompiler`) transforming noisy recorded actions into parameterized, validated, multi-modal procedures with automated step assertion synthesis.
+  - State-Aware Replay Engine (`ProcedureExecutor`) supporting `dry_run`, `step_by_step`, and `automatic_authorized` execution modes with 4-tier dynamic target re-resolution and Stage 14 emergency stop killswitch integration.
+  - Cryptographically Sealed Checkpoints (`ExecutionCheckpoint`, `seal_checkpoint`, `verify_checkpoint`) computing SHA-256 integrity digests and capturing operating system state fingerprints (`capture_fingerprint`).
+  - External Side-Effects Ledger (`SideEffectLedger`, `classify_action`, `compute_intent_hash`) identifying non-idempotent operations (form submits, orders, emails) to eliminate duplicate executions during retries.
+  - Autonomous Crash Recovery Reconciler (`CrashReconciler`, `FailureClassifier`, `ResumePlanner`) detecting orphaned executions, classifying interruption root causes, and formulating safe step-continuation recovery plans.
+  - 5 Registered Reliability Capabilities (`reliability_start_recording`, `reliability_stop_recording`, `reliability_compile_procedure`, `reliability_execute_procedure`, `reliability_resume_execution`) registered in `CapabilityRegistry` and integrated into `windows_computer_agent` (v1.2.0, Operational).
+  - 22 Authenticated REST API Endpoints under `/api/v1/reliability/*`.
+  - Comprehensive Desktop Frontend Reliability Console (`/computer/reliability`) with 6 dedicated feature tabs: Recording Studio, Procedure Library, Procedure Editor, Replay Inspector, Checkpoint Timeline, and Recovery Center.
+  - 11 Architectural & Operational Documents in `docs/`.
+  - Automated Verification: 17/17 reliability backend tests passed (100%), 28/28 Phase 4 regression tests passed (100%), 27/27 frontend Vitest tests passed across 5 test suites (100%), clean TypeScript typecheck across monorepo, clean Vite production build.
+- **Acceptance Criteria**: All Stage 20 requirements satisfied with zero fake data, authentic cryptographic seals, robust crash reconciliation, non-idempotent duplicate prevention, and verified desktop UI. Phase 4 is 100% COMPLETE. DO NOT begin Stage 21 until explicitly instructed.
 
 ---
 

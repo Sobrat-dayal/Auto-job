@@ -1145,6 +1145,133 @@ class MethodAttemptRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
 
 
+# =============================================================================
+# Stage 20: Workflow Reliability, Action Recording, Procedures & Recovery
+# =============================================================================
+
+class RecordingSessionRecord(Base):
+    __tablename__ = "recording_sessions"
+
+    session_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(128), default="Recording Session", nullable=False)
+    owner_id: Mapped[str] = mapped_column(String(64), default="user", nullable=False)
+    mode: Mapped[str] = mapped_column(String(32), default="USER_INITIATED", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="created", nullable=False, index=True)
+    workflow_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    allowed_app_scopes_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    allowed_web_origins_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    captured_actions_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    integrity_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    finalized_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class RecordedActionRecord(Base):
+    __tablename__ = "recorded_actions"
+
+    action_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    sequence_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    source_adapter: Mapped[str] = mapped_column(String(32), nullable=False)
+    action_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_summary: Mapped[str] = mapped_column(String(256), default="", nullable=False)
+    target_identity_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    parameters_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    verification_outcome: Mapped[str] = mapped_column(String(32), default="success", nullable=False)
+    execution_time_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class ProcedureDefinitionRecord(Base):
+    __tablename__ = "procedure_definitions"
+
+    procedure_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    category: Mapped[str] = mapped_column(String(64), default="general", nullable=False, index=True)
+    latest_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    validation_status: Mapped[str] = mapped_column(String(32), default="draft", nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class ProcedureVersionRecord(Base):
+    __tablename__ = "procedure_versions"
+
+    version_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    procedure_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    version_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    validation_status: Mapped[str] = mapped_column(String(32), default="draft", nullable=False)
+    parameters_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
+    steps_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(32), default="LOW", nullable=False)
+    checksum: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class ProcedureExecutionRecord(Base):
+    __tablename__ = "procedure_executions"
+
+    execution_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    procedure_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    mode: Mapped[str] = mapped_column(String(32), default="automatic_authorized", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    current_step_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completed_steps_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    latest_checkpoint_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    side_effect_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class ExecutionCheckpointRecord(Base):
+    __tablename__ = "execution_checkpoints"
+
+    checkpoint_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    execution_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    procedure_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    procedure_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    step_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    checkpoint_type: Mapped[str] = mapped_column(String(32), default="step", nullable=False)
+    completed_step_ids_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    fingerprint_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    integrity_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class ExternalSideEffectRecord(Base):
+    __tablename__ = "external_side_effects"
+
+    effect_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    execution_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    step_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    intent_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    action_category: Mapped[str] = mapped_column(String(64), nullable=False)
+    destination: Mapped[str] = mapped_column(String(256), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(32), default="dispatched", nullable=False)
+    evidence_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    dispatched_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    reconciled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class RecoveryPlanRecord(Base):
+    __tablename__ = "recovery_plans"
+
+    plan_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    execution_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    checkpoint_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    classification: Mapped[str] = mapped_column(String(32), nullable=False)
+    can_resume: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    steps_to_skip_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    steps_to_execute_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+
 
 
 

@@ -19,6 +19,7 @@ from app.api.v1.endpoints.orchestration import router as orchestration_router
 from app.api.v1.endpoints.memory import router as memory_router
 from app.api.v1.endpoints.profiles import router as profiles_router
 from app.api.v1.endpoints.ready import router as ready_router
+from app.api.v1.endpoints.reliability import router as reliability_router
 from app.api.v1.endpoints.security import router as security_router
 from app.api.v1.endpoints.settings import router as settings_router
 from app.api.v1.endpoints.storage import router as storage_router
@@ -58,3 +59,4 @@ api_v1_router.include_router(browser_router)
 api_v1_router.include_router(desktop_router)
 api_v1_router.include_router(visual_router)
 api_v1_router.include_router(hybrid_router)
+api_v1_router.include_router(reliability_router)

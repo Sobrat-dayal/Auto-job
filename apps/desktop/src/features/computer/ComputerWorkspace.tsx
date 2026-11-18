@@ -13,12 +13,23 @@ import { BrowserWorkspace } from './browser/BrowserWorkspace';
 import { DesktopWorkspace } from './desktop/DesktopWorkspace';
 import { VisualWorkspace } from './visual/VisualWorkspace';
 import { HybridWorkspace } from './hybrid/HybridWorkspace';
+import { WorkflowReliabilityWorkspace } from './reliability/WorkflowReliabilityWorkspace';
 
 export const ComputerWorkspace: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const getInitialTab = (): string => {
+    if (
+      location.pathname.includes('/computer/reliability') ||
+      location.pathname.includes('/computer/recordings') ||
+      location.pathname.includes('/computer/procedures') ||
+      location.pathname.includes('/computer/replay') ||
+      location.pathname.includes('/computer/checkpoints') ||
+      location.pathname.includes('/computer/recovery')
+    ) {
+      return 'reliability';
+    }
     if (location.pathname.includes('/computer/hybrid')) return 'hybrid';
     if (location.pathname.includes('/computer/visual')) return 'visual';
     if (location.pathname.includes('/computer/desktop')) return 'desktop';
@@ -38,7 +49,8 @@ export const ComputerWorkspace: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === 'hybrid') navigate('/computer/hybrid');
+    if (tabId === 'reliability') navigate('/computer/reliability');
+    else if (tabId === 'hybrid') navigate('/computer/hybrid');
     else if (tabId === 'visual') navigate('/computer/visual');
     else if (tabId === 'desktop') navigate('/computer/desktop');
     else if (tabId === 'live') navigate('/computer/live');
@@ -46,6 +58,7 @@ export const ComputerWorkspace: React.FC = () => {
   };
 
   const tabs = [
+    { id: 'reliability', label: 'Workflow Reliability & Recording', badge: 'Stage 20 Active' },
     { id: 'hybrid', label: 'Hybrid Computer Engine', badge: 'Stage 19 Active' },
     { id: 'visual', label: 'Visual Automation & OCR', badge: 'Stage 18 Active' },
     { id: 'desktop', label: 'Windows Structural Automation', badge: 'Stage 17 Active' },
@@ -60,9 +73,9 @@ export const ComputerWorkspace: React.FC = () => {
     <ModulePage>
       <ModuleHeader
         title="Computer Control & Automation"
-        description="Unified hybrid computer automation: Intelligent routing between Chromium browser DOM, Microsoft UI Automation structural control, Win32 messaging, and visual coordinate grounding with context-aware fallback."
+        description="Unified hybrid computer automation: Intelligent routing between Chromium browser DOM, Microsoft UI Automation structural control, Win32 messaging, visual coordinate grounding, structured action recording, and state-aware crash recovery."
         icon={Monitor}
-        stageTag="Stage 19 Production Active"
+        stageTag="Stage 20 Production Active"
         badgeLabel="Stage 18 Production Active"
         badgeVariant="outline"
         actions={
@@ -72,6 +85,18 @@ export const ComputerWorkspace: React.FC = () => {
               className="border-slate-700 bg-slate-800/40 text-xs font-mono text-slate-300"
             >
               Stage 17 Production Active
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-purple-500/30 bg-purple-500/10 text-xs font-mono text-purple-400"
+            >
+              Stage 19 Production Active
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-400"
+            >
+              Reliability: Operational
             </Badge>
             <Badge
               variant="outline"
@@ -109,6 +134,7 @@ export const ComputerWorkspace: React.FC = () => {
 
       <ModuleTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
+      {activeTab === 'reliability' && <WorkflowReliabilityWorkspace />}
       {activeTab === 'hybrid' && <HybridWorkspace />}
       {activeTab === 'visual' && <VisualWorkspace />}
       {activeTab === 'desktop' && <DesktopWorkspace />}
@@ -199,12 +225,17 @@ export const ComputerWorkspace: React.FC = () => {
         </div>
       )}
 
-      {activeTab !== 'live' && activeTab !== 'browser' && (
-        <ModuleEmptyState
-          title={`No active ${activeTab} data`}
-          description={`Computer control ${activeTab} capabilities will become fully interactive when Stage 17-18 engines are operational.`}
-        />
-      )}
+      {activeTab !== 'live' &&
+        activeTab !== 'browser' &&
+        activeTab !== 'desktop' &&
+        activeTab !== 'visual' &&
+        activeTab !== 'hybrid' &&
+        activeTab !== 'reliability' && (
+          <ModuleEmptyState
+            title={`No active ${activeTab} data`}
+            description={`Computer control ${activeTab} capabilities will become fully interactive when Stage 17-20 engines are operational.`}
+          />
+        )}
     </ModulePage>
   );
 };

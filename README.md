@@ -161,6 +161,17 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Hardware & Resource-Conscious Interaction](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_RESOURCE_MANAGEMENT.md)
 - [Multi-Agent Coordination & Hybrid Capabilities](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_AGENT_INTEGRATION.md)
 - [Stage 19 Hybrid Engine Testing & Verification Report](file:///e:/proooo/AUTO%20JOB/docs/HYBRID_TESTING.md)
+- [Action Recording Architecture](file:///e:/proooo/AUTO%20JOB/docs/ACTION_RECORDING_ARCHITECTURE.md)
+- [Recording Privacy & Sensitive Data Protection](file:///e:/proooo/AUTO%20JOB/docs/RECORDING_PRIVACY.md)
+- [Reusable Procedure Specification & Schema](file:///e:/proooo/AUTO%20JOB/docs/PROCEDURE_SCHEMA.md)
+- [Procedure Compilation Pipeline](file:///e:/proooo/AUTO%20JOB/docs/PROCEDURE_COMPILATION.md)
+- [Procedure Replay & Execution Engine](file:///e:/proooo/AUTO%20JOB/docs/PROCEDURE_EXECUTION.md)
+- [Checkpoint Architecture & Integrity Verification](file:///e:/proooo/AUTO%20JOB/docs/CHECKPOINT_ARCHITECTURE.md)
+- [External Side-Effects & Idempotency Ledger](file:///e:/proooo/AUTO%20JOB/docs/EXTERNAL_SIDE_EFFECTS.md)
+- [Autonomous Computer Crash Recovery & Resume Planning](file:///e:/proooo/AUTO%20JOB/docs/COMPUTER_RECOVERY.md)
+- [Procedure Security & Authorization Governance](file:///e:/proooo/AUTO%20JOB/docs/PROCEDURE_SECURITY.md)
+- [Procedure Agent Integration & Multi-Agent Coordination](file:///e:/proooo/AUTO%20JOB/docs/PROCEDURE_AGENT_INTEGRATION.md)
+- [Stage 20 Computer Workflow Testing & Verification Report](file:///e:/proooo/AUTO%20JOB/docs/COMPUTER_WORKFLOW_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

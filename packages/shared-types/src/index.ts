@@ -18,3 +18,4 @@ export * from './browser';
 export * from './desktop';
 export * from './visual';
 export * from './hybrid';
+export * from './reliability';

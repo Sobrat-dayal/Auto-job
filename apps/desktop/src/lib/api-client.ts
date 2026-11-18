@@ -121,6 +121,17 @@ import type {
   HybridTaskRequest,
   HybridTaskResponse,
   HybridDiagnosticsInfo,
+  RecordingSession,
+  StartRecordingRequest,
+  RecordedAction,
+  ReusableProcedure,
+  CompileProcedureRequest,
+  PreflightReport,
+  ProcedureExecution,
+  ExecutionCheckpoint,
+  RecoveryPlan,
+  ReliabilityDiagnosticsInfo,
+  ReplayMode,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1597,6 +1608,137 @@ export class ApiClient {
     return this.request<{ status: string }>('/api/v1/hybrid/killswitch/deactivate', {
       method: 'POST',
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Stage 20: Workflow Reliability & Computer Action Recording Methods
+  // -------------------------------------------------------------------------
+
+  async startRecording(req: StartRecordingRequest): Promise<RecordingSession> {
+    return this.request<RecordingSession>('/api/v1/reliability/recordings', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listRecordings(limit: number = 50): Promise<RecordingSession[]> {
+    return this.request<RecordingSession[]>(`/api/v1/reliability/recordings?limit=${limit}`);
+  }
+
+  async getRecording(sessionId: string): Promise<RecordingSession> {
+    return this.request<RecordingSession>(`/api/v1/reliability/recordings/${encodeURIComponent(sessionId)}`);
+  }
+
+  async pauseRecording(sessionId: string): Promise<RecordingSession> {
+    return this.request<RecordingSession>(`/api/v1/reliability/recordings/${encodeURIComponent(sessionId)}/pause`, {
+      method: 'POST',
+    });
+  }
+
+  async resumeRecording(sessionId: string): Promise<RecordingSession> {
+    return this.request<RecordingSession>(`/api/v1/reliability/recordings/${encodeURIComponent(sessionId)}/resume`, {
+      method: 'POST',
+    });
+  }
+
+  async stopRecording(sessionId: string): Promise<RecordingSession> {
+    return this.request<RecordingSession>(`/api/v1/reliability/recordings/${encodeURIComponent(sessionId)}/stop`, {
+      method: 'POST',
+    });
+  }
+
+  async recordAction(sessionId: string, action: Partial<RecordedAction>): Promise<RecordedAction> {
+    return this.request<RecordedAction>(`/api/v1/reliability/recordings/${encodeURIComponent(sessionId)}/actions`, {
+      method: 'POST',
+      body: JSON.stringify(action),
+    });
+  }
+
+  async compileProcedure(req: CompileProcedureRequest): Promise<ReusableProcedure> {
+    return this.request<ReusableProcedure>('/api/v1/reliability/procedures/compile', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listProcedures(category?: string, includeDeprecated: boolean = false): Promise<ReusableProcedure[]> {
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (includeDeprecated) params.append('include_deprecated', 'true');
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<ReusableProcedure[]>(`/api/v1/reliability/procedures${qs}`);
+  }
+
+  async getProcedure(procedureId: string, version?: number): Promise<ReusableProcedure> {
+    const qs = version !== undefined ? `?version=${version}` : '';
+    return this.request<ReusableProcedure>(`/api/v1/reliability/procedures/${encodeURIComponent(procedureId)}${qs}`);
+  }
+
+  async updateProcedureDraft(procedureId: string, draft: Partial<ReusableProcedure>): Promise<ReusableProcedure> {
+    return this.request<ReusableProcedure>(`/api/v1/reliability/procedures/${encodeURIComponent(procedureId)}`, {
+      method: 'PUT',
+      body: JSON.stringify(draft),
+    });
+  }
+
+  async publishProcedureVersion(procedureId: string): Promise<ReusableProcedure> {
+    return this.request<ReusableProcedure>(`/api/v1/reliability/procedures/${encodeURIComponent(procedureId)}/publish`, {
+      method: 'POST',
+    });
+  }
+
+  async branchProcedureDraft(procedureId: string): Promise<ReusableProcedure> {
+    return this.request<ReusableProcedure>(`/api/v1/reliability/procedures/${encodeURIComponent(procedureId)}/branch`, {
+      method: 'POST',
+    });
+  }
+
+  async preflightProcedure(procedureId: string, args: Record<string, any> = {}, version?: number): Promise<PreflightReport> {
+    return this.request<PreflightReport>(`/api/v1/reliability/procedures/${encodeURIComponent(procedureId)}/preflight`, {
+      method: 'POST',
+      body: JSON.stringify({ arguments: args, version }),
+    });
+  }
+
+  async executeProcedure(
+    procedureId: string,
+    args: Record<string, any> = {},
+    version?: number,
+    mode: ReplayMode = 'automatic_authorized'
+  ): Promise<ProcedureExecution> {
+    return this.request<ProcedureExecution>('/api/v1/reliability/executions', {
+      method: 'POST',
+      body: JSON.stringify({ procedure_id: procedureId, version, arguments: args, mode }),
+    });
+  }
+
+  async listExecutions(procedureId?: string, limit: number = 50): Promise<ProcedureExecution[]> {
+    const params = new URLSearchParams();
+    if (procedureId) params.append('procedure_id', procedureId);
+    params.append('limit', String(limit));
+    return this.request<ProcedureExecution[]>(`/api/v1/reliability/executions?${params.toString()}`);
+  }
+
+  async getExecution(executionId: string): Promise<ProcedureExecution> {
+    return this.request<ProcedureExecution>(`/api/v1/reliability/executions/${encodeURIComponent(executionId)}`);
+  }
+
+  async listExecutionCheckpoints(executionId: string): Promise<ExecutionCheckpoint[]> {
+    return this.request<ExecutionCheckpoint[]>(`/api/v1/reliability/executions/${encodeURIComponent(executionId)}/checkpoints`);
+  }
+
+  async getRecoveryPlan(executionId: string): Promise<RecoveryPlan> {
+    return this.request<RecoveryPlan>(`/api/v1/reliability/executions/${encodeURIComponent(executionId)}/recovery-plan`);
+  }
+
+  async resumeExecution(executionId: string): Promise<ProcedureExecution> {
+    return this.request<ProcedureExecution>(`/api/v1/reliability/executions/${encodeURIComponent(executionId)}/resume`, {
+      method: 'POST',
+    });
+  }
+
+  async getReliabilityDiagnostics(): Promise<ReliabilityDiagnosticsInfo> {
+    return this.request<ReliabilityDiagnosticsInfo>('/api/v1/reliability/diagnostics');
   }
 }
 

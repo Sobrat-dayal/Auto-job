@@ -55,6 +55,13 @@ from app.orchestration.capabilities.computer import (
     HybridFallbackCapability,
     HybridExecuteTaskCapability,
 )
+from app.computer.workflow_reliability.capabilities import (
+    StartRecordingCapability,
+    StopRecordingCapability,
+    CompileProcedureCapability,
+    ExecuteProcedureCapability,
+    ResumeExecutionCapability,
+)
 from app.orchestration.capabilities.creative_comms import (
     CreativeSceneSpecificationCapability,
     MarketAnalyzeSuppliedDataCapability,
@@ -198,6 +205,12 @@ class CapabilityRegistry:
             HybridTypeCapability(),
             HybridFallbackCapability(),
             HybridExecuteTaskCapability(),
+            # Stage 20: Computer Action Recording & Workflow Reliability
+            StartRecordingCapability(),
+            StopRecordingCapability(),
+            CompileProcedureCapability(),
+            ExecuteProcedureCapability(),
+            ResumeExecutionCapability(),
         ]
         for cap in defaults:
             self.register(cap)
