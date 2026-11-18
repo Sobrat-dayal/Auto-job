@@ -23,6 +23,7 @@ import {
   UserCheck,
   FileText,
   PenTool,
+  Sliders,
 } from 'lucide-react';
 import type {
   NavigationGroup,
@@ -226,6 +227,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         availability: 'implemented',
         roadmapStage: 'Stage 24',
         description: 'Factual cover letter generation, screening question intelligence, reusable answer library, and application writing packages.',
+        badge: 'v1',
+      },
+      {
+        id: 'recruitment-policy',
+        title: 'Career Preferences & Policies',
+        icon: Sliders,
+        path: '/recruitment/policy',
+        group: 'recruitment',
+        availability: 'implemented',
+        roadmapStage: 'Stage 25',
+        description: 'Career strategies, target role taxonomy, location & compensation floors, employer blocklists, and autonomous decisions.',
         badge: 'v1',
       },
       {

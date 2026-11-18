@@ -204,6 +204,27 @@ import type {
   AnswerReusePreviewRequest,
   UserAttestationRequest,
   WritingPackageCreateRequest,
+  CareerStrategy,
+  CareerPreferenceProfile,
+  JobOpportunityContext,
+  RecruitmentDecision,
+  RecruitmentBudget,
+  ReviewQueueItem,
+  StandingGrantRecord,
+  PolicyVersionSnapshot,
+  CareerStrategyCreateRequest,
+  CareerStrategyUpdateRequest,
+  PolicySimulationRequest,
+  PolicySimulationResponse,
+  PolicyConflictReport,
+  BudgetReservationRequest,
+  BudgetReservationResponse,
+  BudgetConfirmationRequest,
+  BudgetReleaseRequest,
+  StandingGrantCreateRequest,
+  AutonomyStatusResponse,
+  ReviewQueueResolutionRequest,
+  PolicyDiagnosticsResponse,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -2538,6 +2559,147 @@ export class ApiClient {
     return this.request<ApplicationWritingPackage>(`/api/v1/application-writing-packages/${encodeURIComponent(id)}/approve`, {
       method: 'POST',
     });
+  }
+
+  // --- Recruitment Policy & Career Preferences (Stage 25) ---
+
+  async listCareerStrategies(): Promise<CareerStrategy[]> {
+    return this.request<CareerStrategy[]>('/api/v1/recruitment/career-strategies');
+  }
+
+  async getCareerStrategy(id: string): Promise<CareerStrategy> {
+    return this.request<CareerStrategy>(`/api/v1/recruitment/career-strategies/${encodeURIComponent(id)}`);
+  }
+
+  async createCareerStrategy(req: CareerStrategyCreateRequest): Promise<CareerStrategy> {
+    return this.request<CareerStrategy>('/api/v1/recruitment/career-strategies', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateCareerStrategy(id: string, req: CareerStrategyUpdateRequest): Promise<CareerStrategy> {
+    return this.request<CareerStrategy>(`/api/v1/recruitment/career-strategies/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async activateCareerStrategy(id: string): Promise<CareerStrategy> {
+    return this.request<CareerStrategy>(`/api/v1/recruitment/career-strategies/${encodeURIComponent(id)}/activate`, {
+      method: 'POST',
+    });
+  }
+
+  async deleteCareerStrategy(id: string): Promise<{ status: string; id: string }> {
+    return this.request<{ status: string; id: string }>(`/api/v1/recruitment/career-strategies/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getStrategyVersions(id: string): Promise<PolicyVersionSnapshot[]> {
+    return this.request<PolicyVersionSnapshot[]>(`/api/v1/recruitment/career-strategies/${encodeURIComponent(id)}/versions`);
+  }
+
+  async getCareerPreferenceProfile(): Promise<CareerPreferenceProfile> {
+    return this.request<CareerPreferenceProfile>('/api/v1/recruitment/career-profile');
+  }
+
+  async evaluateJobPolicy(job: Partial<JobOpportunityContext> & { title: string; employer_name: string }): Promise<RecruitmentDecision> {
+    return this.request<RecruitmentDecision>('/api/v1/recruitment/policies/evaluate-job', {
+      method: 'POST',
+      body: JSON.stringify(job),
+    });
+  }
+
+  async simulatePolicy(req: PolicySimulationRequest): Promise<PolicySimulationResponse> {
+    return this.request<PolicySimulationResponse>('/api/v1/recruitment/policies/simulate', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async detectPolicyConflicts(strategyId?: string): Promise<PolicyConflictReport> {
+    const query = strategyId ? `?strategy_id=${encodeURIComponent(strategyId)}` : '';
+    return this.request<PolicyConflictReport>(`/api/v1/recruitment/policies/detect-conflicts${query}`);
+  }
+
+  async getAutonomyStatus(): Promise<AutonomyStatusResponse> {
+    return this.request<AutonomyStatusResponse>('/api/v1/recruitment/autonomy/status');
+  }
+
+  async listStandingGrants(): Promise<StandingGrantRecord[]> {
+    return this.request<StandingGrantRecord[]>('/api/v1/recruitment/autonomy/standing-grants');
+  }
+
+  async createStandingGrant(req: StandingGrantCreateRequest): Promise<StandingGrantRecord> {
+    return this.request<StandingGrantRecord>('/api/v1/recruitment/autonomy/standing-grants', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async revokeStandingGrant(id: string, reason?: string): Promise<{ status: string; id: string; reason?: string }> {
+    const query = reason ? `?reason=${encodeURIComponent(reason)}` : '';
+    return this.request<{ status: string; id: string; reason?: string }>(`/api/v1/recruitment/autonomy/standing-grants/${encodeURIComponent(id)}/revoke${query}`, {
+      method: 'POST',
+    });
+  }
+
+  async getRecruitmentBudget(): Promise<RecruitmentBudget> {
+    return this.request<RecruitmentBudget>('/api/v1/recruitment/budgets');
+  }
+
+  async updateRecruitmentBudget(req: Partial<RecruitmentBudget>): Promise<RecruitmentBudget> {
+    return this.request<RecruitmentBudget>('/api/v1/recruitment/budgets', {
+      method: 'PUT',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async reserveBudgetSlot(req: BudgetReservationRequest): Promise<BudgetReservationResponse> {
+    return this.request<BudgetReservationResponse>('/api/v1/recruitment/budgets/reserve', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async confirmBudgetSlot(req: BudgetConfirmationRequest): Promise<{ status: string; reservation_id: string }> {
+    return this.request<{ status: string; reservation_id: string }>('/api/v1/recruitment/budgets/confirm', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async releaseBudgetSlot(req: BudgetReleaseRequest): Promise<{ status: string; reservation_id: string }> {
+    return this.request<{ status: string; reservation_id: string }>('/api/v1/recruitment/budgets/release', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listReviewQueue(status?: string): Promise<ReviewQueueItem[]> {
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    return this.request<ReviewQueueItem[]>(`/api/v1/recruitment/review-queue${query}`);
+  }
+
+  async resolveReviewQueueItem(id: string, req: ReviewQueueResolutionRequest): Promise<ReviewQueueItem> {
+    return this.request<ReviewQueueItem>(`/api/v1/recruitment/review-queue/${encodeURIComponent(id)}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listPolicyDecisions(limit: number = 50): Promise<RecruitmentDecision[]> {
+    return this.request<RecruitmentDecision[]>(`/api/v1/recruitment/decisions?limit=${limit}`);
+  }
+
+  async getPolicyDecision(id: string): Promise<RecruitmentDecision> {
+    return this.request<RecruitmentDecision>(`/api/v1/recruitment/decisions/${encodeURIComponent(id)}`);
+  }
+
+  async getPolicyDiagnostics(): Promise<PolicyDiagnosticsResponse> {
+    return this.request<PolicyDiagnosticsResponse>('/api/v1/recruitment/policy-diagnostics');
   }
 }
 

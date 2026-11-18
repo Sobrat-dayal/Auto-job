@@ -1927,3 +1927,118 @@ Stage 24 establishes AUTONOM's **Recruitment Writing Intelligence Engine**, brid
 - **Stage 24 is 100% complete, fully tested, and verified.**
 - **Phase 5 Stage 24 completed successfully.**
 - **DO NOT begin Stage 25 (Job Search Automation & External Application Submission) until explicitly instructed.**
+
+
+## Stage 25: Career Preference Intelligence, Job Eligibility Rules, Employer and Industry Restrictions, Compensation Policies, Recruitment Strategy, Autonomous Application Authorization, Agent Budgets, and Explainable Recruitment Decision Engine
+
+- **Date**: 2026-11-18
+- **Status**: COMPLETE
+- **Phase**: Concludes Phase 5: Recruitment Intelligence Foundation (Stages 21–25)
+- **Lead Roles**: Principal AI Systems Architect, Senior Recruitment Automation Architect, Policy Engine Engineer, Employment Eligibility Systems Engineer, Multi-Agent Systems Architect, Python Backend Engineer, Database Architect, Privacy and Security Engineer, React/TypeScript Developer, Rust/Tauri Developer, and QA Lead
+
+### 1. Deliverables Summary
+
+Stage 25 establishes AUTONOM's authoritative **Career Preferences, Job Eligibility, Policy, and Autonomous Decision Engine**, controlling what jobs AUTONOM is permitted to discover, evaluate, prioritize, prepare applications for, and apply to:
+
+1. **Strict Separation of Aspirations, Facts, and Permissions**:
+   - Career Preferences: What the applicant desires (target roles, work arrangements, salary expectations, geographic boundaries).
+   - Eligibility Facts: Objective qualifications grounded in Stage 21 profile facts and Stage 22 GitHub commits (degree levels, verified employment tenure, proven code contributions).
+   - Automation Permissions: What autonomous agents are authorized to execute under Stage 14 scoped standing grants.
+2. **Multi-Strategy Support & Versioning (`services/api/app/recruitment/policy/`)**:
+   - Multiple orthogonal career strategies (e.g. *Backend Focus*, *AI/ML Focus*, *Internships*) with exactly one active per workflow.
+   - SHA-256 digested version history tracking every strategy mutation.
+3. **Role Taxonomy & Specialization Boundaries (`taxonomy/roles.py`)**:
+   - Maps arbitrary titles into 11 canonical role families and 10 seniority levels (internship through principal).
+   - Enforces non-conflation boundaries (ML Researcher != MLOps; Data Analyst != Data Scientist).
+4. **Geographic, Remote Work & Time Zone Policies (`contracts.py`, `rules/engine.py`)**:
+   - Allowed work arrangements (`remote`, `hybrid`, `onsite`, `flexible`).
+   - Included countries/cities and hard excluded locations.
+   - Relocation willingness and IANA timezone offset boundaries.
+5. **Compensation Policies & Multi-Currency Normalizer (`compensation/normalizer.py`)**:
+   - Hard salary floor enforcement automatically vetoing sub-floor postings.
+   - Multi-unit annualization formulas (hourly, daily, weekly, monthly, annual, stipend).
+   - Multi-currency comparison without synthetic conversion rates (`not_comparable`).
+   - Undisclosed salary policy (`require_review`, `consider`, `exclude`).
+6. **Employer Blocklists & Ambiguity Detection (`employers/restrictions.py`)**:
+   - Allowlist modes (`no_allowlist`, `prefer_allowlist`, `strict_allowlist`).
+   - Employer blocklist with normalized naming, domain matching, and reason tracking.
+   - 4+ character token brand ambiguity detection triggering `NEEDS_REVIEW`.
+7. **Deterministic Qualification Eligibility Evaluator (`eligibility/evaluator.py`)**:
+   - Education degree level audit with upcoming graduate enrollment exceptions.
+   - Verified cumulative employment years audit against job minimums.
+   - Evidenced skill overlap percentage calculation.
+   - Legal work authorization and country residency audit.
+8. **10-Level Precedence Engine & Explainable Decision Ledger (`rules/engine.py`)**:
+   - Level 1: Emergency Stop Engaged (`PROHIBITED_BY_POLICY`).
+   - Level 2: Security & Auth Invariants (`PROHIBITED_BY_POLICY`).
+   - Level 3: Explicit Denials & Revocations (`PROHIBITED_BY_POLICY`).
+   - Level 4: Platform / Source Restrictions (`PROHIBITED_BY_POLICY`).
+   - Level 5: Sensitive Legal Safeguards (`NEEDS_REVIEW`).
+   - Level 6: Employer Blocklists (`PROHIBITED_BY_POLICY`).
+   - Level 7: Hard Eligibility Failures (`INELIGIBLE`).
+   - Level 8: Hard Career Preferences (`REJECTED_BY_PREFERENCE`).
+   - Level 9: Scoped Standing Grants (`PROCEED_WITH_CONDITIONS`).
+   - Level 10: Soft Preference Ranking (`PROCEED`).
+9. **Multi-Agent Shared Application Budgets (`budgets/manager.py`)**:
+   - Concurrency-safe atomic two-phase reservation protocol (`reserve`, `confirm`, `release`) preventing multi-agent race conditions.
+   - Daily, weekly, and monthly application limits with scheduled UTC rollover resets.
+10. **Autonomy Modes & Standing Grants (`autonomy/controller.py`)**:
+    - Mode 1: Research Only.
+    - Mode 2: Prepare & Review (Default).
+    - Mode 3: Preauthorized Preparation.
+    - Mode 4: Bounded Autonomous Applications.
+    - Standing grant lifecycle management and human review queue.
+11. **Policy Simulator (`simulation/simulator.py`)**:
+    - Zero-side-effect sandbox for evaluating arbitrary synthetic or scraped job descriptions.
+12. **Agent Policy Adapter (`integrations/agents.py`)**:
+    - Fast policy snapshot generation and action permission pre-flight checks for swarm agents.
+13. **Master REST API (`services/api/app/api/v1/endpoints/recruitment_policy.py`)**:
+    - 25 authenticated FastAPI endpoints mounted under `/api/v1/recruitment/*`.
+14. **Desktop Frontend Workspace (`apps/desktop/src/features/recruitment/policy/`)**:
+    - `RecruitmentPolicyWorkspace.tsx` mounted at `/recruitment/policy` with 12 modular tabs:
+      - `CareerOverviewTab.tsx`
+      - `CareerStrategiesTab.tsx`
+      - `TargetRolesTab.tsx`
+      - `LocationsGeographyTab.tsx`
+      - `CompensationPreferencesTab.tsx`
+      - `EmployerRestrictionsTab.tsx`
+      - `EligibilityRulesTab.tsx`
+      - `HardConstraintsTab.tsx`
+      - `SoftPreferencesTab.tsx`
+      - `AutonomyGrantsTab.tsx`
+      - `ApplicationBudgetsTab.tsx`
+      - `PolicySimulatorTab.tsx`
+    - 25 typed asynchronous client methods in `apps/desktop/src/lib/api-client.ts`.
+    - Complete shared TypeScript contracts in `@autonom/shared-types/policy.ts`.
+15. **Technical Documentation Suite**:
+    - 15 comprehensive technical guides in `docs/`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `test_policy_models.py` (3 tests): PASSED
+   - `test_role_preferences.py` (3 tests): PASSED
+   - `test_location_preferences.py` (1 test): PASSED
+   - `test_compensation_policies.py` (2 tests): PASSED
+   - `test_employer_restrictions.py` (3 tests): PASSED
+   - `test_job_eligibility.py` (5 tests): PASSED
+   - `test_policy_precedence.py` (4 tests): PASSED
+   - `test_autonomy_modes.py` (2 tests): PASSED
+   - `test_multi_agent_budget.py` (2 tests): PASSED
+   - `test_policy_simulation.py` (1 test): PASSED
+   - `test_agent_policy_integration.py` (1 test): PASSED
+   - `test_api_recruitment_policy.py` (4 tests): PASSED
+   - Total Stage 25 Backend: **31 passed in 2.72s** (100% pass rate).
+   - Full Backend Repository Suite: **380 passed in 85.98s (100% pass rate)**.
+2. **Frontend Vitest Suite (`apps/desktop/src/test/features/recruitment-policy.test.tsx`)**:
+   - 9 integration tests: PASSED in 581ms (100% pass rate).
+   - Full Recruitment Desktop Vitest Suite (Stages 21-25): **34 passed (100% pass rate)**.
+3. **Monorepo Build & Typecheck**:
+   - `pnpm.cmd --filter @autonom/shared-types typecheck` passed with 0 errors.
+   - `pnpm.cmd --filter @autonom/desktop typecheck` passed with 0 errors.
+
+### 3. Stage 25 & Phase 5 Sign-off
+
+- **Stage 25 is 100% complete, fully tested, and verified.**
+- **PHASE 5: RECRUITMENT INTELLIGENCE FOUNDATION IS OFFICIALLY COMPLETE.**
+- **DO NOT begin Stage 26 (Autonomous Job Scouting & External Site Parsing) until explicitly instructed.**

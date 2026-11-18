@@ -334,117 +334,109 @@ export interface WritingOverviewStats {
 
 export interface CoverLetterCreateRequest {
   title: string;
-  letter_type?: CoverLetterType;
   target_role: string;
   employer_name?: string | null;
   job_description_raw?: string | null;
+  letter_type?: CoverLetterType;
   template_id?: string;
   tone?: WritingTone;
   length_preference?: WritingLength;
   max_words?: number | null;
   recipient_name?: string | null;
-  recipient_title?: string | null;
   recipient_organization?: string | null;
-  recipient_address?: string | null;
-  highlighted_skill_names?: string[];
-  highlighted_project_ids?: string[];
 }
 
 export interface CoverLetterUpdateRequest {
-  title?: string | null;
-  letter_type?: CoverLetterType | null;
-  target_role?: string | null;
+  title?: string;
+  target_role?: string;
   employer_name?: string | null;
-  template_id?: string | null;
-  tone?: WritingTone | null;
-  length_preference?: WritingLength | null;
+  job_description_raw?: string | null;
+  template_id?: string;
+  tone?: WritingTone;
+  length_preference?: WritingLength;
+  letter_type?: CoverLetterType;
   recipient_name?: string | null;
-  recipient_title?: string | null;
-  recipient_organization?: string | null;
-  recipient_address?: string | null;
-  blocks?: CoverLetterContentBlock[] | null;
+  blocks?: CoverLetterContentBlock[];
 }
 
 export interface CoverLetterGenerateRequest {
-  letter_type?: CoverLetterType;
   target_role: string;
   employer_name?: string | null;
   job_description_raw?: string | null;
+  letter_type?: CoverLetterType;
   tone?: WritingTone;
+  template_id?: string;
   length_preference?: WritingLength;
-  max_words?: number | null;
-  highlighted_skill_names?: string[];
-  highlighted_project_ids?: string[];
 }
 
 export interface CoverLetterExportRequest {
-  format?: 'pdf' | 'docx' | 'html';
-  custom_filename?: string | null;
-  validate_extraction?: boolean;
+  format: 'pdf' | 'docx' | 'txt' | 'markdown';
+  output_filename?: string;
 }
 
 export interface ParagraphRewriteRequest {
   paragraph_id: string;
-  instruction: string;
-  target_tone?: WritingTone | null;
+  instructions?: string;
+  instruction?: string;
+  tone?: WritingTone;
 }
 
 export interface QuestionParseRequest {
-  raw_text?: string | null;
-  questions_raw?: string[];
-  target_job_title?: string | null;
-  target_employer?: string | null;
+  raw_text: string;
+  employer_name?: string;
+  target_role?: string;
 }
 
 export interface QuestionSetCreateRequest {
-  job_title: string;
-  employer?: string | null;
   title: string;
+  target_employer?: string | null;
+  employer?: string | null;
+  target_role?: string | null;
+  job_title?: string | null;
   raw_text?: string | null;
-  questions?: Array<{
-    question_text: string;
-    category?: QuestionCategory;
-    answer_type?: AnswerType;
-    is_required?: boolean;
-    character_limit?: number | null;
-    word_limit?: number | null;
-    allowed_choices?: string[];
-  }>;
+  questions?: Partial<ApplicationQuestionRecord>[];
 }
 
 export interface AnswerUpdateRequest {
   answer_text: string;
+  selected_options?: string[];
   numeric_value?: number | null;
   boolean_value?: boolean | null;
-  date_value?: string | null;
-  selected_options?: string[];
+  state?: AnswerState;
 }
 
 export interface AnswerLibraryCreateRequest {
-  title: string;
+  title?: string;
   category: QuestionCategory;
-  parameterized_template: string;
+  question_pattern?: string;
+  normalized_prompt?: string;
+  approved_answer_text?: string;
+  parameterized_template?: string;
   answer_type?: AnswerType;
-  applicable_technologies?: string[];
-  associated_project_ids?: string[];
+  tags?: string[];
 }
 
 export interface AnswerLibraryUpdateRequest {
-  title?: string | null;
-  parameterized_template?: string | null;
-  applicable_technologies?: string[] | null;
-  associated_project_ids?: string[] | null;
+  approved_answer_text?: string;
+  question_pattern?: string;
+  category?: QuestionCategory;
+  tags?: string[];
 }
 
 export interface AnswerReusePreviewRequest {
-  target_employer?: string | null;
-  target_role?: string | null;
+  question_id?: string;
+  library_entry_id?: string;
+  target_employer?: string;
+  target_role?: string;
 }
 
 export interface UserAttestationRequest {
-  decision_item_id: string;
-  selected_choice?: string | null;
-  accepted_attestation: boolean;
+  decision_id?: string;
+  decision_item_id?: string;
+  attestation_text?: string;
+  selected_choice?: string;
+  accepted_attestation?: boolean;
+  agreed?: boolean;
 }
 
 export interface WritingPackageCreateRequest {
@@ -455,3 +447,4 @@ export interface WritingPackageCreateRequest {
   cover_letter_id?: string | null;
   question_set_id?: string | null;
 }
+
