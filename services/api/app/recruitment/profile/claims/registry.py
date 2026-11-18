@@ -46,7 +46,7 @@ class ClaimRegistry:
             results = [c for c in results if c.verification_status == status]
         return sorted(results, key=lambda c: c.created_at, reverse=True)
 
-    def confirm_claim(self, claim_id: str, notes: Optional[str] = None) -> ApplicantClaim:
+    def confirm_claim(self, claim_id: str) -> ApplicantClaim:
         claim = self._claims.get(claim_id)
         if not claim:
             raise ClaimNotFoundError(f"Claim '{claim_id}' not found.")
@@ -54,7 +54,7 @@ class ClaimRegistry:
         claim.updated_at = datetime.now(UTC)
         return claim
 
-    def reject_claim(self, claim_id: str, reason: Optional[str] = None) -> ApplicantClaim:
+    def reject_claim(self, claim_id: str) -> ApplicantClaim:
         claim = self._claims.get(claim_id)
         if not claim:
             raise ClaimNotFoundError(f"Claim '{claim_id}' not found.")
@@ -107,19 +107,10 @@ class ClaimRegistry:
 
         return conflicts
 
-    def resolve_conflict(
-        self,
-        conflict_id: str,
-        accepted_claim_id: Optional[str] = None,
-        resolution_choice: str = "keep_a",
-        manual_value: Optional[Any] = None,
-        rationale: Optional[str] = None,
-    ) -> ProfileConflict:
+    def resolve_conflict(self, conflict_id: str, accepted_claim_id: str) -> ProfileConflict:
         conflict = self._conflicts.get(conflict_id)
         if not conflict:
             raise ConflictResolutionError(f"Conflict '{conflict_id}' not found.")
-        if not accepted_claim_id:
-            accepted_claim_id = conflict.claim_id_a if resolution_choice == "keep_a" else conflict.claim_id_b
         if accepted_claim_id not in (conflict.claim_id_a, conflict.claim_id_b):
             raise ConflictResolutionError(f"Claim '{accepted_claim_id}' is not part of conflict '{conflict_id}'.")
 
@@ -239,3 +230,4 @@ class ClaimRegistry:
                 created_or_updated.append(claim)
 
         return created_or_updated
+

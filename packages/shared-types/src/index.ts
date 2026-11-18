@@ -21,3 +21,4 @@ export * from './hybrid';
 export * from './reliability';
 export * from './applicant';
 export * from './github';
+export * from './resume';

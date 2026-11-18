@@ -1758,3 +1758,87 @@ Stage 22 extends the Recruitment Intelligence Foundation with real GitHub accoun
 - **Stage 22 is 100% complete, fully tested, and verified.**
 - **Phase 5 Stage 22 completed successfully.**
 - **DO NOT begin Stage 23 (Resume Intelligence) until explicitly instructed.**
+
+
+---
+
+## Stage 23: Resume Intelligence Engine, ATS-Compatible Document Generation, Job-Specific Resume Tailoring, Evidence-Grounded Professional Writing, Resume Versioning, DOCX/PDF Export, Visual Resume Editor, and Professional Portfolio Builder
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-18T14:30:00Z
+- **Completed**: 2026-11-18T16:00:00Z
+
+### 1. Objectives & Scope
+
+Stage 23 turns approved and properly attributed professional information from Stage 21 (Applicant Profile) and Stage 22 (GitHub Intelligence) into accurate, attractive, editable, machine-readable resumes and portfolio documents:
+
+1. **Fact Selection & Zero Hallucination Grounding (`app.recruitment.resume.content`)**:
+   - `FactSelectionEngine`: Filters verified claims only; enforces role-appropriate section ordering for Internship, Experienced, and Academic archetypes.
+   - `ProfessionalSummaryGenerator`: Synthesizes concise 2-3 sentence executive summaries grounded directly in verified competencies without fabrication.
+   - `ExperienceBulletEngine`: Crafts active-verb, metric-anchored bullet points mapping to verified achievements.
+   - `SkillsOrganizationEngine`: Organizes skills into categorized clusters (Languages, Frameworks, Databases, Cloud/DevOps, Tools).
+   - `ContentValidatorEngine`: Audits resume claims against canonical profile facts; flags ungrounded skill tokens or metric discrepancies.
+2. **Job Description Parsing & Tailoring (`app.recruitment.resume.tailoring`)**:
+   - `JobDescriptionParser`: Extracts required skills, preferred competencies, experience constraints, and responsibility patterns from raw posting text.
+   - `EvidenceMatchingEngine`: Categorizes alignment into 5 inspectable tiers (`DIRECTLY_SUPPORTED`, `PARTIALLY_SUPPORTED`, `RELATED_DOMAIN`, `NOT_EVIDENCED`, `REQUIRES_REVIEW`). Transparently identifies missing qualifications rather than inventing experience.
+   - `PrioritizationEngine`: Reorders sections, projects, and bullets to emphasize target role requirements.
+3. **Template Registry & Styling Profiles (`app.recruitment.resume.templates`)**:
+   - 6 ATS-compatible templates registered: `ats_classic`, `modern_professional`, `technical_engineer`, `internship_graduate`, `academic_cv`, `minimalist`.
+   - Enforces single-column reading orders, safe standard sans/serif typography (Helvetica, Arial, Calibri), and recognized section headers.
+4. **Native Dual Document Renderers (`app.recruitment.resume.renderers`)**:
+   - `DocxResumeRenderer`: Generates native Word `.docx` documents via `python-docx` with OpenXML section headers, styling rules, and bullet list styles.
+   - `PdfResumeRenderer`: Generates native selectable-text `.pdf` files via `ReportLab` using Flowable Platypus stories.
+   - `HtmlPreviewRenderer`: Emits responsive HTML stylesheets for live desktop viewing.
+   - `DocumentRoundTripValidator`: Employs `pypdf` to extract raw text streams from generated PDFs and verify candidate name, email, and section heading discovery.
+5. **Deterministic ATS Readability Auditor (`app.recruitment.resume.ats`)**:
+   - Rejects fake "95% ATS scores" in favor of 7 inspectable structural checks: Machine-Readable Text, Single-Column Layout, Standard Section Headings, Accessible Contact Info, Chronological Integrity, Standard Typography, and Bullet Structure.
+   - Emits structured pass/warning/error reports with actionable remediation advice.
+6. **Immutable Version Management (`app.recruitment.resume.versions`)**:
+   - `ResumeVersionManager`: Freezes approved resumes (`DocumentStatus.APPROVED`) into immutable version records with canonical SHA-256 digests.
+   - Subsequent modifications fork into new draft revisions, preserving permanent application audit trails.
+7. **Developer Portfolio Builder (`app.recruitment.resume.portfolio`)**:
+   - `PortfolioService`: Generates multi-page project dossiers showcasing architecture, verified GitHub evidence, and technical narratives.
+   - Privacy review filters: Automatically scrubs private repository URLs and sanitizes confidential client details prior to public export.
+   - Supports multi-page PDF export and standalone static HTML export.
+8. **Master Facade & REST API (`services/api/app/recruitment/resume/service.py` & `api/v1/endpoints/resumes.py`)**:
+   - `ResumeService`: Singleton orchestrator managing lifecycle, tailoring, versioning, ATS audits, exports, and portfolios.
+   - 24 authenticated FastAPI endpoints mounted under `/api/v1/resumes/*`, `/api/v1/job-descriptions/*`, `/api/v1/resume-templates/*`, and `/api/v1/portfolios/*`.
+9. **Desktop Frontend Workspace (`apps/desktop/src/features/recruitment/resume/`)**:
+   - `ResumePortfolioWorkspace.tsx`: Comprehensive master workspace mounted under `/recruitment/resumes` with 11 specialized tabs:
+     - `overview`: Summary statistics, active resumes, and ATS health cards.
+     - `my_resumes`: Resume document cards with type badges and quick actions.
+     - `builder`: Creation wizard with archetypes, templates, and target role inputs.
+     - `editor`: Granular section, entry, and bullet-point editor with reordering.
+     - `tailoring`: Job description paste, parsing, match matrix, and auto-prioritize.
+     - `templates`: Visual gallery of the 6 ATS-compatible layouts.
+     - `ats`: Interactive checklist of the 7 deterministic structural checks.
+     - `preview`: Real-time rendered resume sheet view.
+     - `versions`: Historical snapshot log with SHA-256 hashes and restore actions.
+     - `exports`: Export manager for DOCX, PDF, and HTML downloads with round-trip verification badges.
+     - `portfolio`: Project dossier builder with narrative editor and privacy scrub toggles.
+   - 24 typed API client methods in `apps/desktop/src/lib/api-client.ts`.
+   - Complete TypeScript contracts in `@autonom/shared-types/resume.ts`.
+10. **Technical Documentation Suite**:
+    - 15 comprehensive specifications authored in `docs/`: `RESUME_INTELLIGENCE_ARCHITECTURE.md`, `RESUME_DOCUMENT_SCHEMA.md`, `RESUME_FACT_GROUNDING.md`, `RESUME_CONTENT_GENERATION.md`, `JOB_SPECIFIC_RESUME_TAILORING.md`, `RESUME_TEMPLATE_SYSTEM.md`, `RESUME_DOCX_RENDERING.md`, `RESUME_PDF_RENDERING.md`, `ATS_READABILITY_ANALYSIS.md`, `RESUME_VERSIONING.md`, `RESUME_EXPORT_MANAGEMENT.md`, `PORTFOLIO_BUILDER.md`, `RESUME_SECURITY.md`, `RESUME_AGENT_INTEGRATION.md`, `RESUME_TESTING.md`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - `test_resume_ats.py` (2 tests): PASSED
+   - `test_resume_content.py` (6 tests): PASSED
+   - `test_resume_models.py` (3 tests): PASSED
+   - `test_resume_renderers.py` (3 tests): PASSED
+   - `test_resume_tailoring.py` (3 tests): PASSED
+   - `test_resume_versioning_and_portfolio.py` (3 tests): PASSED
+   - `test_api_resumes.py` (4 tests): PASSED
+   - Total Backend: **24 passed in 1.95s** (100% pass rate).
+2. **Frontend Vitest Suite (`apps/desktop/src/test/features/resume-portfolio.test.tsx`)**:
+   - 8 component integration tests: PASSED in 3.20s (100% pass rate).
+3. **Monorepo Build & Typecheck**:
+   - `@autonom/shared-types`, `@autonom/shared`, `@autonom/desktop`: `tsc --noEmit` passed with 0 errors.
+
+### 3. Stage 23 Completion & Hand-off
+
+- **Stage 23 is 100% complete, fully tested, and verified.**
+- **Phase 5 Stage 23 completed successfully.**
+- **DO NOT begin Stage 24 (Cover Letter Generation & Application Form Automation) until explicitly instructed.**

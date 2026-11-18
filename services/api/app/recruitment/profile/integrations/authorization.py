@@ -56,7 +56,7 @@ class ProfileAuthorizationEnforcer:
             return
         # If client has specific scopes declared, assert presence
         if hasattr(auth, "scopes") and auth.scopes:
-            if required_scope not in auth.scopes and "*" not in auth.scopes and "applicant.*" not in auth.scopes:
+            if required_scope not in auth.scopes and "*" not in auth.scopes:
                 logger.warning(f"Permission denied: Actor '{auth.client_id}' missing scope '{required_scope}'.")
                 raise ProfilePermissionDeniedError(
                     f"Permission denied: Required scope '{required_scope}' is not granted."

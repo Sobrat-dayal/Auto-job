@@ -314,7 +314,7 @@ async def list_experience(
     """Lists all employment experience records."""
     try:
         prof = service.get_profile(profile_id=profile_id, auth=auth)
-        return prof.experience
+        return prof.employment
     except Exception as exc:
         raise _map_exception(exc) from exc
 
@@ -786,3 +786,4 @@ async def get_version_history(
         return service.get_version_history(profile_id=profile_id, auth=auth)
     except Exception as exc:
         raise _map_exception(exc) from exc
+

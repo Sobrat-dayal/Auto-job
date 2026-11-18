@@ -163,6 +163,22 @@ import type {
   ManualRepoRequest,
   SelectRepoRequest,
   ConfirmCandidateRequest,
+  ResumeDocument,
+  ResumeCreateRequest,
+  ResumeUpdateRequest,
+  ResumeVersionRecord,
+  JobDescriptionSnapshot,
+  JobDescriptionParseRequest,
+  RequirementEvidenceMapping,
+  ResumeTailorRequest,
+  ATSReadabilityReport,
+  ResumeTemplateDefinition,
+  ExportArtifact,
+  ResumeExportRequest,
+  PortfolioDocument,
+  PortfolioCreateRequest,
+  PortfolioUpdateRequest,
+  ResumeOverviewStats,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -2131,6 +2147,167 @@ export class ApiClient {
 
   async rejectGitHubCandidate(candidateId: string): Promise<{ status: string; candidate_id: string }> {
     return this.request<{ status: string; candidate_id: string }>(`/api/v1/github/candidates/${encodeURIComponent(candidateId)}/reject`, {
+      method: 'POST',
+    });
+  }
+
+  // =========================================================================
+  // Stage 23: Resume Intelligence & Professional Portfolio
+  // =========================================================================
+
+  async listResumes(resumeType?: string): Promise<ResumeDocument[]> {
+    const query = resumeType ? `?resume_type=${encodeURIComponent(resumeType)}` : '';
+    return this.request<ResumeDocument[]>(`/api/v1/resumes${query}`);
+  }
+
+  async createResume(req: ResumeCreateRequest): Promise<ResumeDocument> {
+    return this.request<ResumeDocument>('/api/v1/resumes', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getResumesOverview(): Promise<ResumeOverviewStats> {
+    return this.request<ResumeOverviewStats>('/api/v1/resumes/overview');
+  }
+
+  async getResume(resumeId: string): Promise<ResumeDocument> {
+    return this.request<ResumeDocument>(`/api/v1/resumes/${encodeURIComponent(resumeId)}`);
+  }
+
+  async updateResume(resumeId: string, req: ResumeUpdateRequest): Promise<ResumeDocument> {
+    return this.request<ResumeDocument>(`/api/v1/resumes/${encodeURIComponent(resumeId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteResume(resumeId: string): Promise<{ deleted: boolean }> {
+    return this.request<{ deleted: boolean }>(`/api/v1/resumes/${encodeURIComponent(resumeId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async duplicateResume(resumeId: string, newTitle?: string): Promise<ResumeDocument> {
+    const query = newTitle ? `?new_title=${encodeURIComponent(newTitle)}` : '';
+    return this.request<ResumeDocument>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/duplicate${query}`, {
+      method: 'POST',
+    });
+  }
+
+  async tailorResume(resumeId: string, req: ResumeTailorRequest): Promise<{
+    resume: ResumeDocument;
+    evidence_mappings: RequirementEvidenceMapping[];
+    matched_count: number;
+    missing_count: number;
+  }> {
+    return this.request<{
+      resume: ResumeDocument;
+      evidence_mappings: RequirementEvidenceMapping[];
+      matched_count: number;
+      missing_count: number;
+    }>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/tailor`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getResumeValidation(resumeId: string): Promise<{
+    resume_id: string;
+    issue_count: number;
+    issues: any[];
+    is_valid: boolean;
+  }> {
+    return this.request<{
+      resume_id: string;
+      issue_count: number;
+      issues: any[];
+      is_valid: boolean;
+    }>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/validation`);
+  }
+
+  async getResumeATSReport(resumeId: string): Promise<ATSReadabilityReport> {
+    return this.request<ATSReadabilityReport>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/ats-report`);
+  }
+
+  async getResumePreview(resumeId: string): Promise<{ resume_id: string; html: string }> {
+    return this.request<{ resume_id: string; html: string }>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/preview`);
+  }
+
+  async approveResume(resumeId: string): Promise<ResumeVersionRecord> {
+    return this.request<ResumeVersionRecord>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async listResumeVersions(resumeId: string): Promise<ResumeVersionRecord[]> {
+    return this.request<ResumeVersionRecord[]>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/versions`);
+  }
+
+  async getResumeVersion(resumeId: string, versionId: string): Promise<ResumeVersionRecord> {
+    return this.request<ResumeVersionRecord>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/versions/${encodeURIComponent(versionId)}`);
+  }
+
+  async exportResume(resumeId: string, req: ResumeExportRequest): Promise<ExportArtifact> {
+    return this.request<ExportArtifact>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/export`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listResumeExports(resumeId: string): Promise<ExportArtifact[]> {
+    return this.request<ExportArtifact[]>(`/api/v1/resumes/${encodeURIComponent(resumeId)}/exports`);
+  }
+
+  async listResumeTemplates(): Promise<ResumeTemplateDefinition[]> {
+    return this.request<ResumeTemplateDefinition[]>('/api/v1/resume-templates');
+  }
+
+  async getResumeTemplate(templateId: string): Promise<ResumeTemplateDefinition> {
+    return this.request<ResumeTemplateDefinition>(`/api/v1/resume-templates/${encodeURIComponent(templateId)}`);
+  }
+
+  async analyzeJobDescription(req: JobDescriptionParseRequest): Promise<JobDescriptionSnapshot> {
+    return this.request<JobDescriptionSnapshot>('/api/v1/job-descriptions/analyze', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getJobDescription(jobId: string): Promise<JobDescriptionSnapshot> {
+    return this.request<JobDescriptionSnapshot>(`/api/v1/job-descriptions/${encodeURIComponent(jobId)}`);
+  }
+
+  async listPortfolios(): Promise<PortfolioDocument[]> {
+    return this.request<PortfolioDocument[]>('/api/v1/portfolios');
+  }
+
+  async createPortfolio(req: PortfolioCreateRequest): Promise<PortfolioDocument> {
+    return this.request<PortfolioDocument>('/api/v1/portfolios', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getPortfolio(portfolioId: string): Promise<PortfolioDocument> {
+    return this.request<PortfolioDocument>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}`);
+  }
+
+  async updatePortfolio(portfolioId: string, req: PortfolioUpdateRequest): Promise<PortfolioDocument> {
+    return this.request<PortfolioDocument>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async exportPortfolioPdf(portfolioId: string): Promise<{ portfolio_id: string; file_path: string; format: string }> {
+    return this.request<{ portfolio_id: string; file_path: string; format: string }>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/export/pdf`, {
+      method: 'POST',
+    });
+  }
+
+  async exportPortfolioHtml(portfolioId: string): Promise<{ portfolio_id: string; file_path: string; format: string }> {
+    return this.request<{ portfolio_id: string; file_path: string; format: string }>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/export/html`, {
       method: 'POST',
     });
   }

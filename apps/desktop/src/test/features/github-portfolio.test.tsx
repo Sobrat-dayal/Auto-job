@@ -11,10 +11,6 @@ import type {
   RepositoryMetadata,
   CandidateSkill,
   CandidateProject,
-  TechnologyFinding,
-  CommitEvidence,
-  PullRequestEvidence,
-  ContributionFinding,
   SyncJobRecord,
 } from '@autonom/shared-types';
 

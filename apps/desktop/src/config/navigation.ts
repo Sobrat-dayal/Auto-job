@@ -21,6 +21,7 @@ import {
   Sparkles,
   ShieldAlert,
   UserCheck,
+  FileText,
 } from 'lucide-react';
 import type {
   NavigationGroup,
@@ -202,6 +203,17 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         availability: 'implemented',
         roadmapStage: 'Stage 22',
         description: 'GitHub account connectivity, repository discovery, code intelligence, and candidate skills extraction.',
+        badge: 'v1',
+      },
+      {
+        id: 'resume-portfolio',
+        title: 'Resumes & Portfolios',
+        icon: FileText,
+        path: '/recruitment/resumes',
+        group: 'recruitment',
+        availability: 'implemented',
+        roadmapStage: 'Stage 23',
+        description: 'ATS resume builder, job tailoring, DOCX/PDF export, version diffs, and developer portfolio.',
         badge: 'v1',
       },
       {
