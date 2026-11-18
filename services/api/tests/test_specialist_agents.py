@@ -97,7 +97,7 @@ async def test_agent_catalog_registration():
     computer_roles = [
         ("browser_agent", AvailabilityState.OPERATIONAL),
         ("windows_computer_agent", AvailabilityState.OPERATIONAL),
-        ("visual_grounding_agent", AvailabilityState.LIMITED),
+        ("visual_grounding_agent", AvailabilityState.OPERATIONAL),
         ("structural_ui_agent", AvailabilityState.OPERATIONAL),
     ]
     for aid, state in computer_roles:

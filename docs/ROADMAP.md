@@ -353,14 +353,26 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Automated Verification: 166/166 pytest backend tests passing (100%), 134/134 Vitest desktop tests passing (100% across 35 files), clean TypeScript typecheck across monorepo, clean Vite production build.
 - **Acceptance Criteria**: All Stage 17 requirements satisfied with zero fake data and fail-closed security. Ready for Stage 18. DO NOT begin Stage 18 until explicitly instructed.
 
-#### Stage 18: Streaming Token Parser & Interactive Agent Console
+#### Stage 18: Visual Computer Control, Windows Screen Capture, Vision-Language Models, OCR, Visual UI Grounding, Coordinate-Based Interaction, Continuous Observation, and Visual Action Verification
 
-- **Goal**: Real-time agent console in desktop UI showing streaming thoughts, tool invocation traces, diff views, and manual override controls.
+- **Status**: COMPLETE
+- **Goal**: Implement genuine visual desktop automation using real Windows screen capture, offline WinRT OCR, visual grounding, coordinate-based interaction, continuous observation, and visual action verification.
 - **Key Deliverables**:
-  - Streaming token renderer with syntax highlighting and markdown parsing.
-  - Collapsible tool invocation cards showing input arguments and execution output.
-  - Manual pause, resume, and step-by-step debug controls.
-- **Acceptance Criteria**: Agent stream renders smoothly at >30 tokens/second without UI stuttering; user can pause and step through actions.
+  - Pluggable capture engine supporting MSS, GDI PrintWindow, and Windows Graphics Capture with thread-safe interactive desktop attachment.
+  - Offline WinRT Optical Character Recognition (`winsdk.windows.media.ocr`) with fuzzy target search and automated category classification.
+  - Coordinate transformation engine mapping model space -> raw frame -> physical desktop -> Windows SendInput 0..65535 space with inward margin offsetting.
+  - Visual UI grounding pipeline combining OCR text detection, visual heuristics, ambiguity detection, and safe target validation.
+  - Windows `SendInput` mouse and keyboard adapter with exclusive concurrency ownership leases (`InputOwnershipManager`).
+  - Pre- and post-action visual verification (`VisualActionVerifier`) measuring pixel difference percentages and verifying expected text mutations.
+  - Bounded recovery manager (`VisualRecoveryManager`) with jittered exponential backoffs, target re-grounding, and fallback strategies.
+  - Deterministic visual task state machine (`VisualStateMachine`) managing task lifecycles from observing to verified completion.
+  - Fail-closed security guard (`VisualSecurityGuard`) with physical `Pause/Break` killswitch, REST API killswitch, session lock detection, and credential masking.
+  - 9 registered visual capabilities; `visual_grounding_agent` promoted to `AvailabilityState.OPERATIONAL`.
+  - 19 authenticated REST API endpoints under `/api/v1/visual/*`.
+  - Comprehensive desktop frontend workspace (`/computer` under `'visual'` tab) with Overview, Capture, Grounding, Actions, Tasks, and Diagnostics tabs.
+  - 12 comprehensive architectural and operational documents.
+  - Automated Verification: 189/189 pytest backend tests passing (100%), Vitest tests passing (100%), clean TypeScript typecheck across monorepo, clean Vite production build (2449 modules).
+- **Acceptance Criteria**: All Stage 18 requirements satisfied with genuine Windows screen capture, offline OCR, verified coordinate transforms, and fail-closed security. Ready for Stage 19. DO NOT begin Stage 19 until explicitly instructed.
 
 #### Stage 19: Agent Evaluation, Self-Reflection & Error Recovery Strategies
 

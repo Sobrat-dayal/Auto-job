@@ -1416,4 +1416,79 @@ The browser engine enables AUTONOM agents to launch Chromium and Microsoft Edge 
 ### 4. Stage 17 Completion & Hand-off
 
 - **Stage 17 is 100% complete, fully tested, and verified.**
-- **DO NOT begin Stage 18 until explicitly instructed.**
+- **Stage 18 is authorized.**
+
+---
+
+## Stage 18: Visual Computer Control, Windows Screen Capture, Vision-Language Models, OCR, Visual UI Grounding, Coordinate-Based Interaction, Continuous Observation, and Visual Action Verification
+
+- **Date**: 2026-11-18
+- **Status**: COMPLETE
+- **Lead Roles**: Principal Computer-Use AI Architect, Senior Windows Systems Engineer, Computer Vision Engineer, Multimodal LLM Engineer, Python Backend Architect, Rust/Tauri Developer, Security Architect, React Engineer, QA Lead
+
+### 1. Deliverables Summary
+
+Stage 18 establishes genuine vision-based desktop automation for AUTONOM, complementing browser (Stage 16) and structural UIA (Stage 17) automation with visual screen perception, offline WinRT OCR, coordinate transformations, and verified mouse/keyboard interaction:
+
+1. **Windows Screen Capture Engine (`services/api/app/visual/capture/`)**:
+   - `monitors.py`: Monitor enumeration, physical bounds discovery, per-monitor DPI scaling calculation (`shcore.GetDpiForMonitor`), and virtual multi-monitor desktop bounds.
+   - `providers.py`: Pluggable `CaptureProviderRegistry` with `MSSCaptureProvider` (direct GDI desktop grab), `GDICaptureProvider` (`PrintWindow` with `PW_RENDERFULLCONTENT`), `WGCCaptureProvider` (`Windows.Graphics.Capture`), and `DXGICaptureProvider`. Includes thread-safe desktop attachment (`ensure_default_desktop_attached`) and graceful fallback canvas for headless virtual environments.
+   - `preprocessing.py`: Aspect-preserving downscaling (`scale_image`, `resize_preserving_aspect`), bounding box cropping, SHA-256 pixel content hashing, frame difference calculation (`calculate_frame_diff_percentage`), and sensitive data black-box masking (`redact_regions`).
+   - `frames.py`: `FrameBuffer` maintaining bounded ring buffer (capacity 10) to strictly prevent uncompressed bitmap memory leaks.
+   - `sessions.py`: `CaptureSessionManager` managing capture streams with `vsess_{uuid}` IDs, FPS tracking, and lifecycle states.
+2. **Visual Grounding & Coordinate Subsystem (`services/api/app/visual/grounding/`)**:
+   - `ocr.py`: `WindowsMediaOCREngine` leveraging Windows 11 native offline WinRT OCR (`winsdk.windows.media.ocr`) for zero-egress, sub-50ms text extraction and fuzzy string target search (`find_text_targets`).
+   - `boxes.py`: `BoxGeometryService` providing normalized box conversions, discrete pixel denormalization, IoU calculation (`calculate_iou`), center point calculations, and safe inward offset target points.
+   - `coordinates.py`: `CoordinateTransformer` providing exact deterministic transformations across Vision Model Space (1600px), Raw Frame Pixels, Physical Desktop Screen Pixels (supporting negative monitor coordinates), and Windows `SendInput` normalized space (`0..65535`).
+   - `validation.py`: `TargetValidator` validating box boundaries, rejecting sub-5x5px noise targets, detecting ambiguous multi-candidate targets (confidence delta < 0.05), and selecting optimal targets with explainable reasoning trails.
+   - `vision.py`: `VisualGroundingService` orchestrating two-stage visual perception: offline OCR matching followed by element heuristics and multimodal grounding.
+3. **Desktop Input Dispatch Subsystem (`services/api/app/visual/input/`)**:
+   - `adapter.py`: `SendInputAdapter` dispatching native Win32 `SendInput` mouse moves (absolute virtual desktop), human-jittered left/right/double clicks, drags, scroll wheel ticks, virtual keystrokes, and UTF-16 Unicode text entry.
+   - `ownership.py`: `InputOwnershipManager` enforcing exclusive concurrency leases with cryptographically unique tokens, duration expirations, and active lease checks to eliminate agent-on-agent race conditions.
+4. **Execution, Verification & Recovery (`services/api/app/visual/execution/`)**:
+   - `state_machine.py`: `VisualStateMachine` managing strict visual task lifecycle transitions: `PENDING` -> `OBSERVING` -> `GROUNDING` -> `ACTING` -> `VERIFYING` -> `COMPLETED`/`RECOVERING`/`FAILED`.
+   - `verification.py`: `VisualActionVerifier` calculating post-action frame differences, regional bounding box changes, and post-action OCR text assertions.
+   - `recovery.py`: `VisualRecoveryManager` implementing bounded retries (max 3), jittered backoffs, target re-grounding on fresh frames, and fallback input strategies.
+5. **Security, Privacy & Guardrails (`services/api/app/visual/security/`)**:
+   - `guard.py`: `VisualSecurityGuard` fail-closed security manager enforcing global `Pause/Break` hardware killswitch, REST API killswitch, and session lock / secure desktop detection.
+   - `privacy.py`: `VisualPrivacyFilter` enforcing sensitive window denylists (password managers, banking portals, Windows credentials) and redacting detected credentials from OCR results.
+6. **Central Service & REST API (`services/api/app/visual/service.py` & `api/v1/endpoints/visual.py`)**:
+   - `VisualComputerService`: Singleton facade integrating capture, grounding, input, verification, recovery, and audit tracking.
+   - 19 authenticated REST API endpoints under `/api/v1/visual/*`: `/diagnostics`, `/monitors`, `/sessions`, `/sessions/{id}`, `/sessions/{id}/frame`, `/sessions/{id}/ocr`, `/sessions/{id}/detect-elements`, `/sessions/{id}/ground`, `/actions/execute`, `/quick-click`, `/quick-type`, `/tasks`, `/recovery-events`, `/killswitch/status`, `/killswitch/trigger`, `/killswitch/reset`.
+7. **Database Storage (`services/api/app/db/models.py`)**:
+   - `VisualCaptureSessionRecord`, `VisualFrameRecord`, `VisualActionRecord`, `VisualTaskRecord` added to persistent SQLite storage.
+8. **Multi-Agent Capabilities & Manifests (`services/api/app/orchestration/`)**:
+   - 9 visual capabilities added in `capabilities/computer.py` and registered in `registry.py`.
+   - `visual_grounding_agent` promoted to `AvailabilityState.OPERATIONAL`.
+   - Visual read and write permissions added to default security baseline policies in `security/authorization/default_policies.py`.
+9. **Desktop Frontend Workspace (`apps/desktop/src/features/computer/visual/`)**:
+   - `VisualWorkspace.tsx`: Top-level visual automation console mounted in `ComputerWorkspace.tsx` under `'visual'` tab.
+   - 6 feature tabs: `VisualOverviewTab`, `VisualCaptureTab`, `VisualGroundingTab`, `VisualActionsTab`, `VisualTasksTab`, `VisualDiagnosticsTab`.
+   - 18 typed API client methods in `apps/desktop/src/lib/api-client.ts`.
+   - Shared types exported in `@autonom/shared-types`.
+10. **12 Comprehensive Architectural Documents in `docs/`**:
+   - `VISUAL_AUTOMATION_ARCHITECTURE.md`, `WINDOWS_CAPTURE_ENGINE.md`, `CAPTURE_SESSION_MANAGEMENT.md`, `VISUAL_COORDINATE_SYSTEM.md`, `VISION_MODEL_INTEGRATION.md`, `VISUAL_GROUNDING.md`, `WINDOWS_VISUAL_INPUT.md`, `VISUAL_VERIFICATION.md`, `VISUAL_AUTOMATION_SECURITY.md`, `VISUAL_RESOURCE_MANAGEMENT.md`, `VISUAL_AGENT_INTEGRATION.md`, `VISUAL_AUTOMATION_TESTING.md`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - Full regression test run: **189 passed in 275.87s** (100% pass rate).
+   - `test_visual_capture.py` (3 tests): All PASSED.
+   - `test_visual_coordinates.py` (5 tests): All PASSED.
+   - `test_visual_ocr_grounding.py` (3 tests): All PASSED.
+   - `test_visual_actions.py` (3 tests): All PASSED.
+   - `test_visual_real_desktop.py` (3 tests): All PASSED (verified against live physical desktop capture and live WinRT OCR).
+   - `test_api_visual.py` (6 tests): All PASSED.
+   - `test_specialist_agents.py` (6 tests): All PASSED (asserts operational status for `visual_grounding_agent`).
+2. **Frontend Vitest Suite (`apps/desktop/src/test`)**:
+   - `visual-automation.test.tsx` (5 tests): All PASSED.
+   - `desktop-automation.test.tsx` (3 tests): All PASSED.
+3. **Monorepo Build & Typecheck**:
+   - `@autonom/shared-types`: `tsc --noEmit` passed with 0 errors.
+   - `desktop`: `tsc --noEmit` passed with 0 errors.
+   - `vite build`: Production bundle compiled cleanly (2449 modules transformed, 0 errors in 22.36s).
+
+### 3. Stage 18 Completion & Hand-off
+
+- **Stage 18 is 100% complete, fully tested, and verified.**
+- **DO NOT begin Stage 19 until explicitly instructed.**

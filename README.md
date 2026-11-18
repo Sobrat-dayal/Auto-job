@@ -138,6 +138,18 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Desktop Failure Recovery & Self-Healing](file:///e:/proooo/AUTO%20JOB/docs/DESKTOP_RECOVERY.md)
 - [Multi-Agent Computer Control Integration](file:///e:/proooo/AUTO%20JOB/docs/COMPUTER_AGENT_INTEGRATION.md)
 - [Stage 17 Windows Automation Testing Report](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_AUTOMATION_TESTING.md)
+- [Visual Automation Architecture](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_AUTOMATION_ARCHITECTURE.md)
+- [Windows Capture Engine & Providers](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_CAPTURE_ENGINE.md)
+- [Capture Session Management](file:///e:/proooo/AUTO%20JOB/docs/CAPTURE_SESSION_MANAGEMENT.md)
+- [Visual Coordinate Systems & Transformations](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_COORDINATE_SYSTEM.md)
+- [Vision-Language Model Integration](file:///e:/proooo/AUTO%20JOB/docs/VISION_MODEL_INTEGRATION.md)
+- [Visual UI Grounding & Disambiguation](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_GROUNDING.md)
+- [Windows Visual Input Dispatch](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_VISUAL_INPUT.md)
+- [Visual Action Verification & Transitions](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_VERIFICATION.md)
+- [Visual Automation Security & Guardrails](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_AUTOMATION_SECURITY.md)
+- [Visual Resource Management & Protection](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_RESOURCE_MANAGEMENT.md)
+- [Visual Agent Integration & Capabilities](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_AGENT_INTEGRATION.md)
+- [Stage 18 Visual Automation Testing Report](file:///e:/proooo/AUTO%20JOB/docs/VISUAL_AUTOMATION_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

@@ -20,6 +20,9 @@ dependencies = [
     "nvidia-ml-py>=12.560.30",
     "playwright>=1.48.0",
     "comtypes>=1.4.0",
+    "pillow>=10.0.0",
+    "mss>=9.0.0",
+    "winsdk>=1.0.0b10",
 ]
 
 [project.optional-dependencies]

@@ -1027,6 +1027,69 @@ class DesktopSnapshotRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
 
 
+# =========================================================================
+# Stage 18: Visual Computer Automation Records
+# =========================================================================
+
+
+class VisualCaptureSessionRecord(Base):
+    __tablename__ = "visual_capture_sessions"
+
+    session_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    target_type: Mapped[str] = mapped_column(String(32), default="display", nullable=False)
+    target_hwnd: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    display_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    provider: Mapped[str] = mapped_column(String(32), default="mss", nullable=False)
+    state: Mapped[str] = mapped_column(String(32), default="idle", nullable=False, index=True)
+    frame_rate_limit: Mapped[float] = mapped_column(Float, default=5.0, nullable=False)
+    frames_captured: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class VisualFrameRecord(Base):
+    __tablename__ = "visual_frames"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    frame_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    dpi_scale: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
+class VisualActionRecord(Base):
+    __tablename__ = "visual_actions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    action_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    target_point_x: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    target_point_y: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    target_element: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    verification_status: Mapped[str] = mapped_column(String(32), default="skipped", nullable=False)
+    visual_difference: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    duration_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
+class VisualTaskRecord(Base):
+    __tablename__ = "visual_tasks"
+
+    task_id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    instruction: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    steps_completed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_steps: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    result_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+
 
 
 

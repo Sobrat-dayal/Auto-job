@@ -1219,3 +1219,662 @@ class DesktopExecuteActionCapability(BaseCapability):
         }
 
 
+# =========================================================================
+# Stage 18: Live Visual Computer Automation Capabilities
+# =========================================================================
+
+
+class VisualCaptureDisplayCapability(BaseCapability):
+    """Captures a full screenshot of a connected physical display monitor."""
+
+    capability_id = "visual_capture_display"
+    name = "Capture Display Screen"
+    version = "1.0.0"
+    description = "Captures an instantaneous frame of the selected physical display monitor via MSS/GDI."
+    requires_ai = False
+    is_deterministic = False
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 15
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "display_index": {"type": "integer", "default": 0},
+            },
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "frame_id": {"type": "string"},
+                "width": {"type": "integer"},
+                "height": {"type": "integer"},
+                "content_hash": {"type": "string"},
+                "timestamp": {"type": "string"},
+            },
+            "required": ["frame_id", "width", "height", "content_hash", "timestamp"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.capture.providers import CaptureProviderRegistry
+        from app.visual.contracts import CaptureProviderType
+
+        disp_idx = int(input_data.get("display_index", 0))
+        provider = CaptureProviderRegistry.get_provider(CaptureProviderType.MSS)
+        frame = await provider.capture_display(disp_idx)
+        return {
+            "frame_id": frame.frame_id,
+            "width": frame.metadata.width,
+            "height": frame.metadata.height,
+            "content_hash": frame.metadata.content_hash,
+            "timestamp": frame.metadata.timestamp,
+        }
+
+
+class VisualCaptureWindowCapability(BaseCapability):
+    """Captures a window frame by Win32 HWND handle."""
+
+    capability_id = "visual_capture_window"
+    name = "Capture Window Frame"
+    version = "1.0.0"
+    description = "Captures a targeted application window screenshot via GDI PrintWindow or BitBlt."
+    requires_ai = False
+    is_deterministic = False
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 15
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "hwnd": {"type": "integer"},
+            },
+            "required": ["hwnd"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "frame_id": {"type": "string"},
+                "width": {"type": "integer"},
+                "height": {"type": "integer"},
+                "content_hash": {"type": "string"},
+                "timestamp": {"type": "string"},
+            },
+            "required": ["frame_id", "width", "height", "content_hash", "timestamp"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.capture.providers import CaptureProviderRegistry
+        from app.visual.contracts import CaptureProviderType
+
+        hwnd = int(input_data["hwnd"])
+        provider = CaptureProviderRegistry.get_provider(CaptureProviderType.GDI)
+        frame = await provider.capture_window(hwnd)
+        return {
+            "frame_id": frame.frame_id,
+            "width": frame.metadata.width,
+            "height": frame.metadata.height,
+            "content_hash": frame.metadata.content_hash,
+            "timestamp": frame.metadata.timestamp,
+        }
+
+
+class VisualRunOCRCapability(BaseCapability):
+    """Runs offline native Windows OCR on the screen or active session."""
+
+    capability_id = "visual_run_ocr"
+    name = "Run Offline Visual OCR"
+    version = "1.0.0"
+    description = "Extracts all textual tokens and bounding boxes using Windows.Media.Ocr."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "session_id": {"type": "string"},
+                "display_index": {"type": "integer", "default": 0},
+            },
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "full_text": {"type": "string"},
+                "line_count": {"type": "integer"},
+                "lines": {"type": "array", "items": {"type": "object"}},
+            },
+            "required": ["full_text", "line_count"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import CaptureSessionCreateRequest, CaptureTargetType
+
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(
+                    target_type=CaptureTargetType.DISPLAY,
+                    display_index=int(input_data.get("display_index", 0)),
+                )
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        try:
+            ocr_res = await visual_computer_service.run_ocr(session_id)
+            return {
+                "full_text": ocr_res.full_text,
+                "line_count": len(ocr_res.lines),
+                "lines": [l.model_dump() for l in ocr_res.lines],
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+
+class VisualFindTextCapability(BaseCapability):
+    """Finds screen coordinates and bounding boxes of a specific text phrase."""
+
+    capability_id = "visual_find_text"
+    name = "Find Text on Screen"
+    version = "1.0.0"
+    description = "Searches for matching words or lines using offline OCR and returns visual coordinates."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "session_id": {"type": "string"},
+                "display_index": {"type": "integer", "default": 0},
+            },
+            "required": ["query"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "match_count": {"type": "integer"},
+                "matches": {"type": "array", "items": {"type": "object"}},
+            },
+            "required": ["query", "match_count", "matches"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import CaptureSessionCreateRequest, CaptureTargetType
+
+        query = str(input_data["query"])
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(
+                    target_type=CaptureTargetType.DISPLAY,
+                    display_index=int(input_data.get("display_index", 0)),
+                )
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        try:
+            matches = await visual_computer_service.find_text(session_id, query)
+            return {
+                "query": query,
+                "match_count": len(matches),
+                "matches": [m.model_dump() for m in matches],
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+
+class VisualDetectElementsCapability(BaseCapability):
+    """Detects and categorizes interactive visual UI elements on screen."""
+
+    capability_id = "visual_detect_elements"
+    name = "Detect Visual UI Elements"
+    version = "1.0.0"
+    description = "Discovers buttons, text inputs, links, and icons from visual screenshot analysis."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "session_id": {"type": "string"},
+                "display_index": {"type": "integer", "default": 0},
+            },
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "elements_count": {"type": "integer"},
+                "elements": {"type": "array", "items": {"type": "object"}},
+            },
+            "required": ["elements_count", "elements"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import CaptureSessionCreateRequest, CaptureTargetType
+
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(
+                    target_type=CaptureTargetType.DISPLAY,
+                    display_index=int(input_data.get("display_index", 0)),
+                )
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        try:
+            elements = await visual_computer_service.detect_elements(session_id)
+            return {
+                "elements_count": len(elements),
+                "elements": [e.model_dump() for e in elements],
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+
+class VisualGroundCapability(BaseCapability):
+    """Grounds a natural language query to exact desktop coordinates."""
+
+    capability_id = "visual_ground"
+    name = "Ground Visual Query"
+    version = "1.0.0"
+    description = "Maps an ambiguous or natural language element description to exact screen coordinates."
+    requires_ai = False
+    is_deterministic = False
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "session_id": {"type": "string"},
+                "display_index": {"type": "integer", "default": 0},
+            },
+            "required": ["query"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "query": {"type": "string"},
+                "target_point": {"type": "object"},
+                "confidence": {"type": "number"},
+                "explanation": {"type": "string"},
+            },
+            "required": ["success", "query", "confidence"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import CaptureSessionCreateRequest, CaptureTargetType
+
+        query = str(input_data["query"])
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(
+                    target_type=CaptureTargetType.DISPLAY,
+                    display_index=int(input_data.get("display_index", 0)),
+                )
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        try:
+            res = await visual_computer_service.ground(session_id, query)
+            return {
+                "success": res.success,
+                "query": res.query,
+                "target_point": res.target_point.model_dump() if res.target_point else None,
+                "confidence": res.confidence,
+                "explanation": res.explanation,
+                "bounding_box": res.bounding_box.model_dump() if res.bounding_box else None,
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+
+class VisualExecuteActionCapability(BaseCapability):
+    """Executes a visual mouse or keyboard action with verification."""
+
+    capability_id = "visual_execute_action"
+    name = "Execute Visual Action"
+    version = "1.0.0"
+    description = "Performs coordinate-based mouse click, move, text entry, or drag with post-action verification."
+    requires_ai = False
+    is_deterministic = False
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "action_type": {"type": "string"},
+                "session_id": {"type": "string"},
+                "target_point": {"type": "object"},
+                "target_element": {"type": "string"},
+                "text": {"type": "string"},
+                "key": {"type": "string"},
+                "button": {"type": "string"},
+                "expected_change": {"type": "string"},
+            },
+            "required": ["action_type"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "action_type": {"type": "string"},
+                "verification_status": {"type": "string"},
+                "visual_difference": {"type": "number"},
+                "verification_notes": {"type": "string"},
+            },
+            "required": ["success", "action_type", "verification_status"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import (
+            CaptureSessionCreateRequest,
+            CaptureTargetType,
+            Point2D,
+            VisualActionRequest,
+            VisualActionType,
+        )
+
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(target_type=CaptureTargetType.DISPLAY)
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        pt = None
+        if "target_point" in input_data and isinstance(input_data["target_point"], dict):
+            pt = Point2D(**input_data["target_point"])
+
+        req = VisualActionRequest(
+            action_type=VisualActionType(input_data["action_type"]),
+            target_point=pt,
+            target_element=input_data.get("target_element"),
+            text=input_data.get("text"),
+            key=input_data.get("key"),
+            button=input_data.get("button", "left"),
+            expected_change=input_data.get("expected_change"),
+        )
+
+        try:
+            res = await visual_computer_service.execute_action(session_id, req)
+            return {
+                "success": res.success,
+                "action_type": res.action_type.value,
+                "verification_status": res.verification_status.value,
+                "visual_difference": res.visual_difference,
+                "verification_notes": res.verification_notes or "",
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+
+class VisualClickCapability(BaseCapability):
+    """Clicks an element identified by coordinate or query text."""
+
+    capability_id = "visual_click"
+    name = "Visual Click"
+    version = "1.0.0"
+    description = "Locates a visual element and performs a mouse click with post-click verification."
+    requires_ai = False
+    is_deterministic = False
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "x": {"type": "integer"},
+                "y": {"type": "integer"},
+                "target_element": {"type": "string"},
+                "button": {"type": "string", "default": "left"},
+                "session_id": {"type": "string"},
+            },
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "verification_status": {"type": "string"},
+                "visual_difference": {"type": "number"},
+            },
+            "required": ["success", "verification_status"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import (
+            CaptureSessionCreateRequest,
+            CaptureTargetType,
+            Point2D,
+            VisualActionRequest,
+            VisualActionType,
+        )
+
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(target_type=CaptureTargetType.DISPLAY)
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        pt = None
+        if "x" in input_data and "y" in input_data:
+            pt = Point2D(x=int(input_data["x"]), y=int(input_data["y"]))
+
+        req = VisualActionRequest(
+            action_type=VisualActionType.CLICK,
+            target_point=pt,
+            target_element=input_data.get("target_element"),
+            button=input_data.get("button", "left"),
+        )
+
+        try:
+            res = await visual_computer_service.execute_action(session_id, req)
+            return {
+                "success": res.success,
+                "verification_status": res.verification_status.value,
+                "visual_difference": res.visual_difference,
+                "verification_notes": res.verification_notes or "",
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+
+class VisualEnterTextCapability(BaseCapability):
+    """Enters text into a visual element or active control."""
+
+    capability_id = "visual_enter_text"
+    name = "Visual Enter Text"
+    version = "1.0.0"
+    description = "Enters Unicode text into a focused or visually grounded desktop control."
+    requires_ai = False
+    is_deterministic = False
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string"},
+                "target_element": {"type": "string"},
+                "x": {"type": "integer"},
+                "y": {"type": "integer"},
+                "session_id": {"type": "string"},
+            },
+            "required": ["text"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "verification_status": {"type": "string"},
+            },
+            "required": ["success", "verification_status"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.visual.service import visual_computer_service
+        from app.visual.contracts import (
+            CaptureSessionCreateRequest,
+            CaptureTargetType,
+            Point2D,
+            VisualActionRequest,
+            VisualActionType,
+        )
+
+        session_id = input_data.get("session_id")
+        created = False
+        if not session_id:
+            s_resp = await visual_computer_service.create_session(
+                CaptureSessionCreateRequest(target_type=CaptureTargetType.DISPLAY)
+            )
+            session_id = s_resp.session_id
+            created = True
+
+        pt = None
+        if "x" in input_data and "y" in input_data:
+            pt = Point2D(x=int(input_data["x"]), y=int(input_data["y"]))
+
+        req = VisualActionRequest(
+            action_type=VisualActionType.ENTER_TEXT,
+            text=str(input_data["text"]),
+            target_point=pt,
+            target_element=input_data.get("target_element"),
+        )
+
+        try:
+            res = await visual_computer_service.execute_action(session_id, req)
+            return {
+                "success": res.success,
+                "verification_status": res.verification_status.value,
+                "visual_difference": res.visual_difference,
+            }
+        finally:
+            if created and session_id:
+                await visual_computer_service.close_session(session_id)
+
+

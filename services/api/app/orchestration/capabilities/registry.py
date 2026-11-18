@@ -36,6 +36,15 @@ from app.orchestration.capabilities.computer import (
     DesktopExecuteActionCapability,
     StructuralParseAccessibilityTreeCapability,
     VisualInspectImageMetadataCapability,
+    VisualCaptureDisplayCapability,
+    VisualCaptureWindowCapability,
+    VisualRunOCRCapability,
+    VisualFindTextCapability,
+    VisualDetectElementsCapability,
+    VisualGroundCapability,
+    VisualExecuteActionCapability,
+    VisualClickCapability,
+    VisualEnterTextCapability,
 )
 from app.orchestration.capabilities.creative_comms import (
     CreativeSceneSpecificationCapability,
@@ -160,6 +169,16 @@ class CapabilityRegistry:
             DesktopSetValueCapability(),
             DesktopManageWindowCapability(),
             DesktopExecuteActionCapability(),
+            # Stage 18: Live Visual Computer Automation
+            VisualCaptureDisplayCapability(),
+            VisualCaptureWindowCapability(),
+            VisualRunOCRCapability(),
+            VisualFindTextCapability(),
+            VisualDetectElementsCapability(),
+            VisualGroundCapability(),
+            VisualExecuteActionCapability(),
+            VisualClickCapability(),
+            VisualEnterTextCapability(),
         ]
         for cap in defaults:
             self.register(cap)

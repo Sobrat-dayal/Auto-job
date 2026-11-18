@@ -24,6 +24,7 @@ from app.api.v1.endpoints.storage import router as storage_router
 from app.api.v1.endpoints.system import router as system_router
 from app.api.v1.endpoints.tasks import router as tasks_router
 from app.api.v1.endpoints.version import router as version_router
+from app.api.v1.endpoints.visual import router as visual_router
 from app.api.v1.endpoints.workers import router as workers_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
@@ -54,3 +55,4 @@ api_v1_router.include_router(security_router)
 api_v1_router.include_router(memory_router)
 api_v1_router.include_router(browser_router)
 api_v1_router.include_router(desktop_router)
+api_v1_router.include_router(visual_router)

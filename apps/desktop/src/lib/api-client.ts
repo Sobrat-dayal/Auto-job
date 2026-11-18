@@ -98,6 +98,18 @@ import type {
   DesktopTaskRequest,
   DesktopTaskResponse,
   DesktopDiagnosticsInfo,
+  DisplayInfo,
+  OCRResult,
+  OCRLine,
+  VisualElementDetection,
+  VisualGroundingResult,
+  VisualActionRequest,
+  VisualActionResult,
+  VisualDiagnosticsInfo,
+  CaptureSessionCreateRequest,
+  CaptureSessionResponse,
+  VisualTaskRequest,
+  VisualTaskResponse,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1340,6 +1352,126 @@ export class ApiClient {
 
   async getDesktopCapabilities(): Promise<Array<{ name: string; description: string }>> {
     return this.request<Array<{ name: string; description: string }>>('/api/v1/desktop/capabilities');
+  }
+
+  // =========================================================================
+  // Stage 18: Visual Computer Automation
+  // =========================================================================
+
+  async getVisualDiagnostics(): Promise<VisualDiagnosticsInfo> {
+    return this.request<VisualDiagnosticsInfo>('/api/v1/visual/diagnostics');
+  }
+
+  async listVisualMonitors(): Promise<DisplayInfo[]> {
+    return this.request<DisplayInfo[]>('/api/v1/visual/monitors');
+  }
+
+  async createVisualSession(req: CaptureSessionCreateRequest): Promise<CaptureSessionResponse> {
+    return this.request<CaptureSessionResponse>('/api/v1/visual/sessions', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listVisualSessions(): Promise<CaptureSessionResponse[]> {
+    return this.request<CaptureSessionResponse[]>('/api/v1/visual/sessions');
+  }
+
+  async getVisualSession(sessionId: string): Promise<CaptureSessionResponse> {
+    return this.request<CaptureSessionResponse>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}`);
+  }
+
+  async closeVisualSession(sessionId: string): Promise<{ session_id: string; closed: boolean }> {
+    return this.request<{ session_id: string; closed: boolean }>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async captureVisualFrame(sessionId: string): Promise<{
+    frame_id: string;
+    session_id: string;
+    metadata: any;
+    thumbnail_b64: string;
+  }> {
+    return this.request(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}/frame`, {
+      method: 'POST',
+    });
+  }
+
+  async runVisualOCR(sessionId: string): Promise<OCRResult> {
+    return this.request<OCRResult>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}/ocr`, {
+      method: 'POST',
+    });
+  }
+
+  async findVisualText(sessionId: string, query: string): Promise<OCRLine[]> {
+    return this.request<OCRLine[]>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}/find-text`, {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    });
+  }
+
+  async detectVisualElements(sessionId: string): Promise<VisualElementDetection[]> {
+    return this.request<VisualElementDetection[]>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}/detect-elements`, {
+      method: 'POST',
+    });
+  }
+
+  async groundVisualQuery(sessionId: string, query: string): Promise<VisualGroundingResult> {
+    return this.request<VisualGroundingResult>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}/ground`, {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    });
+  }
+
+  async executeVisualAction(sessionId: string, action: VisualActionRequest): Promise<VisualActionResult> {
+    return this.request<VisualActionResult>(`/api/v1/visual/sessions/${encodeURIComponent(sessionId)}/actions`, {
+      method: 'POST',
+      body: JSON.stringify(action),
+    });
+  }
+
+  async quickVisualClick(
+    sessionId: string,
+    x: number,
+    y: number,
+    button: string = 'left',
+    clicks: number = 1,
+  ): Promise<VisualActionResult> {
+    return this.request<VisualActionResult>('/api/v1/visual/quick-click', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId, x, y, button, clicks }),
+    });
+  }
+
+  async quickVisualType(
+    sessionId: string,
+    text: string,
+    targetElement?: string,
+  ): Promise<VisualActionResult> {
+    return this.request<VisualActionResult>('/api/v1/visual/quick-type', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId, text, target_element: targetElement }),
+    });
+  }
+
+  async submitVisualTask(req: VisualTaskRequest): Promise<VisualTaskResponse> {
+    return this.request<VisualTaskResponse>('/api/v1/visual/tasks', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listVisualTasks(): Promise<VisualTaskResponse[]> {
+    return this.request<VisualTaskResponse[]>('/api/v1/visual/tasks');
+  }
+
+  async getVisualTask(taskId: string): Promise<VisualTaskResponse> {
+    return this.request<VisualTaskResponse>(`/api/v1/visual/tasks/${encodeURIComponent(taskId)}`);
+  }
+
+  async listVisualRecoveryEvents(): Promise<any[]> {
+    return this.request<any[]>('/api/v1/visual/recovery-events');
   }
 }
 
