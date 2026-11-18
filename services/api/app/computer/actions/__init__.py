@@ -1,0 +1,1 @@
+"""Desktop action execution and verification subsystem."""

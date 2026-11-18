@@ -25,6 +25,15 @@ from app.orchestration.capabilities.computer import (
     BrowserSubmitFormCapability,
     BrowserTakeScreenshotCapability,
     DesktopPlanOperationCapability,
+    DesktopListApplicationsCapability,
+    DesktopListWindowsCapability,
+    DesktopInspectWindowCapability,
+    DesktopInspectTreeCapability,
+    DesktopFindElementsCapability,
+    DesktopInvokeCapability,
+    DesktopSetValueCapability,
+    DesktopManageWindowCapability,
+    DesktopExecuteActionCapability,
     StructuralParseAccessibilityTreeCapability,
     VisualInspectImageMetadataCapability,
 )
@@ -141,6 +150,16 @@ class CapabilityRegistry:
             BrowserSubmitFormCapability(),
             BrowserTakeScreenshotCapability(),
             BrowserManageTabsCapability(),
+            # Stage 17: Native Windows Structural Automation
+            DesktopListApplicationsCapability(),
+            DesktopListWindowsCapability(),
+            DesktopInspectWindowCapability(),
+            DesktopInspectTreeCapability(),
+            DesktopFindElementsCapability(),
+            DesktopInvokeCapability(),
+            DesktopSetValueCapability(),
+            DesktopManageWindowCapability(),
+            DesktopExecuteActionCapability(),
         ]
         for cap in defaults:
             self.register(cap)

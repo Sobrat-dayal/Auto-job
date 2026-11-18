@@ -85,6 +85,19 @@ import type {
   BrowserDownloadResponse,
   BrowserTaskResponse,
   BrowserTaskCreateRequest,
+  DesktopSessionInfo,
+  DesktopApplicationInfo,
+  WindowInfo,
+  WindowManageAction,
+  InspectionOptions,
+  UITreeSnapshot,
+  ElementQuery,
+  UIElementInfo,
+  DesktopActionRequest,
+  DesktopActionResult,
+  DesktopTaskRequest,
+  DesktopTaskResponse,
+  DesktopDiagnosticsInfo,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -1231,6 +1244,102 @@ export class ApiClient {
       method: 'POST',
       body: JSON.stringify(req),
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Stage 17: Native Windows Structural Automation Methods
+  // -------------------------------------------------------------------------
+
+  async getDesktopStatus(): Promise<DesktopDiagnosticsInfo> {
+    return this.request<DesktopDiagnosticsInfo>('/api/v1/desktop/status');
+  }
+
+  async getDesktopSession(): Promise<DesktopSessionInfo> {
+    return this.request<DesktopSessionInfo>('/api/v1/desktop/session');
+  }
+
+  async listDesktopApplications(): Promise<DesktopApplicationInfo[]> {
+    return this.request<DesktopApplicationInfo[]>('/api/v1/desktop/applications');
+  }
+
+  async launchDesktopApplication(executableName: string, args: string[] = []): Promise<WindowInfo | null> {
+    return this.request<WindowInfo | null>('/api/v1/desktop/applications/launch', {
+      method: 'POST',
+      body: JSON.stringify({ executable_name: executableName, arguments: args }),
+    });
+  }
+
+  async listDesktopWindows(includeInvisible = false): Promise<WindowInfo[]> {
+    return this.request<WindowInfo[]>(`/api/v1/desktop/windows?include_invisible=${includeInvisible}`);
+  }
+
+  async getDesktopWindow(windowRef: string): Promise<WindowInfo> {
+    return this.request<WindowInfo>(`/api/v1/desktop/windows/${encodeURIComponent(windowRef)}`);
+  }
+
+  async manageDesktopWindow(windowRef: string, action: WindowManageAction): Promise<{ window_ref: string; action: string; success: boolean }> {
+    return this.request(`/api/v1/desktop/windows/${encodeURIComponent(windowRef)}/manage`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+    });
+  }
+
+  async inspectDesktopTree(windowRef: string, options?: InspectionOptions): Promise<UITreeSnapshot> {
+    return this.request<UITreeSnapshot>(`/api/v1/desktop/windows/${encodeURIComponent(windowRef)}/inspect`, {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
+  }
+
+  async searchDesktopElements(windowRef: string, query: ElementQuery): Promise<UIElementInfo[]> {
+    return this.request<UIElementInfo[]>('/api/v1/desktop/elements/search', {
+      method: 'POST',
+      body: JSON.stringify({ window_ref: windowRef, query }),
+    });
+  }
+
+  async executeDesktopAction(req: DesktopActionRequest): Promise<DesktopActionResult> {
+    return this.request<DesktopActionResult>('/api/v1/desktop/actions', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listDesktopActions(limit = 50): Promise<DesktopActionResult[]> {
+    return this.request<DesktopActionResult[]>(`/api/v1/desktop/actions?limit=${limit}`);
+  }
+
+  async getDesktopAction(actionId: string): Promise<DesktopActionResult> {
+    return this.request<DesktopActionResult>(`/api/v1/desktop/actions/${encodeURIComponent(actionId)}`);
+  }
+
+  async listDesktopTasks(): Promise<DesktopTaskResponse[]> {
+    return this.request<DesktopTaskResponse[]>('/api/v1/desktop/tasks');
+  }
+
+  async submitDesktopTask(req: DesktopTaskRequest): Promise<DesktopTaskResponse> {
+    return this.request<DesktopTaskResponse>('/api/v1/desktop/tasks', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getDesktopTask(taskId: string): Promise<DesktopTaskResponse> {
+    return this.request<DesktopTaskResponse>(`/api/v1/desktop/tasks/${encodeURIComponent(taskId)}`);
+  }
+
+  async cancelDesktopTask(taskId: string): Promise<{ task_id: string; status: string }> {
+    return this.request(`/api/v1/desktop/tasks/${encodeURIComponent(taskId)}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  async getDesktopDiagnostics(): Promise<DesktopDiagnosticsInfo> {
+    return this.request<DesktopDiagnosticsInfo>('/api/v1/desktop/diagnostics');
+  }
+
+  async getDesktopCapabilities(): Promise<Array<{ name: string; description: string }>> {
+    return this.request<Array<{ name: string; description: string }>>('/api/v1/desktop/capabilities');
   }
 }
 

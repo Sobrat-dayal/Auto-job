@@ -925,6 +925,108 @@ class BrowserDownloadRecord(Base):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+# ===========================================================================
+# Stage 17: Windows Structural UI Automation Models
+# ===========================================================================
+
+class DesktopSessionRecord(Base):
+    __tablename__ = "desktop_sessions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    wts_session_id: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="active", nullable=False, index=True)  # active, locked, disconnected, unavailable
+    desktop_name: Mapped[str] = mapped_column(String(128), default="Default", nullable=False)
+    user_name: Mapped[str] = mapped_column(String(128), default="", nullable=False)
+    resolution: Mapped[str] = mapped_column(String(64), default="1920x1080", nullable=False)
+    is_interactive: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_locked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    last_active_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class DesktopApplicationRecord(Base):
+    __tablename__ = "desktop_applications"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    executable_path: Mapped[str] = mapped_column(String(512), nullable=False)
+    executable_name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    publisher: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    is_allowed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+    risk_level: Mapped[str] = mapped_column(String(32), default="LOW", nullable=False)
+    integrity_level: Mapped[str] = mapped_column(String(32), default="medium", nullable=False)
+    last_detected_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class DesktopWindowRecord(Base):
+    __tablename__ = "desktop_windows"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)  # window_ref: win_{hwnd}_{pid}
+    hwnd: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    pid: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(512), default="", nullable=False)
+    window_class: Mapped[str] = mapped_column(String(256), default="", nullable=False)
+    process_name: Mapped[str] = mapped_column(String(128), default="", nullable=False)
+    is_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_foreground: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_minimized: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_maximized: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    bounds_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    last_inspected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class DesktopTaskRecord(Base):
+    __tablename__ = "desktop_tasks"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    workflow_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    step_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_id: Mapped[str] = mapped_column(String(64), default="windows_computer_agent", nullable=False, index=True)
+    goal: Mapped[str] = mapped_column(Text, nullable=False)
+    target_app: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)  # pending, running, completed, failed, cancelled
+    current_step: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_steps: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class DesktopActionRecord(Base):
+    __tablename__ = "desktop_actions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    task_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    action_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)  # invoke, set_value, select, toggle, expand, collapse, scroll, read_text, activate_window, close_window, press_key
+    target_window_ref: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    target_element_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    parameters_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)  # pending, executing, succeeded, failed, blocked
+    verification_status: Mapped[str] = mapped_column(String(32), default="unknown", nullable=False)  # verified, failed, unknown, skipped
+    result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    duration_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class DesktopSnapshotRecord(Base):
+    __tablename__ = "desktop_snapshots"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=generate_uuid)
+    window_ref: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(512), default="", nullable=False)
+    node_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    depth: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    tree_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    token_estimate: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
 
 
 

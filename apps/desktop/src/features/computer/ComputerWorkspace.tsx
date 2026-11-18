@@ -11,18 +11,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrowserWorkspace } from './browser/BrowserWorkspace';
+import { DesktopWorkspace } from './desktop/DesktopWorkspace';
 
 export const ComputerWorkspace: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const getInitialTab = (): string => {
+    if (location.pathname.includes('/computer/desktop')) return 'desktop';
+    if (location.pathname.includes('/computer/browser')) return 'browser';
     if (location.pathname.includes('/computer/live')) return 'live';
     if (location.pathname.includes('/computer/tasks')) return 'tasks';
-    if (location.pathname.includes('/computer/browser')) return 'browser';
     if (location.pathname.includes('/computer/history')) return 'history';
     if (location.pathname.includes('/computer/permissions')) return 'permissions';
-    return 'browser'; // Default to browser in Stage 16
+    return 'desktop'; // Default to native desktop in Stage 17
   };
 
   const [activeTab, setActiveTab] = React.useState<string>(getInitialTab());
@@ -33,11 +35,13 @@ export const ComputerWorkspace: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === 'live') navigate('/computer/live');
+    if (tabId === 'desktop') navigate('/computer/desktop');
+    else if (tabId === 'live') navigate('/computer/live');
     else navigate(`/computer/${tabId}`);
   };
 
   const tabs = [
+    { id: 'desktop', label: 'Windows Structural Automation', badge: 'Stage 17 Active' },
     { id: 'browser', label: 'Chromium Browser Automation', badge: 'Stage 16 Active' },
     { id: 'live', label: 'Live Desktop Viewport' },
     { id: 'tasks', label: 'Computer Tasks', badge: 0 },
@@ -49,13 +53,19 @@ export const ComputerWorkspace: React.FC = () => {
     <ModulePage>
       <ModuleHeader
         title="Computer Control & Automation"
-        description="Dual-modality computer interaction: Playwright Chromium browser automation and native Windows UI Automation."
+        description="Dual-modality computer interaction: Microsoft UI Automation native application control and Playwright Chromium browser automation."
         icon={Monitor}
-        stageTag="Stage 16 Production Active"
+        stageTag="Stage 17 Production Active"
         badgeLabel="Stage 14 Safety Gate Enforced"
         badgeVariant="outline"
         actions={
           <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-cyan-500/30 bg-cyan-500/10 text-xs font-mono text-cyan-400"
+            >
+              UIA Engine: Operational
+            </Badge>
             <Badge
               variant="outline"
               className="border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-400"
@@ -72,16 +82,16 @@ export const ComputerWorkspace: React.FC = () => {
         }
       />
 
-      {activeTab !== 'browser' && (
+      {activeTab !== 'browser' && activeTab !== 'desktop' && (
         <ModuleUnavailableState
-          moduleName="Native Desktop Automation (Stage 17-18)"
-          stageTag="Stage 17 & 18"
-          stageName="Desktop Perception & Action Drivers"
-          description="Autonomous mouse clicks, keystrokes, and native Windows accessibility tree traversal will activate in Stages 17–18. Browser automation is now live on the 'Chromium Browser Automation' tab."
+          moduleName="Visual Grounding & OCR Screen Perception (Stage 18)"
+          stageTag="Stage 18"
+          stageName="Desktop Vision & Coordinate Action"
+          description="Coordinate-based mouse clicks and visual screen perception will activate in Stage 18. Native Windows structural UI automation is active under 'Windows Structural Automation' and Playwright browser automation is active under 'Chromium Browser Automation'."
           plannedCapabilities={[
             'Chromium CDP browser automation & form filling (Stage 16 - Active)',
-            'Visual grounding screen perception with coordinate masks (Stage 17)',
-            'Sub-millisecond Windows UI Automation (UIA) tree traversal (Stage 18)',
+            'Microsoft UI Automation & Win32 native application control (Stage 17 - Active)',
+            'Visual grounding screen perception with coordinate masks (Stage 18)',
             'Hardware-level panic abort hotkey and human gatekeeping (Stage 19)',
           ]}
         />
@@ -89,6 +99,7 @@ export const ComputerWorkspace: React.FC = () => {
 
       <ModuleTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
+      {activeTab === 'desktop' && <DesktopWorkspace />}
       {activeTab === 'browser' && <BrowserWorkspace />}
 
       {activeTab === 'live' && (

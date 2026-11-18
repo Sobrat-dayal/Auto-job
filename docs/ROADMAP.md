@@ -333,14 +333,25 @@ AUTONOM is an enterprise-grade, production-oriented, multi-agent Windows 11 desk
   - Automated Verification: 145/145 pytest backend tests passing (100%), 131/131 Vitest desktop tests passing (100% across 34 files), clean TypeScript typecheck across monorepo, clean Vite production build.
 - **Acceptance Criteria**: All Stage 16 requirements satisfied with zero fake data and fail-closed security. Ready for Stage 17. DO NOT begin Stage 17 until explicitly instructed.
 
-#### Stage 17: Extensible Tool Registry & Dynamic Plugin Loading
+#### Stage 17: Windows Structural UI Automation, Native Application Control & Accessibility Tree Inspection
 
-- **Goal**: Dynamic plugin system allowing users to load custom Python or TypeScript tools without modifying core application code.
+- **Status**: COMPLETE
+- **Goal**: Full structural control of Microsoft Windows desktop applications via Microsoft UI Automation (UIA) and Win32 APIs, eliminating coordinate-based fragile vision clicking.
 - **Key Deliverables**:
-  - Plugin manifest format (`plugin.json`) specifying metadata, tools, and permissions.
-  - Safe dynamic import and dependency verification system.
-  - Plugin management UI in Settings with enable/disable toggles.
-- **Acceptance Criteria**: Custom plugin dropped into `plugins/` directory is automatically discovered, verified, and exposed to agents.
+  - Native Windows interactive session discovery, lock state detection (`OpenInputDesktop`), and screen resolution tracking.
+  - Native top-level window discovery via `EnumDesktopWindows` with compound reference tracking (`window_ref = win_{hwnd}_{pid}`) and recycled HWND defense.
+  - Dedicated Multi-Threaded Apartment (MTA) COM worker supervisor (`UIAWorkerSupervisor`) with desktop attachment (`SetThreadDesktop`) preventing thread affinity deadlocks.
+  - Bounded accessibility tree inspection (`UITreeInspector`) supporting depth bounds, node limits, and compact outline compilation (`UISnapshotCompiler`) for token-efficient LLM agent reasoning.
+  - Semantic element locators (`LocatorResolver`) and typed pattern execution (`PatternExecutor`) covering `Invoke`, `Value`, `Toggle`, `SelectionItem`, `ExpandCollapse`, and `Scroll`.
+  - Legacy Win32 messaging fallback (`Win32CompatibilityAdapter`) and focused keyboard input adapter.
+  - Defense-in-depth security: fail-closed Emergency Stop, approved application allowlists (`DEFAULT_ALLOWED_APPS`), token integrity level enforcement, path traversal guard (`FileDialogSafetyGuard`), and sensitive data masking (`PrivacyFilter`).
+  - Post-action mutation verification (`StructuralActionVerifier`) asserting state mutations.
+  - 9 registered desktop capabilities in capability registry; `windows_computer_agent` and `structural_ui_agent` upgraded to `AvailabilityState.OPERATIONAL`.
+  - 18 typed REST endpoints under `/api/v1/desktop/*` with full authentication enforcement.
+  - Desktop frontend workspace (`/computer` under `'desktop'` tab) with Overview, Applications, Windows, UI Tree Inspector, Action History, Tasks, and Diagnostics.
+  - 10 architectural documents (`WINDOWS_AUTOMATION_ARCHITECTURE.md`, `UI_AUTOMATION_ENGINE.md`, `UIA_COM_THREADING.md`, `WINDOW_DISCOVERY.md`, `ACCESSIBILITY_TREE_INSPECTION.md`, `DESKTOP_ACTION_CONTRACTS.md`, `WINDOWS_AUTOMATION_SECURITY.md`, `DESKTOP_RECOVERY.md`, `COMPUTER_AGENT_INTEGRATION.md`, `WINDOWS_AUTOMATION_TESTING.md`).
+  - Automated Verification: 166/166 pytest backend tests passing (100%), 134/134 Vitest desktop tests passing (100% across 35 files), clean TypeScript typecheck across monorepo, clean Vite production build.
+- **Acceptance Criteria**: All Stage 17 requirements satisfied with zero fake data and fail-closed security. Ready for Stage 18. DO NOT begin Stage 18 until explicitly instructed.
 
 #### Stage 18: Streaming Token Parser & Interactive Agent Console
 

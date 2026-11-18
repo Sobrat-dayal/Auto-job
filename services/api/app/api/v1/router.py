@@ -9,6 +9,7 @@ from app.api.v1.endpoints.artifacts import router as artifacts_router
 from app.api.v1.endpoints.browser import router as browser_router
 from app.api.v1.endpoints.credentials import router as credentials_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
+from app.api.v1.endpoints.desktop import router as desktop_router
 from app.api.v1.endpoints.events import router as events_router
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.integrations import router as integrations_router
@@ -52,3 +53,4 @@ api_v1_router.include_router(orchestration_router)
 api_v1_router.include_router(security_router)
 api_v1_router.include_router(memory_router)
 api_v1_router.include_router(browser_router)
+api_v1_router.include_router(desktop_router)

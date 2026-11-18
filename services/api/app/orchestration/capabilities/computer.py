@@ -707,3 +707,515 @@ class BrowserManageTabsCapability(BaseCapability):
             return {"action": "list", "success": True, "tabs": [t.model_dump() for t in tabs]}
         return {"action": action, "success": False}
 
+
+# ---------------------------------------------------------------------------
+# Stage 17: Executable Windows Structural UI Automation Capabilities
+# ---------------------------------------------------------------------------
+
+class DesktopListApplicationsCapability(BaseCapability):
+    """Discovers running native Windows desktop applications."""
+
+    capability_id = "desktop_list_applications"
+    name = "List Desktop Applications"
+    version = "1.0.0"
+    description = "Discovers running interactive processes, risk levels, and executables on Windows."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {"type": "object", "properties": {}}
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "applications": {"type": "array", "items": {"type": "object"}},
+                "total_count": {"type": "integer"},
+            },
+            "required": ["applications", "total_count"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.service import desktop_service
+        apps = desktop_service.list_applications()
+        return {
+            "applications": [a.model_dump() for a in apps],
+            "total_count": len(apps),
+        }
+
+
+class DesktopListWindowsCapability(BaseCapability):
+    """Enumerates active top-level Windows desktop windows."""
+
+    capability_id = "desktop_list_windows"
+    name = "List Desktop Windows"
+    version = "1.0.0"
+    description = "Enumerates top-level windows on the interactive Windows desktop."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "include_invisible": {"type": "boolean"},
+            },
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "windows": {"type": "array", "items": {"type": "object"}},
+                "total_count": {"type": "integer"},
+            },
+            "required": ["windows", "total_count"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.service import desktop_service
+        inc_inv = bool(input_data.get("include_invisible", False))
+        windows = desktop_service.list_windows(include_invisible=inc_inv)
+        return {
+            "windows": [w.model_dump() for w in windows],
+            "total_count": len(windows),
+        }
+
+
+class DesktopInspectWindowCapability(BaseCapability):
+    """Retrieves and validates metadata for a specific native window."""
+
+    capability_id = "desktop_inspect_window"
+    name = "Inspect Window Metadata"
+    version = "1.0.0"
+    description = "Validates and retrieves bounds, state, and process metadata for a target window."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window_ref": {"type": "string"},
+            },
+            "required": ["window_ref"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window": {"type": "object"},
+                "exists": {"type": "boolean"},
+            },
+            "required": ["exists"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.service import desktop_service
+        w_ref = input_data["window_ref"]
+        win = desktop_service.get_window(w_ref)
+        if not win:
+            return {"exists": False, "window": None}
+        return {"exists": True, "window": win.model_dump()}
+
+
+class DesktopInspectTreeCapability(BaseCapability):
+    """Traverses and inspects the Microsoft UI Automation tree of a target window."""
+
+    capability_id = "desktop_inspect_tree"
+    name = "Inspect UI Automation Tree"
+    version = "1.0.0"
+    description = "Traverses the bounded accessibility tree of an authorized application window."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window_ref": {"type": "string"},
+                "max_depth": {"type": "integer"},
+                "max_nodes": {"type": "integer"},
+                "view_type": {"type": "string", "enum": ["control", "raw"]},
+            },
+            "required": ["window_ref"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "snapshot": {"type": "object"},
+                "total_nodes": {"type": "integer"},
+                "is_truncated": {"type": "boolean"},
+                "estimated_tokens": {"type": "integer"},
+            },
+            "required": ["snapshot", "total_nodes", "is_truncated", "estimated_tokens"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.contracts import InspectionOptions
+        from app.computer.service import desktop_service
+
+        opts = InspectionOptions(
+            max_depth=int(input_data.get("max_depth", 6)),
+            max_nodes=int(input_data.get("max_nodes", 250)),
+            view_type=input_data.get("view_type", "control"),
+        )
+        snapshot = await desktop_service.inspect_window_tree(input_data["window_ref"], opts)
+        return {
+            "snapshot": snapshot.model_dump(),
+            "total_nodes": snapshot.total_nodes,
+            "is_truncated": snapshot.is_truncated,
+            "estimated_tokens": snapshot.estimated_tokens,
+        }
+
+
+class DesktopFindElementsCapability(BaseCapability):
+    """Locates specific accessible controls in a target window using semantic query criteria."""
+
+    capability_id = "desktop_find_elements"
+    name = "Find UI Elements"
+    version = "1.0.0"
+    description = "Finds controls by AutomationId, Name, ControlType, or Class within an authorized window."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window_ref": {"type": "string"},
+                "automation_id": {"type": "string"},
+                "name": {"type": "string"},
+                "control_type": {"type": "string"},
+                "class_name": {"type": "string"},
+                "exact_name": {"type": "boolean"},
+            },
+            "required": ["window_ref"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "elements": {"type": "array", "items": {"type": "object"}},
+                "total_found": {"type": "integer"},
+            },
+            "required": ["elements", "total_found"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.contracts import ElementQuery
+        from app.computer.service import desktop_service
+
+        query = ElementQuery(
+            automation_id=input_data.get("automation_id"),
+            name=input_data.get("name"),
+            control_type=input_data.get("control_type"),
+            class_name=input_data.get("class_name"),
+            exact_name=bool(input_data.get("exact_name", False)),
+        )
+        elements = await desktop_service.find_elements(input_data["window_ref"], query)
+        return {
+            "elements": [el.model_dump() for el in elements],
+            "total_found": len(elements),
+        }
+
+
+class DesktopInvokeCapability(BaseCapability):
+    """Invokes a button or command control in an authorized desktop window."""
+
+    capability_id = "desktop_invoke"
+    name = "Invoke Desktop Control"
+    version = "1.0.0"
+    description = "Activates a button, menu item, or command using UI Automation InvokePattern."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window_ref": {"type": "string"},
+                "automation_id": {"type": "string"},
+                "name": {"type": "string"},
+                "control_type": {"type": "string"},
+            },
+            "required": ["window_ref"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "action_id": {"type": "string"},
+                "status": {"type": "string"},
+                "verification_status": {"type": "string"},
+            },
+            "required": ["action_id", "status", "verification_status"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.contracts import DesktopActionRequest, DesktopActionType, ElementQuery
+        from app.computer.service import desktop_service
+
+        query = ElementQuery(
+            automation_id=input_data.get("automation_id"),
+            name=input_data.get("name"),
+            control_type=input_data.get("control_type"),
+        )
+        req = DesktopActionRequest(
+            action_type=DesktopActionType.INVOKE,
+            window_ref=input_data["window_ref"],
+            locator=query,
+        )
+        res = await desktop_service.execute_action(req)
+        return {
+            "action_id": res.action_id,
+            "status": res.status,
+            "verification_status": res.verification_status,
+            "result_data": res.result_data,
+        }
+
+
+class DesktopSetValueCapability(BaseCapability):
+    """Sets text content into an editable control in an authorized desktop window."""
+
+    capability_id = "desktop_set_value"
+    name = "Set Control Text Value"
+    version = "1.0.0"
+    description = "Enters validated text into an editable control via UI Automation ValuePattern."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = True
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window_ref": {"type": "string"},
+                "value": {"type": "string"},
+                "automation_id": {"type": "string"},
+                "name": {"type": "string"},
+                "control_type": {"type": "string"},
+            },
+            "required": ["window_ref", "value"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "action_id": {"type": "string"},
+                "status": {"type": "string"},
+                "verification_status": {"type": "string"},
+            },
+            "required": ["action_id", "status", "verification_status"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.contracts import DesktopActionRequest, DesktopActionType, ElementQuery
+        from app.computer.service import desktop_service
+
+        query = ElementQuery(
+            automation_id=input_data.get("automation_id"),
+            name=input_data.get("name"),
+            control_type=input_data.get("control_type"),
+        )
+        req = DesktopActionRequest(
+            action_type=DesktopActionType.SET_VALUE,
+            window_ref=input_data["window_ref"],
+            locator=query,
+            value=input_data["value"],
+        )
+        res = await desktop_service.execute_action(req)
+        return {
+            "action_id": res.action_id,
+            "status": res.status,
+            "verification_status": res.verification_status,
+            "result_data": res.result_data,
+        }
+
+
+class DesktopManageWindowCapability(BaseCapability):
+    """Manages window states: activate, minimize, maximize, restore, close."""
+
+    capability_id = "desktop_manage_window"
+    name = "Manage Window State"
+    version = "1.0.0"
+    description = "Changes window state (activate, minimize, maximize, restore, close) with validation."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "window_ref": {"type": "string"},
+                "action": {"type": "string", "enum": ["activate", "minimize", "maximize", "restore", "close"]},
+            },
+            "required": ["window_ref", "action"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "action": {"type": "string"},
+            },
+            "required": ["success", "action"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.contracts import WindowManageAction
+        from app.computer.service import desktop_service
+
+        act = WindowManageAction(input_data["action"])
+        success = await desktop_service.manage_window(input_data["window_ref"], act)
+        return {"success": success, "action": act.value}
+
+
+class DesktopExecuteActionCapability(BaseCapability):
+    """Executes a structured desktop action request across any supported control pattern."""
+
+    capability_id = "desktop_execute_action"
+    name = "Execute Desktop Action"
+    version = "1.0.0"
+    description = "Dispatches a typed desktop action request (invoke, set_value, toggle, select, scroll, press_key)."
+    requires_ai = False
+    is_deterministic = True
+    default_verification_policy = VerificationPolicy.OUTPUT_CONTRACT
+    timeout_seconds = 30
+    idempotent = False
+
+    @property
+    def input_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "action_type": {"type": "string"},
+                "window_ref": {"type": "string"},
+                "value": {"type": "string"},
+                "key": {"type": "string"},
+                "modifiers": {"type": "array", "items": {"type": "string"}},
+                "locator": {"type": "object"},
+            },
+            "required": ["action_type", "window_ref"],
+        }
+
+    @property
+    def output_schema(self) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "action_id": {"type": "string"},
+                "status": {"type": "string"},
+                "verification_status": {"type": "string"},
+            },
+            "required": ["action_id", "status", "verification_status"],
+        }
+
+    async def execute(
+        self,
+        input_data: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from app.computer.contracts import DesktopActionRequest, DesktopActionType, ElementQuery
+        from app.computer.service import desktop_service
+
+        loc = None
+        if "locator" in input_data and isinstance(input_data["locator"], dict):
+            loc = ElementQuery(**input_data["locator"])
+
+        req = DesktopActionRequest(
+            action_type=DesktopActionType(input_data["action_type"]),
+            window_ref=input_data["window_ref"],
+            value=input_data.get("value"),
+            key=input_data.get("key"),
+            modifiers=input_data.get("modifiers", []),
+            locator=loc,
+        )
+        res = await desktop_service.execute_action(req)
+        return {
+            "action_id": res.action_id,
+            "status": res.status,
+            "verification_status": res.verification_status,
+            "duration_ms": res.duration_ms,
+            "result_data": res.result_data,
+        }
+
+

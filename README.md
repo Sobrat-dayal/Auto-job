@@ -128,6 +128,16 @@ AUTONOM is an enterprise-grade, multi-agent Windows 11 desktop application desig
 - [Browser Execution Recovery & Self-Healing](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_RECOVERY.md)
 - [Multi-Agent Browser Integration](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_AGENT_INTEGRATION.md)
 - [Stage 16 Browser Testing & Verification](file:///e:/proooo/AUTO%20JOB/docs/BROWSER_TESTING.md)
+- [Windows Structural Automation Architecture](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_AUTOMATION_ARCHITECTURE.md)
+- [UI Automation Engine Specification](file:///e:/proooo/AUTO%20JOB/docs/UI_AUTOMATION_ENGINE.md)
+- [UIA COM Threading & Concurrency](file:///e:/proooo/AUTO%20JOB/docs/UIA_COM_THREADING.md)
+- [Window Discovery & Lifetime Tracking](file:///e:/proooo/AUTO%20JOB/docs/WINDOW_DISCOVERY.md)
+- [Accessibility Tree Inspection & Serialization](file:///e:/proooo/AUTO%20JOB/docs/ACCESSIBILITY_TREE_INSPECTION.md)
+- [Desktop Action Contracts & Execution](file:///e:/proooo/AUTO%20JOB/docs/DESKTOP_ACTION_CONTRACTS.md)
+- [Windows Automation Security & Guardrails](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_AUTOMATION_SECURITY.md)
+- [Desktop Failure Recovery & Self-Healing](file:///e:/proooo/AUTO%20JOB/docs/DESKTOP_RECOVERY.md)
+- [Multi-Agent Computer Control Integration](file:///e:/proooo/AUTO%20JOB/docs/COMPUTER_AGENT_INTEGRATION.md)
+- [Stage 17 Windows Automation Testing Report](file:///e:/proooo/AUTO%20JOB/docs/WINDOWS_AUTOMATION_TESTING.md)
 - [Stage Progress Log](file:///e:/proooo/AUTO%20JOB/docs/STAGE_LOG.md)
 
 ## Development Setup

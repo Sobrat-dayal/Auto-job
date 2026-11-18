@@ -1308,4 +1308,112 @@ The browser engine enables AUTONOM agents to launch Chromium and Microsoft Edge 
 ### 4. Stage 16 Completion & Hand-off
 
 - **Stage 16 is 100% complete, fully tested, and verified.**
-- **DO NOT begin Stage 17 until explicitly instructed.**
+- **Proceeded to Stage 17.**
+
+---
+
+## Stage 17: Windows Structural UI Automation, Native Application Control, Accessibility-Tree Inspection, Win32 Integration, Application Discovery, Secure Desktop Interaction, and Multi-Agent Computer Operations
+
+- **Status**: COMPLETE
+- **Started**: 2026-11-18T05:30:00Z
+- **Completed**: 2026-11-18T07:15:00Z
+
+### 1. Objectives & Scope
+
+1. Establish true Windows structural application automation using Microsoft UI Automation (UIA) and Win32 APIs, eliminating dependence on fragile coordinate-based computer vision.
+2. Build the complete Python backend engine in `services/api/app/computer/`:
+   - Interactive session discovery, lock state detection (`OpenInputDesktop`), and screen resolution tracking.
+   - Native top-level window discovery via `EnumDesktopWindows` on the interactive `Default` desktop.
+   - Compound window lifetime tracking with recycled HWND protection (`window_ref = win_{hwnd}_{pid}`).
+   - Dedicated Multi-Threaded Apartment (MTA) COM worker pool (`UIAWorkerSupervisor`) with desktop attachment (`SetThreadDesktop`) preventing thread affinity deadlocks and cross-desktop COM subscriber errors.
+   - Bounded accessibility tree inspection (`UITreeInspector`) supporting depth bounds, node limits, and compact outline compilation (`UISnapshotCompiler`) for token-efficient LLM agent context.
+   - Semantic element locators (`LocatorResolver`) and typed pattern execution (`PatternExecutor`) covering `Invoke`, `Value`, `Toggle`, `SelectionItem`, `ExpandCollapse`, and `Scroll`.
+   - Legacy Win32 messaging fallback (`Win32CompatibilityAdapter`) for controls lacking modern UIA patterns.
+   - Focused keyboard adapter dispatching text and keystrokes exclusively to verified active foreground windows.
+   - Defense-in-depth security: fail-closed Emergency Stop integration, approved application allowlists (`DEFAULT_ALLOWED_APPS`), process token integrity validation, path traversal guards (`FileDialogSafetyGuard`), and sensitive data masking (`PrivacyFilter`).
+   - Post-action mutation verification (`StructuralActionVerifier`) asserting state mutations.
+3. Add Stage 17 database persistence models in `services/api/app/db/models.py`:
+   - `DesktopSessionRecord`, `DesktopApplicationRecord`, `DesktopWindowRecord`, `DesktopTaskRecord`, `DesktopActionRecord`, `DesktopSnapshotRecord`.
+4. Register 9 new desktop automation capabilities in `app/orchestration/capabilities/computer.py` and `registry.py`:
+   - `desktop.list_applications`, `desktop.list_windows`, `desktop.inspect_window`, `desktop.inspect_tree`, `desktop.find_elements`, `desktop.invoke`, `desktop.set_value`, `desktop.manage_window`, `desktop.execute_action`.
+5. Upgrade `windows_computer_agent` and `structural_ui_agent` from planned to `AvailabilityState.OPERATIONAL` in `manifests.py`.
+6. Implement 18 typed REST endpoints in `services/api/app/api/v1/endpoints/desktop.py` mounted at `/api/v1/desktop/*`.
+7. Author shared TypeScript definitions in `packages/shared-types/src/desktop.ts` and export in `index.ts`.
+8. Provide 18 typed methods on `apiClient` in `apps/desktop/src/lib/api-client.ts`.
+9. Deliver full-featured Windows Structural Automation workspace in `apps/desktop/src/features/computer/desktop/` with 7 sub-views:
+   - `DesktopOverviewTab`, `DesktopApplicationsTab`, `DesktopWindowsTab`, `DesktopUITreeTab`, `DesktopActionsTab`, `DesktopTasksTab`, `DesktopDiagnosticsTab`.
+   - Integrated as the default active `'desktop'` tab in `ComputerWorkspace.tsx`.
+10. Author 10 architectural specification documents in `docs/`:
+    - `WINDOWS_AUTOMATION_ARCHITECTURE.md`, `UI_AUTOMATION_ENGINE.md`, `UIA_COM_THREADING.md`, `WINDOW_DISCOVERY.md`, `ACCESSIBILITY_TREE_INSPECTION.md`, `DESKTOP_ACTION_CONTRACTS.md`, `WINDOWS_AUTOMATION_SECURITY.md`, `DESKTOP_RECOVERY.md`, `COMPUTER_AGENT_INTEGRATION.md`, `WINDOWS_AUTOMATION_TESTING.md`.
+11. Author comprehensive automated tests across backend and frontend, and verify complete test suite passes.
+
+### 2. Implementation Deliverables
+
+1. **Database Schema & Storage (`services/api/app/db/models.py`)**:
+   - `DesktopSessionRecord`: Tracks session telemetry, resolution, lock state, desktop name.
+   - `DesktopApplicationRecord`: Tracks running processes, allowlist status, integrity level, risk rating.
+   - `DesktopWindowRecord`: Tracks top-level window titles, HWNDs, PIDs, classes, bounds, visibility.
+   - `DesktopTaskRecord`: High-level desktop automation workflow tasks.
+   - `DesktopActionRecord`: Granular audit log of dispatched actions, verification results, duration.
+   - `DesktopSnapshotRecord`: Serialized accessibility tree snapshots and token estimates.
+2. **Windows Desktop & Discovery Subsystem (`services/api/app/computer/windows/`)**:
+   - `sessions.py`: `DesktopSessionManager` with `ProcessIdToSessionId`, `OpenInputDesktop` lock check, screen resolution.
+   - `identity.py`: `ProcessIdentityValidator` checking Windows token integrity levels (low, medium, high, system).
+   - `processes.py`: `ProcessDiscoveryManager` discovering running applications and PIDs via `psutil`.
+   - `windows.py`: `WindowDiscoveryManager` enumerating top-level windows via `EnumDesktopWindows`, validating `window_ref` (`win_{hwnd}_{pid}`), and detecting recycled HWNDs.
+   - `focus.py`: `FocusManager` for safe foreground activation (`SetForegroundWindow`, `AttachThreadInput`, `ShowWindow`).
+   - `management.py`: `WindowStateManager` executing `activate`, `minimize`, `maximize`, `restore`, `close` (`WM_CLOSE`).
+3. **UI Automation Core Subsystem (`services/api/app/computer/uia/`)**:
+   - `com_runtime.py`: Dedicated MTA COM thread manager (`CoInitializeEx(COINIT_MULTITHREADED)`), `SetThreadDesktop` attachment, and `UIAutomationCore.dll` type library loader.
+   - `workers.py`: `UIAWorkerSupervisor` with 4 dedicated worker threads offloading blocking COM calls from async event loop.
+   - `elements.py`: `UIElementExtractor` mapping control types (50000–50038) and patterns.
+   - `trees.py`: `UITreeInspector` traversing bounded accessibility trees with `max_depth`, `max_nodes`, and truncation flags.
+   - `locators.py`: `LocatorResolver` resolving elements by `automation_id`, `name`, `control_type`, `class_name`.
+   - `patterns.py`: `PatternExecutor` invoking `InvokePattern`, `ValuePattern`, `TogglePattern`, `SelectionItemPattern`, `ExpandCollapsePattern`, `ScrollPattern`.
+   - `snapshots.py`: `UISnapshotCompiler` compiling outline format for LLM agent context.
+4. **Win32 & Actions Subsystem (`services/api/app/computer/win32/` & `actions/`)**:
+   - `win32/adapter.py`: `Win32CompatibilityAdapter` fallback using `WM_GETTEXT`, `WM_SETTEXT`, `BM_CLICK`, `CB_SETCURSEL`.
+   - `actions/keyboard.py`: `FocusedKeyboardAdapter` sending keystrokes / unicode text strictly to verified foreground window.
+   - `actions/dialogs.py`: `FileDialogSafetyGuard` validating common dialogs and rejecting paths in `C:\Windows`, `C:\Program Files`, or path traversal sequences.
+   - `actions/verifier.py`: `StructuralActionVerifier` asserting post-action state mutations.
+   - `actions/executor.py`: `ActionExecutor` dispatching actions and running verification.
+5. **Security & Guardrails Subsystem (`services/api/app/computer/security/`)**:
+   - `guard.py`: `DesktopSecurityGuard` enforcing fail-closed Emergency Stop and session lock guardrails.
+   - `privacy.py`: `PrivacyFilter` redacting password inputs, credit cards, and SSNs.
+   - `authorization.py`: `DesktopAuthorizationPolicy` enforcing `DEFAULT_ALLOWED_APPS` and integrity boundaries.
+6. **Central Desktop Automation Service (`services/api/app/computer/service.py`)**:
+   - Coordinates discovery, inspection, execution, diagnostics, task creation, and audit logging.
+7. **FastAPI Endpoints (`services/api/app/api/v1/endpoints/desktop.py`)**:
+   - 18 authenticated REST routes mounted under `/api/v1/desktop/*`.
+8. **Multi-Agent Capabilities & Manifests (`services/api/app/orchestration/`)**:
+   - 9 desktop capabilities registered in `capabilities/computer.py` and `registry.py`.
+   - `windows_computer_agent` and `structural_ui_agent` upgraded to `AvailabilityState.OPERATIONAL`.
+9. **Desktop Frontend Workspace (`apps/desktop/src/features/computer/desktop/`)**:
+   - `DesktopWorkspace.tsx`: Top-level component with tab routing and window selection state.
+   - 7 feature tabs: `DesktopOverviewTab`, `DesktopApplicationsTab`, `DesktopWindowsTab`, `DesktopUITreeTab`, `DesktopActionsTab`, `DesktopTasksTab`, `DesktopDiagnosticsTab`.
+   - Integrated as the default tab in `ComputerWorkspace.tsx`.
+
+### 3. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests`)**:
+   - Full test run: **166 passed in 67.32s** (100% pass rate).
+   - `test_desktop_session.py` (2 tests): All PASSED.
+   - `test_desktop_windows.py` (3 tests): All PASSED.
+   - `test_desktop_uia.py` (3 tests): All PASSED.
+   - `test_desktop_actions.py` (4 tests): All PASSED.
+   - `test_api_desktop.py` (8 tests): All PASSED.
+   - `test_desktop_real_apps.py` (1 test): PASSED (verified against live running Windows apps).
+   - `test_specialist_agents.py` (6 tests): All PASSED (asserts operational status for `windows_computer_agent` and `structural_ui_agent`).
+2. **Frontend Vitest Suite (`apps/desktop/src/test`)**:
+   - Full test run: **35 test files passed | 134 tests passed** (100% pass rate in 23.09s).
+   - `desktop-automation.test.tsx` (3 tests): All PASSED.
+   - `computer-workspace.test.tsx` (1 test): All PASSED.
+   - `browser-automation.test.tsx` (5 tests): All PASSED.
+3. **Monorepo Build & Typecheck**:
+   - `npm.cmd --prefix apps/desktop run typecheck`: 0 errors (`tsc --noEmit` clean).
+   - `npm.cmd --prefix apps/desktop run build`: Production Vite bundle compiled cleanly (35 chunks, 0 errors in 9.72s).
+
+### 4. Stage 17 Completion & Hand-off
+
+- **Stage 17 is 100% complete, fully tested, and verified.**
+- **DO NOT begin Stage 18 until explicitly instructed.**

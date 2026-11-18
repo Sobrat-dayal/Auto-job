@@ -96,9 +96,9 @@ async def test_agent_catalog_registration():
     # 4 Computer Control Roles
     computer_roles = [
         ("browser_agent", AvailabilityState.OPERATIONAL),
-        ("windows_computer_agent", AvailabilityState.PLANNED),
+        ("windows_computer_agent", AvailabilityState.OPERATIONAL),
         ("visual_grounding_agent", AvailabilityState.LIMITED),
-        ("structural_ui_agent", AvailabilityState.LIMITED),
+        ("structural_ui_agent", AvailabilityState.OPERATIONAL),
     ]
     for aid, state in computer_roles:
         assert aid in manifest_map

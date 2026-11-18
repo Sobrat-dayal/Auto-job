@@ -1,0 +1,1 @@
+"""Windows native desktop integration module."""

@@ -121,7 +121,7 @@ describe('Browser Automation Workspace (Stage 16)', () => {
     renderComponent();
 
     expect(screen.getByText('Computer Control & Automation')).toBeDefined();
-    expect(screen.getByText('Stage 16 Production Active')).toBeDefined();
+    expect(screen.getByText('Stage 17 Production Active')).toBeDefined();
 
     await waitFor(() => {
       expect(screen.getByText('Operational')).toBeDefined();
