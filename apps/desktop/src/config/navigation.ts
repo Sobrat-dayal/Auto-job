@@ -279,6 +279,16 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
               'Evidence-based qualification evaluation, skill gap intelligence, career preference scoring, and explainable ranking.',
           },
           {
+            id: 'jobs-monitoring',
+            title: 'Continuous Monitoring & Queue',
+            path: '/recruitment/monitoring',
+            availability: 'implemented',
+            roadmapStage: 'Stage 30',
+            description:
+              'Autonomous source monitoring, recurrence scheduling, job change detection, real-time alerts, and prioritized vacancy queue.',
+            badge: 'v1',
+          },
+          {
             id: 'jobs-recommended',
             title: 'Recommended Jobs',
             path: '/recruitment/recommended',

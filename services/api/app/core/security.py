@@ -18,6 +18,7 @@ class AuthContext(BaseModel):
     """Authenticated context passed to protected endpoint handlers."""
 
     client_id: str
+    user_id: str = "autonom-desktop-local"
     authenticated: bool
     scopes: list[str] = ["tasks:read", "tasks:write", "events:read", "system:read"]
     is_admin: bool = False
@@ -66,6 +67,7 @@ async def require_auth(
 
     return AuthContext(
         client_id="autonom-desktop-local",
+        user_id="autonom-desktop-local",
         authenticated=True,
         scopes=["tasks:read", "tasks:write", "events:read", "system:read"],
     )

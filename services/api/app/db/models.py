@@ -175,6 +175,12 @@ class JobListing(Base):
     match_evaluations: Mapped[list["JobMatchEvaluationModel"]] = relationship(
         "JobMatchEvaluationModel", back_populates="job", cascade="all, delete-orphan"
     )
+    opportunity_queue_entries: Mapped[list["RecruitmentOpportunityQueueModel"]] = relationship(
+        "RecruitmentOpportunityQueueModel", back_populates="job", cascade="all, delete-orphan"
+    )
+    change_events: Mapped[list["RecruitmentJobChangeEventModel"]] = relationship(
+        "RecruitmentJobChangeEventModel", back_populates="job", cascade="all, delete-orphan"
+    )
 
 
 class JobMatch(Base):
@@ -1660,6 +1666,318 @@ class RecoveryPlanRecord(Base):
     steps_to_execute_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     explanation: Mapped[str] = mapped_column(Text, default="", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+# ---------------------------------------------------------------------------
+# S. Stage 30 Continuous Recruitment Monitoring, Opportunity Queue & Alerts
+# ---------------------------------------------------------------------------
+class RecruitmentMonitoringProfileModel(Base):
+    __tablename__ = "recruitment_monitoring_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    owner_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    career_strategy_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    career_strategy_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    source_scope_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    role_scope_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    location_scope_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    alert_preferences_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    resource_limits_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    review_rules_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    retention_days: Mapped[int] = mapped_column(Integer, default=90, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    watches: Mapped[list["RecruitmentJobWatchModel"]] = relationship(
+        "RecruitmentJobWatchModel", back_populates="profile", cascade="all, delete-orphan"
+    )
+
+
+class RecruitmentJobWatchModel(Base):
+    __tablename__ = "recruitment_job_watches"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    owner_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("recruitment_monitoring_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    watch_type: Mapped[str] = mapped_column(String(64), default="career_strategy", nullable=False)
+    career_strategy_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_sources_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    employer_ids_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    role_filters_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    location_filters_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    schedule_config_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    alert_rules_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="active", nullable=False, index=True)
+    error_state: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    next_due_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    consecutive_failures: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    profile: Mapped["RecruitmentMonitoringProfileModel"] = relationship(
+        "RecruitmentMonitoringProfileModel", back_populates="watches"
+    )
+    runs: Mapped[list["RecruitmentMonitoringRunModel"]] = relationship(
+        "RecruitmentMonitoringRunModel", back_populates="watch", cascade="all, delete-orphan"
+    )
+
+
+class RecruitmentMonitoringRunModel(Base):
+    __tablename__ = "recruitment_monitoring_runs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    watch_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("recruitment_job_watches.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    watch_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    trigger_type: Mapped[str] = mapped_column(String(64), default="scheduled", nullable=False)
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    sources_checked_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    career_strategy_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    authorization_context_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    resource_budget_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    current_phase: Mapped[str] = mapped_column(String(64), default="discovering", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="running", nullable=False, index=True)
+    progress_pct: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    sources_checked: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    new_observations_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    updated_observations_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    canonical_jobs_created: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    canonical_jobs_updated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    intelligence_analyses_triggered: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    matches_recalculated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    queue_entries_created: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    alerts_generated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    output_references_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    checkpoint_state_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+    watch: Mapped["RecruitmentJobWatchModel"] = relationship("RecruitmentJobWatchModel", back_populates="runs")
+    change_events: Mapped[list["RecruitmentJobChangeEventModel"]] = relationship(
+        "RecruitmentJobChangeEventModel", back_populates="run", cascade="all, delete-orphan"
+    )
+
+
+class RecruitmentJobChangeEventModel(Base):
+    __tablename__ = "recruitment_job_change_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    source_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    run_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("recruitment_monitoring_runs.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    change_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    is_material: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    field_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    previous_value_json: Mapped[Any] = mapped_column(JSON, nullable=True)
+    current_value_json: Mapped[Any] = mapped_column(JSON, nullable=True)
+    detected_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+    job: Mapped["JobListing"] = relationship("JobListing", back_populates="change_events")
+    run: Mapped["RecruitmentMonitoringRunModel | None"] = relationship(
+        "RecruitmentMonitoringRunModel", back_populates="change_events"
+    )
+
+
+class RecruitmentOpportunityQueueModel(Base):
+    __tablename__ = "recruitment_opportunity_queue"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    applicant_profile_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    career_strategy_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    match_evaluation_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_match_evaluations.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    priority: Mapped[str] = mapped_column(String(32), default="normal", nullable=False, index=True)
+    queue_status: Mapped[str] = mapped_column(String(32), default="newly_discovered", nullable=False, index=True)
+    eligibility_state: Mapped[str] = mapped_column(String(64), default="unknown", nullable=False)
+    policy_state: Mapped[str] = mapped_column(String(32), default="passed", nullable=False)
+    review_requirements_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
+    job_availability: Mapped[str] = mapped_column(String(32), default="active", nullable=False)
+    deadline: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    relevance_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    user_action: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    user_action_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    ready_for_preparation: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    stage31_candidate_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "canonical_job_id",
+            "applicant_profile_id",
+            "career_strategy_id",
+            name="uq_opportunity_queue_job_applicant_strategy",
+        ),
+    )
+
+    job: Mapped["JobListing"] = relationship("JobListing", back_populates="opportunity_queue_entries")
+    history: Mapped[list["RecruitmentOpportunityQueueHistoryModel"]] = relationship(
+        "RecruitmentOpportunityQueueHistoryModel", back_populates="queue_entry", cascade="all, delete-orphan"
+    )
+    alerts: Mapped[list["RecruitmentAlertEventModel"]] = relationship(
+        "RecruitmentAlertEventModel", back_populates="queue_entry", cascade="all, delete-orphan"
+    )
+
+
+class RecruitmentOpportunityQueueHistoryModel(Base):
+    __tablename__ = "recruitment_opportunity_queue_history"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    queue_entry_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("recruitment_opportunity_queue.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    previous_state_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    new_state_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    queue_entry: Mapped["RecruitmentOpportunityQueueModel"] = relationship(
+        "RecruitmentOpportunityQueueModel", back_populates="history"
+    )
+
+
+class RecruitmentAlertRuleModel(Base):
+    __tablename__ = "recruitment_alert_rules"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    owner_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    profile_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    watch_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    trigger_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    conditions_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    delivery_channels_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    quiet_hours_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    cooldown_minutes: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    events: Mapped[list["RecruitmentAlertEventModel"]] = relationship(
+        "RecruitmentAlertEventModel", back_populates="rule", cascade="all, delete-orphan"
+    )
+
+
+class RecruitmentAlertEventModel(Base):
+    __tablename__ = "recruitment_alert_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    owner_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    rule_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("recruitment_alert_rules.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    queue_entry_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("recruitment_opportunity_queue.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    canonical_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    alert_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    severity: Mapped[str] = mapped_column(String(32), default="info", nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    is_dismissed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    deep_link: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    event_fingerprint: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+    rule: Mapped["RecruitmentAlertRuleModel | None"] = relationship(
+        "RecruitmentAlertRuleModel", back_populates="events"
+    )
+    queue_entry: Mapped["RecruitmentOpportunityQueueModel | None"] = relationship(
+        "RecruitmentOpportunityQueueModel", back_populates="alerts"
+    )
+    outbox_items: Mapped[list["RecruitmentNotificationOutboxModel"]] = relationship(
+        "RecruitmentNotificationOutboxModel", back_populates="alert_event", cascade="all, delete-orphan"
+    )
+
+
+class RecruitmentNotificationOutboxModel(Base):
+    __tablename__ = "recruitment_notification_outbox"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    alert_event_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("recruitment_alert_events.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    delivery_channel: Mapped[str] = mapped_column(String(32), default="in_app", nullable=False)
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    deferred_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    alert_event: Mapped["RecruitmentAlertEventModel"] = relationship(
+        "RecruitmentAlertEventModel", back_populates="outbox_items"
+    )
+
+
+class RecruitmentWorkerLeaseModel(Base):
+    __tablename__ = "recruitment_worker_leases"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    lease_key: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    owner_worker_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    acquired_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
+    heartbeat_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    attempt_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
+
+class RecruitmentMonitoringHealthModel(Base):
+    __tablename__ = "recruitment_monitoring_health"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    component: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="available", nullable=False)
+    heartbeat_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    details_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+
+class RecruitmentMonitoringSettingsModel(Base):
+    __tablename__ = "recruitment_monitoring_settings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    owner_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    background_monitoring_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    start_at_windows_signin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    minimize_to_tray: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    default_interval_minutes: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
+    global_concurrency_limit: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    daily_request_budget: Mapped[int] = mapped_column(Integer, default=500, nullable=False)
+    pause_on_battery: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    quiet_hours_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    quiet_hours_start: Mapped[str] = mapped_column(String(8), default="22:00", nullable=False)
+    quiet_hours_end: Mapped[str] = mapped_column(String(8), default="08:00", nullable=False)
+    timezone: Mapped[str] = mapped_column(String(64), default="UTC", nullable=False)
+    notification_privacy_mode: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    retention_days: Mapped[int] = mapped_column(Integer, default=90, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
 
 
 

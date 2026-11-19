@@ -264,6 +264,28 @@ import type {
   SimulationRequest,
   SimulationResponse,
   RubricConfig,
+  MonitoringProfileData,
+  MonitoringProfileCreateRequest,
+  MonitoringProfileUpdateRequest,
+  JobWatchData,
+  JobWatchCreateRequest,
+  JobWatchUpdateRequest,
+  MonitoringRunData,
+  JobChangeEventData,
+  OpportunityQueueEntryData,
+  OpportunityQueueUpdateRequest,
+  AlertRuleData,
+  AlertRuleCreateRequest,
+  AlertRuleUpdateRequest,
+  AlertEventData,
+  NotificationOutboxData,
+  MonitoringSettingsData,
+  MonitoringSettingsUpdateRequest,
+  MonitoringOverviewKPIs,
+  MonitoringMetricsData,
+  ComponentHealthData,
+  DiagnosticsReport,
+  SchedulePreviewResponse,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -3053,6 +3075,250 @@ export class ApiClient {
     return this.request<Record<string, any>>(`/api/v1/job-matching/reviews/${encodeURIComponent(id)}/resolve`, {
       method: 'POST',
       body: JSON.stringify({ resolution_notes: notes, decision }),
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Stage 30 Continuous Recruitment Monitoring & Opportunity Prioritization
+  // ---------------------------------------------------------------------------
+
+  async getMonitoringStatus(): Promise<MonitoringOverviewKPIs> {
+    return this.request<MonitoringOverviewKPIs>('/api/v1/recruitment-monitoring/status');
+  }
+
+  async listMonitoringProfiles(): Promise<MonitoringProfileData[]> {
+    return this.request<MonitoringProfileData[]>('/api/v1/recruitment-monitoring/profiles');
+  }
+
+  async createMonitoringProfile(req: MonitoringProfileCreateRequest): Promise<MonitoringProfileData> {
+    return this.request<MonitoringProfileData>('/api/v1/recruitment-monitoring/profiles', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getMonitoringProfile(id: string): Promise<MonitoringProfileData> {
+    return this.request<MonitoringProfileData>(`/api/v1/recruitment-monitoring/profiles/${encodeURIComponent(id)}`);
+  }
+
+  async updateMonitoringProfile(id: string, req: MonitoringProfileUpdateRequest): Promise<MonitoringProfileData> {
+    return this.request<MonitoringProfileData>(`/api/v1/recruitment-monitoring/profiles/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listJobWatches(profileId?: string, status?: string): Promise<JobWatchData[]> {
+    const params = new URLSearchParams();
+    if (profileId) params.append('profile_id', profileId);
+    if (status) params.append('status', status);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<JobWatchData[]>(`/api/v1/recruitment-monitoring/watches${qs}`);
+  }
+
+  async createJobWatch(req: JobWatchCreateRequest): Promise<JobWatchData> {
+    return this.request<JobWatchData>('/api/v1/recruitment-monitoring/watches', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getJobWatch(id: string): Promise<JobWatchData> {
+    return this.request<JobWatchData>(`/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}`);
+  }
+
+  async updateJobWatch(id: string, req: JobWatchUpdateRequest): Promise<JobWatchData> {
+    return this.request<JobWatchData>(`/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteJobWatch(id: string): Promise<void> {
+    await this.request<void>(`/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async validateJobWatch(id: string): Promise<{ valid: boolean; watch_id: string; status: string }> {
+    return this.request<{ valid: boolean; watch_id: string; status: string }>(
+      `/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}/validate`,
+      { method: 'POST' }
+    );
+  }
+
+  async activateJobWatch(id: string): Promise<JobWatchData> {
+    return this.request<JobWatchData>(
+      `/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}/activate`,
+      { method: 'POST' }
+    );
+  }
+
+  async pauseJobWatch(id: string): Promise<JobWatchData> {
+    return this.request<JobWatchData>(
+      `/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}/pause`,
+      { method: 'POST' }
+    );
+  }
+
+  async resumeJobWatch(id: string): Promise<JobWatchData> {
+    return this.request<JobWatchData>(
+      `/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}/resume`,
+      { method: 'POST' }
+    );
+  }
+
+  async runWatchNow(id: string): Promise<MonitoringRunData> {
+    return this.request<MonitoringRunData>(
+      `/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}/run-now`,
+      { method: 'POST' }
+    );
+  }
+
+  async previewWatchSchedule(id: string): Promise<SchedulePreviewResponse> {
+    return this.request<SchedulePreviewResponse>(
+      `/api/v1/recruitment-monitoring/watches/${encodeURIComponent(id)}/schedule-preview`
+    );
+  }
+
+  async listMonitoringRuns(watchId?: string, limit: number = 50, offset: number = 0): Promise<MonitoringRunData[]> {
+    const params = new URLSearchParams();
+    if (watchId) params.append('watch_id', watchId);
+    params.append('limit', String(limit));
+    params.append('offset', String(offset));
+    return this.request<MonitoringRunData[]>(`/api/v1/recruitment-monitoring/runs?${params.toString()}`);
+  }
+
+  async getMonitoringRun(id: string): Promise<MonitoringRunData> {
+    return this.request<MonitoringRunData>(`/api/v1/recruitment-monitoring/runs/${encodeURIComponent(id)}`);
+  }
+
+  async cancelMonitoringRun(id: string): Promise<{ cancelled: boolean; run_id: string }> {
+    return this.request<{ cancelled: boolean; run_id: string }>(
+      `/api/v1/recruitment-monitoring/runs/${encodeURIComponent(id)}/cancel`,
+      { method: 'POST' }
+    );
+  }
+
+  async listOpportunityQueue(params?: {
+    priority?: string;
+    status?: string;
+    ready?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<OpportunityQueueEntryData[]> {
+    const query = new URLSearchParams();
+    if (params?.priority) query.append('priority', params.priority);
+    if (params?.status) query.append('queue_status', params.status);
+    if (params?.ready !== undefined) query.append('ready_for_preparation', String(params.ready));
+    if (params?.limit) query.append('limit', String(params.limit));
+    if (params?.offset) query.append('offset', String(params.offset));
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<OpportunityQueueEntryData[]>(`/api/v1/recruitment-monitoring/opportunities${qs}`);
+  }
+
+  async getOpportunityQueueEntry(id: string): Promise<OpportunityQueueEntryData> {
+    return this.request<OpportunityQueueEntryData>(`/api/v1/recruitment-monitoring/opportunities/${encodeURIComponent(id)}`);
+  }
+
+  async updateOpportunityQueueEntry(
+    id: string,
+    req: OpportunityQueueUpdateRequest
+  ): Promise<OpportunityQueueEntryData> {
+    return this.request<OpportunityQueueEntryData>(
+      `/api/v1/recruitment-monitoring/opportunities/${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(req),
+      }
+    );
+  }
+
+  async listJobChanges(canonicalJobId?: string, limit: number = 50): Promise<JobChangeEventData[]> {
+    const query = new URLSearchParams();
+    if (canonicalJobId) query.append('canonical_job_id', canonicalJobId);
+    query.append('limit', String(limit));
+    return this.request<JobChangeEventData[]>(`/api/v1/recruitment-monitoring/job-changes?${query.toString()}`);
+  }
+
+  async listMonitoringAlerts(unreadOnly: boolean = false, limit: number = 50, offset: number = 0): Promise<AlertEventData[]> {
+    const query = new URLSearchParams();
+    if (unreadOnly) query.append('unread_only', 'true');
+    query.append('limit', String(limit));
+    query.append('offset', String(offset));
+    return this.request<AlertEventData[]>(`/api/v1/recruitment-monitoring/alerts?${query.toString()}`);
+  }
+
+  async listMonitoringAlertRules(): Promise<AlertRuleData[]> {
+    return this.request<AlertRuleData[]>('/api/v1/recruitment-monitoring/alert-rules');
+  }
+
+  async createMonitoringAlertRule(req: AlertRuleCreateRequest): Promise<AlertRuleData> {
+    return this.request<AlertRuleData>('/api/v1/recruitment-monitoring/alert-rules', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateMonitoringAlertRule(id: string, req: AlertRuleUpdateRequest): Promise<AlertRuleData> {
+    return this.request<AlertRuleData>(`/api/v1/recruitment-monitoring/alert-rules/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async acknowledgeMonitoringAlert(id: string): Promise<{ acknowledged: boolean; alert_id: string }> {
+    return this.request<{ acknowledged: boolean; alert_id: string }>(
+      `/api/v1/recruitment-monitoring/alerts/${encodeURIComponent(id)}/acknowledge`,
+      { method: 'POST' }
+    );
+  }
+
+  async dismissMonitoringAlert(id: string): Promise<{ dismissed: boolean; alert_id: string }> {
+    return this.request<{ dismissed: boolean; alert_id: string }>(
+      `/api/v1/recruitment-monitoring/alerts/${encodeURIComponent(id)}/dismiss`,
+      { method: 'POST' }
+    );
+  }
+
+  async listMonitoringNotifications(status?: string, limit: number = 50): Promise<NotificationOutboxData[]> {
+    const query = new URLSearchParams();
+    if (status) query.append('status', status);
+    query.append('limit', String(limit));
+    return this.request<NotificationOutboxData[]>(`/api/v1/recruitment-monitoring/notifications?${query.toString()}`);
+  }
+
+  async markMonitoringNotificationRead(id: string): Promise<{ read: boolean; notification_id: string }> {
+    return this.request<{ read: boolean; notification_id: string }>(
+      `/api/v1/recruitment-monitoring/notifications/${encodeURIComponent(id)}/read`,
+      { method: 'POST' }
+    );
+  }
+
+  async getMonitoringSourceHealth(): Promise<any[]> {
+    return this.request<any[]>('/api/v1/recruitment-monitoring/sources/health');
+  }
+
+  async getMonitoringWorkerHealth(): Promise<ComponentHealthData[]> {
+    return this.request<ComponentHealthData[]>('/api/v1/recruitment-monitoring/workers/health');
+  }
+
+  async getMonitoringMetrics(): Promise<MonitoringMetricsData> {
+    return this.request<MonitoringMetricsData>('/api/v1/recruitment-monitoring/metrics');
+  }
+
+  async getMonitoringDiagnostics(): Promise<DiagnosticsReport> {
+    return this.request<DiagnosticsReport>('/api/v1/recruitment-monitoring/diagnostics');
+  }
+
+  async getMonitoringSettings(): Promise<MonitoringSettingsData> {
+    return this.request<MonitoringSettingsData>('/api/v1/recruitment-monitoring/settings');
+  }
+
+  async updateMonitoringSettings(req: MonitoringSettingsUpdateRequest): Promise<MonitoringSettingsData> {
+    return this.request<MonitoringSettingsData>('/api/v1/recruitment-monitoring/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(req),
     });
   }
 }

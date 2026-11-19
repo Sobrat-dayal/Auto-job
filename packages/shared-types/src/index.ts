@@ -27,3 +27,4 @@ export * from './policy';
 export * from './discovery';
 export * from './intelligence';
 export * from './matching';
+export * from './monitoring';
