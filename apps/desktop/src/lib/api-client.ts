@@ -243,6 +243,19 @@ import type {
   SourceValidationResult,
   PostingAvailability,
   PrefilterOutcome,
+  JobIntelligenceRecord,
+  AtomicRequirement,
+  StructuredSkill,
+  EducationRequirement,
+  ExperienceRequirement,
+  EmploymentConditions,
+  CompensationIntelligence,
+  EligibilityConditions,
+  ApplicationInstructions,
+  RequirementEvidence,
+  ConflictRecord,
+  JobIntelligenceReviewItem,
+  ReviewStatus,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -2864,6 +2877,92 @@ export class ApiClient {
     return this.request<DiscoverySettingsConfig>('/api/v1/recruitment/discovery/settings', {
       method: 'PUT',
       body: JSON.stringify(req),
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Job Intelligence Methods (Stage 28)
+  // -------------------------------------------------------------------------
+  async getIntelligenceStatus(): Promise<Record<string, any>> {
+    return this.request<Record<string, any>>('/api/v1/job-intelligence/status');
+  }
+
+  async getIntelligenceDiagnostics(): Promise<Record<string, any>> {
+    return this.request<Record<string, any>>('/api/v1/job-intelligence/diagnostics');
+  }
+
+  async listAnalyzedJobs(status?: string, limit: number = 50, offset: number = 0): Promise<JobIntelligenceRecord[]> {
+    const q = status ? `?status=${encodeURIComponent(status)}&limit=${limit}&offset=${offset}` : `?limit=${limit}&offset=${offset}`;
+    return this.request<JobIntelligenceRecord[]>(`/api/v1/job-intelligence/jobs${q}`);
+  }
+
+  async getJobIntelligence(id: string): Promise<JobIntelligenceRecord> {
+    return this.request<JobIntelligenceRecord>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}`);
+  }
+
+  async analyzeJob(id: string, force: boolean = false, useAi: boolean = true): Promise<JobIntelligenceRecord> {
+    return this.request<JobIntelligenceRecord>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/analyze`, {
+      method: 'POST',
+      body: JSON.stringify({ force, use_ai: useAi }),
+    });
+  }
+
+  async analyzeJobsBatch(jobIds: string[], useAi: boolean = false): Promise<JobIntelligenceRecord[]> {
+    return this.request<JobIntelligenceRecord[]>('/api/v1/job-intelligence/analyze-batch', {
+      method: 'POST',
+      body: JSON.stringify({ job_ids: jobIds, use_ai: useAi }),
+    });
+  }
+
+  async getJobRequirements(id: string, category?: string): Promise<AtomicRequirement[]> {
+    const q = category ? `?category=${encodeURIComponent(category)}` : '';
+    return this.request<AtomicRequirement[]>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/requirements${q}`);
+  }
+
+  async getJobSkills(id: string): Promise<StructuredSkill[]> {
+    return this.request<StructuredSkill[]>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/skills`);
+  }
+
+  async getJobEducation(id: string): Promise<EducationRequirement[]> {
+    return this.request<EducationRequirement[]>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/education`);
+  }
+
+  async getJobExperience(id: string): Promise<ExperienceRequirement[]> {
+    return this.request<ExperienceRequirement[]>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/experience`);
+  }
+
+  async getJobEmployment(id: string): Promise<EmploymentConditions> {
+    return this.request<EmploymentConditions>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/employment`);
+  }
+
+  async getJobCompensation(id: string): Promise<CompensationIntelligence> {
+    return this.request<CompensationIntelligence>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/compensation`);
+  }
+
+  async getJobEligibility(id: string): Promise<EligibilityConditions> {
+    return this.request<EligibilityConditions>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/eligibility`);
+  }
+
+  async getJobDeadlines(id: string): Promise<ApplicationInstructions> {
+    return this.request<ApplicationInstructions>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/deadlines`);
+  }
+
+  async getJobEvidence(id: string): Promise<RequirementEvidence[]> {
+    return this.request<RequirementEvidence[]>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/evidence`);
+  }
+
+  async getJobConflicts(id: string): Promise<ConflictRecord[]> {
+    return this.request<ConflictRecord[]>(`/api/v1/job-intelligence/jobs/${encodeURIComponent(id)}/conflicts`);
+  }
+
+  async getReviewQueue(): Promise<JobIntelligenceReviewItem[]> {
+    return this.request<JobIntelligenceReviewItem[]>('/api/v1/job-intelligence/review-queue');
+  }
+
+  async resolveReviewItem(id: string, decision: ReviewStatus, notes?: string): Promise<JobIntelligenceReviewItem> {
+    return this.request<JobIntelligenceReviewItem>(`/api/v1/job-intelligence/reviews/${encodeURIComponent(id)}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, notes }),
     });
   }
 }

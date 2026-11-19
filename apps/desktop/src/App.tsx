@@ -37,6 +37,9 @@ const RecruitmentPolicyWorkspace = React.lazy(
 const JobDiscoveryWorkspace = React.lazy(
   () => import('@/features/recruitment/discovery/JobDiscoveryWorkspace').then((m) => ({ default: m.JobDiscoveryWorkspace }))
 );
+const JobIntelligenceWorkspace = React.lazy(
+  () => import('@/features/recruitment/intelligence/JobIntelligenceWorkspace').then((m) => ({ default: m.JobIntelligenceWorkspace }))
+);
 const ComputerWorkspace = React.lazy(() => import('@/features/computer/ComputerWorkspace'));
 const CommunicationsWorkspace = React.lazy(
   () => import('@/features/communications/CommunicationsWorkspace')
@@ -108,6 +111,9 @@ export const AppContent: React.FC = () => {
 
               <Route path="/recruitment/discovery" element={<JobDiscoveryWorkspace />} />
               <Route path="/recruitment/discovery/*" element={<JobDiscoveryWorkspace />} />
+
+              <Route path="/recruitment/intelligence" element={<JobIntelligenceWorkspace />} />
+              <Route path="/recruitment/intelligence/*" element={<JobIntelligenceWorkspace />} />
 
               <Route path="/recruitment" element={<RecruitmentWorkspace />} />
               <Route path="/recruitment/*" element={<RecruitmentWorkspace />} />

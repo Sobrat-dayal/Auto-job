@@ -166,6 +166,9 @@ class JobListing(Base):
     applications: Mapped[list["Application"]] = relationship(
         "Application", back_populates="job", cascade="all, delete-orphan"
     )
+    intelligence_record: Mapped["JobIntelligenceRecordModel | None"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="job", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 class JobMatch(Base):
@@ -232,6 +235,210 @@ class ApplicationAttempt(Base):
     idempotency_key: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
 
     application: Mapped["Application"] = relationship("Application", back_populates="attempts")
+
+
+# ---------------------------------------------------------------------------
+# C1. Job Intelligence Models (Stage 28)
+# ---------------------------------------------------------------------------
+class JobIntelligenceRecordModel(Base):
+    __tablename__ = "job_intelligence_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
+    )
+    canonical_job_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    description_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    extractor_version: Mapped[str] = mapped_column(String(32), default="1.0.0", nullable=False)
+    analysis_status: Mapped[str] = mapped_column(String(32), default="NotAnalyzed", nullable=False, index=True)
+    job_title: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
+    role_family: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    seniority: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    overall_confidence: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
+    responsibilities_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    employment_conditions_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    compensation_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    eligibility_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    deadlines_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    data_quality_warnings_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    review_status: Mapped[str] = mapped_column(String(32), default="not_needed", nullable=False, index=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    job: Mapped["JobListing"] = relationship("JobListing", back_populates="intelligence_record")
+    requirements: Mapped[list["JobRequirementModel"]] = relationship(
+        "JobRequirementModel", back_populates="intelligence", cascade="all, delete-orphan"
+    )
+    requirement_groups: Mapped[list["JobRequirementGroupModel"]] = relationship(
+        "JobRequirementGroupModel", back_populates="intelligence", cascade="all, delete-orphan"
+    )
+    evidence: Mapped[list["JobRequirementEvidenceModel"]] = relationship(
+        "JobRequirementEvidenceModel", back_populates="intelligence", cascade="all, delete-orphan"
+    )
+    conflicts: Mapped[list["JobIntelligenceConflictModel"]] = relationship(
+        "JobIntelligenceConflictModel", back_populates="intelligence", cascade="all, delete-orphan"
+    )
+    reviews: Mapped[list["JobIntelligenceReviewModel"]] = relationship(
+        "JobIntelligenceReviewModel", back_populates="intelligence", cascade="all, delete-orphan"
+    )
+    versions: Mapped[list["JobIntelligenceVersionModel"]] = relationship(
+        "JobIntelligenceVersionModel", back_populates="intelligence", cascade="all, delete-orphan"
+    )
+
+
+class JobRequirementGroupModel(Base):
+    __tablename__ = "job_requirement_groups"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    intelligence_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_intelligence_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    parent_group_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_requirement_groups.id", ondelete="CASCADE"), nullable=True
+    )
+    operator: Mapped[str] = mapped_column(String(32), default="AND", nullable=False)
+    min_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    description: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="requirement_groups"
+    )
+    requirements: Mapped[list["JobRequirementModel"]] = relationship(
+        "JobRequirementModel", back_populates="group"
+    )
+
+
+class JobRequirementModel(Base):
+    __tablename__ = "job_requirements"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    intelligence_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_intelligence_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    group_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_requirement_groups.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    category: Mapped[str] = mapped_column(String(32), default="Mandatory", nullable=False, index=True)
+    qualification_type: Mapped[str] = mapped_column(String(32), default="TECHNICAL_SKILL", nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(256), nullable=False)
+    normalized_value: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    raw_text: Mapped[str] = mapped_column(Text, nullable=False)
+    min_years: Mapped[float | None] = mapped_column(Float, nullable=True)
+    max_years: Mapped[float | None] = mapped_column(Float, nullable=True)
+    is_negated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    confidence: Mapped[str] = mapped_column(String(32), default="STRONGLY_SUPPORTED", nullable=False)
+    confidence_score: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    review_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="requirements"
+    )
+    group: Mapped["JobRequirementGroupModel | None"] = relationship(
+        "JobRequirementGroupModel", back_populates="requirements"
+    )
+    evidence: Mapped[list["JobRequirementEvidenceModel"]] = relationship(
+        "JobRequirementEvidenceModel", back_populates="requirement", cascade="all, delete-orphan"
+    )
+
+
+class JobRequirementEvidenceModel(Base):
+    __tablename__ = "job_requirement_evidence"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    requirement_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_requirements.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    intelligence_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_intelligence_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    source_observation_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    section_name: Mapped[str] = mapped_column(String(64), default="MINIMUM_QUALIFICATIONS", nullable=False)
+    supporting_text: Mapped[str] = mapped_column(Text, nullable=False)
+    start_char: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    end_char: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    quote_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    extraction_method: Mapped[str] = mapped_column(String(32), default="DETERMINISTIC_RULES", nullable=False)
+    verified_in_source: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    requirement: Mapped["JobRequirementModel | None"] = relationship(
+        "JobRequirementModel", back_populates="evidence"
+    )
+    intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="evidence"
+    )
+
+
+class JobIntelligenceConflictModel(Base):
+    __tablename__ = "job_intelligence_conflicts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    intelligence_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_intelligence_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    conflict_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_a_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    source_a_text: Mapped[str] = mapped_column(Text, nullable=False)
+    source_b_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    source_b_text: Mapped[str] = mapped_column(Text, nullable=False)
+    resolution_strategy: Mapped[str] = mapped_column(String(64), default="PENDING", nullable=False)
+    resolved_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    resolved_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="conflicts"
+    )
+
+
+class JobIntelligenceReviewModel(Base):
+    __tablename__ = "job_intelligence_reviews"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    intelligence_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_intelligence_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    requirement_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_requirements.id", ondelete="SET NULL"), nullable=True
+    )
+    conflict_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_intelligence_conflicts.id", ondelete="SET NULL"), nullable=True
+    )
+    review_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="PENDING", nullable=False, index=True)
+    reviewer_decision: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="reviews"
+    )
+
+
+class JobIntelligenceVersionModel(Base):
+    __tablename__ = "job_intelligence_versions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    intelligence_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_intelligence_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    description_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    change_summary: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
+        "JobIntelligenceRecordModel", back_populates="versions"
+    )
 
 
 # ---------------------------------------------------------------------------

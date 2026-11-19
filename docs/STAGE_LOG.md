@@ -2128,3 +2128,45 @@ Stage 25 establishes AUTONOM's authoritative **Career Preferences, Job Eligibili
 - **Stage 26 is 100% complete, fully tested, and verified.**
 - **Read-only discovery boundary enforced: Zero job applications submitted.**
 - **DO NOT begin Stage 27 (Multi-Source Job Aggregation & Canonical Deduplication) until explicitly instructed.**
+
+
+---
+
+## Stage 28 of 50: Advanced Job Requirement Intelligence Engine
+
+### 1. Implementation Summary
+- **Stage**: Stage 28 of 50 (Third stage of Phase 6: Autonomous Job Discovery & Matching)
+- **Status**: Completed & Verified
+- **Scope**:
+  1. **Canonical Structured Intelligence Record**: Built `JobIntelligenceRecord` model with child entities for atomic requirements, logical groups, provenance evidence, multi-source conflicts, versions, and human review items.
+  2. **Strict Mandatory vs. Preferred Boundary**: Enforced invariant that preferred qualifications are never promoted to mandatory; responsibilities are classified as informational.
+  3. **Complex Boolean Semantics**: Supported `AND`, `OR`, `AtLeastN`, `EquivalentAlternative`, `Conditional`, and scoped `NOT` negation.
+  4. **Skill Taxonomy & Alias Normalization**: Mapped programming languages, frameworks, cloud, databases, and AI/ML to canonical names with experience duration bounds.
+  5. **Education & Experience Prerequisites**: Parsed degree levels, fields of study, degree completion status, alternative practical experience, and tenure duration bounds.
+  6. **Employment Conditions & Workplace Models**: Detected remote (country-only and global), hybrid (with weekly office days count), onsite, and travel percentages.
+  7. **Compensation Intelligence with Zero Guessing**: Extracted salary ranges (with em-dashes and currency symbols), hourly rates, pay periods, bonuses, equity, and benefits without synthetic guessing.
+  8. **Work Authorization & Legal Eligibility**: Extracted work authorization, visa sponsorship offered/refused, citizenship restrictions, and security clearances without inferring legal status.
+  9. **Deadlines & Application Instructions**: Parsed closing dates, rolling admissions, required documents, and application URLs.
+  10. **Evidence Provenance & Hallucination Defense**: Verified every extracted claim against exact source text spans (`start_char`, `end_char`, quote hash), discarding unverified hallucinations.
+  11. **Security & Prompt Injection Defusal**: Defused malicious instructions in untrusted job postings (`[POTENTIAL_INJECTION_DEFUSED]`).
+  12. **Multi-Source Conflict Reconciliation**: Flagged contradictions across disparate discovery sources and queued them for human operator review.
+  13. **Analysis Versioning & Hashing**: Bound intelligence records to SHA-256 description hashes with reanalysis triggers on content changes.
+  14. **Deterministic Engine with Offline Fallback**: Fully functional without AI availability; bounded Stage 11 AI Gateway fallback for ambiguous phrasing.
+  15. **Agent Capabilities**: Registered 13 internal capabilities under `job.intelligence.*` for `JobDiscoveryAgent`, `JobIntelligenceSpecialist`, `VerificationAgent`, and `Supervisor`.
+  16. **FastAPI REST Endpoints**: 22 authenticated routes mounted under `/api/v1/job-intelligence/*`.
+  17. **Desktop React Workspace**: Mounted at `/recruitment/intelligence` featuring Overview, Analyzed Jobs, Requirements Explorer, Logic Tree Explorer, Tech Stack, Education & Experience, Employment Conditions, Compensation, Work Authorization, Deadlines, Evidence Inspector, Conflict Review, and Human Review Queue.
+
+### 2. Verification & Test Evidence
+- **Backend Pytest Suite (`services/api/tests/`)**:
+  - 16 test files: `test_requirement_classification.py`, `test_requirement_logic.py`, `test_negation_parsing.py`, `test_education_extraction.py`, `test_experience_extraction.py`, `test_compensation_intelligence.py`, `test_remote_eligibility.py`, `test_work_authorization_extraction.py`, `test_deadline_intelligence.py`, `test_source_conflicts.py`, `test_ai_hallucination_defense.py`, `test_prompt_injection_safety.py`, `test_multi_agent_analysis.py`, `test_source_update_versioning.py`, `test_analysis_without_ai.py`, `test_api_job_intelligence.py`.
+  - Result: **35 passed in 4.71s (100% pass rate)**.
+- **Frontend Vitest Suite (`apps/desktop/src/test/features/job-intelligence.test.tsx`)**:
+  - Result: **5 passed in 281ms (100% pass rate)**.
+- **Desktop Typecheck (`pnpm --filter @autonom/desktop typecheck`)**:
+  - Result: **0 errors**.
+
+### 3. Stage 28 Sign-off
+- **Stage 28 is 100% complete, fully tested, and verified.**
+- **Scope boundary enforced: Zero applicant matching or scoring performed (reserved for Stage 29).**
+- **Zero job applications submitted.**
+- **HALT. Do NOT start Stage 29 until explicitly instructed by the user.**

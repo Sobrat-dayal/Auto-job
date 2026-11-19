@@ -26,6 +26,7 @@ from app.api.v1.endpoints.resumes import router as resumes_router
 from app.api.v1.endpoints.writing import router as writing_router
 from app.api.v1.endpoints.recruitment_policy import router as recruitment_policy_router
 from app.api.v1.endpoints.job_discovery import router as job_discovery_router
+from app.api.v1.endpoints.job_intelligence import router as job_intelligence_router
 from app.api.v1.endpoints.security import router as security_router
 from app.api.v1.endpoints.settings import router as settings_router
 from app.api.v1.endpoints.storage import router as storage_router
@@ -72,3 +73,4 @@ api_v1_router.include_router(resumes_router)
 api_v1_router.include_router(writing_router)
 api_v1_router.include_router(recruitment_policy_router)
 api_v1_router.include_router(job_discovery_router)
+api_v1_router.include_router(job_intelligence_router)

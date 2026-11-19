@@ -261,6 +261,15 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
               'Official ATS connectors (Greenhouse, Lever, Ashby, USAJOBS), employer portals, and feeds.',
           },
           {
+            id: 'job-intelligence',
+            title: 'Job Intelligence',
+            path: '/recruitment/intelligence',
+            availability: 'implemented',
+            roadmapStage: 'Stage 28',
+            description:
+              'Requirement extraction, logical semantics, NLP understanding, evidence provenance, and conflict review.',
+          },
+          {
             id: 'jobs-recommended',
             title: 'Recommended Jobs',
             path: '/recruitment/recommended',
