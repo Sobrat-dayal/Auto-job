@@ -2041,4 +2041,90 @@ Stage 25 establishes AUTONOM's authoritative **Career Preferences, Job Eligibili
 
 - **Stage 25 is 100% complete, fully tested, and verified.**
 - **PHASE 5: RECRUITMENT INTELLIGENCE FOUNDATION IS OFFICIALLY COMPLETE.**
-- **DO NOT begin Stage 26 (Autonomous Job Scouting & External Site Parsing) until explicitly instructed.**
+
+---
+
+## Stage 26: Multi-Source Job Discovery Engine, Official Job Board API Integration, Employer Career Portal Connectivity, Source Registry, Permission-Aware Fetching, Job Posting Extraction, Incremental Discovery, and Recruitment Agent Integration
+
+**Status:** COMPLETE  
+**Phase:** Phase 6 — Autonomous Job Discovery and Matching (Stage 1 of 5)  
+**Date:** March 2026  
+
+### 1. Architectural Highlights & Delivered Components
+
+1. **Connector Architecture & Registry (`connectors/`)**:
+   - `GreenhouseConnector`: Official public Job Board API (`boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true`).
+   - `LeverConnector`: Lever Published Postings API (`api.lever.co/v0/postings/{site}?mode=json`, with bounded pagination).
+   - `AshbyConnector`: Ashby Public Job Postings API (`api.ashbyhq.com/posting-api/job-board/{token}`) with structured compensation tier summaries.
+   - `USAJobsConnector`: USAJOBS Search API (`data.usajobs.gov/api/search`) with authorization key & user-agent gating.
+   - `RssAtomConnector`: Safe XML syndication feed parser defusing entity expansions.
+   - `JsonFeedConnector`: Declarative structured JSON feed mapper.
+   - `CareerPageConnector`: Schema.org `JobPosting` JSON-LD extractor with bounded browser DOM fallback for approved origins.
+   - `ManualImportConnector`: User-supplied job posting parser.
+   - `UrlImportConnector`: Arbitrary job URL extractor with ATS platform auto-detection.
+   - `ConnectorRegistry`: Central manager registering connectors and publishing immutable capability manifests.
+
+2. **Source Registry & Employer Portals (`sources/`)**:
+   - `SourceRegistry`: Seeded verified sources (Stripe, GitHub, Netflix, OpenAI, USAJOBS) and operational health metrics.
+   - `EmployerSourceManager`: Employer career site origin verification and ATS platform auto-detection.
+   - `ats_detection`: URL and HTML heuristic detection for Greenhouse, Lever, Ashby, Workday, and SmartRecruiters.
+
+3. **Incremental Discovery & Invariant Safety (`synchronization/`)**:
+   - `DiscoveryCoordinator`: Orchestrates bounded concurrent discovery runs across sources.
+   - `JobSourceObservation`: Factual, provider-neutral observation model preserving complete field provenance.
+   - `JobSourceSnapshot`: Completeness tracking (`complete`, `partial`, `interrupted`, `rate_limited`, `failed`).
+   - **CRITICAL INVARIANT ENFORCEMENT**: Partial snapshots NEVER mark missing postings as closed! Only complete snapshots can determine removals.
+   - Stage 25 Policy Pre-filtering: Evaluates target roles, blocked employers, and salary floors at discovery time.
+
+4. **Security & Polite Rate Limiting (`security/`, `fetching/`)**:
+   - SSRF Protection: Scheme verification (`http`, `https`), DNS resolution checks, and forbidden IP range blocklists (`127.0.0.0/8`, `10.0.0.0/8`, `169.254.169.254`, `::1`).
+   - Sliding-Window Rate Limiting: 60-second sliding RPM window per source.
+   - HTTP 429 `Retry-After` Cooldown: Honors server backoff headers.
+   - Content Sanitization & Prompt Injection Defusal: Strips malicious HTML and neutralizes prompt escaping attempts.
+
+5. **Specialist Agent Integration (`integrations/agents.py`, `recruitment.py`)**:
+   - Upgraded Stage 13 `JobDiscoveryAgent` to dispatch `job.discovery.*` capabilities via `JobDiscoveryAgentAdapter`.
+
+6. **FastAPI Endpoints (`endpoints/job_discovery.py`)**:
+   - 24 authenticated endpoints under `/api/v1/recruitment/discovery/*` registered in `router.py`.
+
+7. **Desktop Frontend (`features/recruitment/discovery/`)**:
+   - `JobDiscoveryWorkspace.tsx` mounted at `/recruitment/discovery` with 9 modular tabs:
+     - `DiscoveryOverviewTab.tsx`
+     - `SourcesManagerTab.tsx`
+     - `EmployerSourcesTab.tsx`
+     - `SearchAndDiscoverTab.tsx`
+     - `DiscoveredJobsTab.tsx`
+     - `JobImportTab.tsx`
+     - `DiscoveryTasksTab.tsx`
+     - `SourceHealthTab.tsx`
+     - `DiscoverySettingsTab.tsx`
+   - Navigation item updated in `navigation.ts` with `availability: 'implemented'`.
+
+8. **Technical Documentation Suite**:
+   - 15 comprehensive guides created in `docs/`.
+
+### 2. Verification & Test Evidence
+
+1. **Backend Pytest Suite (`services/api/tests/`)**:
+   - `test_discovery_models.py` (5 tests): PASSED
+   - `test_discovery_security.py` (5 tests): PASSED
+   - `test_discovery_connectors.py` (6 tests): PASSED
+   - `test_discovery_sync.py` (3 tests): PASSED (including the partial snapshot safety invariant test)
+   - `test_discovery_policy_prefilter.py` (4 tests): PASSED
+   - `test_api_job_discovery.py` (5 tests): PASSED
+   - Total Stage 26 Backend: **28 passed in 3.44s (100% pass rate)**.
+   - Full regression suite with Stage 25 policies: **44 passed in 4.84s (100% pass rate)**.
+
+2. **Frontend Vitest Suite (`apps/desktop/src/test/features/job-discovery.test.tsx`)**:
+   - 5 integration tests: **5 passed in 250ms (100% pass rate)**.
+
+3. **Typecheck & Monorepo Validation**:
+   - `pnpm --filter @autonom/shared-types typecheck`: 0 errors.
+   - `pnpm --filter @autonom/desktop typecheck`: 0 errors.
+
+### 3. Stage 26 Sign-off
+
+- **Stage 26 is 100% complete, fully tested, and verified.**
+- **Read-only discovery boundary enforced: Zero job applications submitted.**
+- **DO NOT begin Stage 27 (Multi-Source Job Aggregation & Canonical Deduplication) until explicitly instructed.**

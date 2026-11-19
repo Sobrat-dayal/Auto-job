@@ -24,3 +24,4 @@ export * from './github';
 export * from './resume';
 export * from './writing';
 export * from './policy';
+export * from './discovery';

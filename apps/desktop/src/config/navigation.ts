@@ -255,10 +255,10 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
             id: 'jobs-discovery',
             title: 'Job Discovery',
             path: '/recruitment/discovery',
-            availability: 'planned',
+            availability: 'implemented',
             roadmapStage: 'Stage 26',
             description:
-              'Scouted listings across LinkedIn, Indeed, Greenhouse, Lever, and Workday.',
+              'Official ATS connectors (Greenhouse, Lever, Ashby, USAJOBS), employer portals, and feeds.',
           },
           {
             id: 'jobs-recommended',

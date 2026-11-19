@@ -225,6 +225,24 @@ import type {
   AutonomyStatusResponse,
   ReviewQueueResolutionRequest,
   PolicyDiagnosticsResponse,
+  ConnectorManifest,
+  JobSourceConfig,
+  JobSourceHealth,
+  EmployerCareerSource,
+  JobSourceObservation,
+  JobSourceSnapshot,
+  DiscoveryTaskRecord,
+  DiscoverySettingsConfig,
+  DiscoveryOverviewStats,
+  JobSourceCreateRequest,
+  JobSourceUpdateRequest,
+  DiscoveryTaskCreateRequest,
+  UrlImportRequest,
+  ManualImportRequest,
+  EmployerCareerPageCreateRequest,
+  SourceValidationResult,
+  PostingAvailability,
+  PrefilterOutcome,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -2700,6 +2718,153 @@ export class ApiClient {
 
   async getPolicyDiagnostics(): Promise<PolicyDiagnosticsResponse> {
     return this.request<PolicyDiagnosticsResponse>('/api/v1/recruitment/policy-diagnostics');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Stage 26: Multi-Source Job Discovery Engine
+  // ---------------------------------------------------------------------------
+  async getDiscoveryOverview(): Promise<DiscoveryOverviewStats> {
+    return this.request<DiscoveryOverviewStats>('/api/v1/recruitment/discovery/overview');
+  }
+
+  async getDiscoveryDiagnostics(): Promise<Record<string, any>> {
+    return this.request<Record<string, any>>('/api/v1/recruitment/discovery/diagnostics');
+  }
+
+  async listDiscoveryConnectors(): Promise<ConnectorManifest[]> {
+    return this.request<ConnectorManifest[]>('/api/v1/recruitment/discovery/connectors');
+  }
+
+  async getDiscoveryConnector(id: string): Promise<ConnectorManifest> {
+    return this.request<ConnectorManifest>(`/api/v1/recruitment/discovery/connectors/${encodeURIComponent(id)}`);
+  }
+
+  async listJobSources(enabledOnly: boolean = false): Promise<JobSourceConfig[]> {
+    return this.request<JobSourceConfig[]>(`/api/v1/recruitment/discovery/sources?enabled_only=${enabledOnly}`);
+  }
+
+  async getJobSource(id: string): Promise<JobSourceConfig> {
+    return this.request<JobSourceConfig>(`/api/v1/recruitment/discovery/sources/${encodeURIComponent(id)}`);
+  }
+
+  async createJobSource(req: JobSourceCreateRequest): Promise<JobSourceConfig> {
+    return this.request<JobSourceConfig>('/api/v1/recruitment/discovery/sources', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateJobSource(id: string, req: JobSourceUpdateRequest): Promise<JobSourceConfig> {
+    return this.request<JobSourceConfig>(`/api/v1/recruitment/discovery/sources/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteJobSource(id: string): Promise<{ source_id: string; deleted: boolean }> {
+    return this.request<{ source_id: string; deleted: boolean }>(`/api/v1/recruitment/discovery/sources/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async validateJobSource(id: string): Promise<SourceValidationResult> {
+    return this.request<SourceValidationResult>(`/api/v1/recruitment/discovery/sources/${encodeURIComponent(id)}/validate`, {
+      method: 'POST',
+    });
+  }
+
+  async refreshJobSource(id: string): Promise<JobSourceSnapshot> {
+    return this.request<JobSourceSnapshot>(`/api/v1/recruitment/discovery/sources/${encodeURIComponent(id)}/refresh`, {
+      method: 'POST',
+    });
+  }
+
+  async getJobSourceHealth(id: string): Promise<JobSourceHealth> {
+    return this.request<JobSourceHealth>(`/api/v1/recruitment/discovery/sources/${encodeURIComponent(id)}/health`);
+  }
+
+  async listEmployerCareerSources(enabledOnly: boolean = false): Promise<EmployerCareerSource[]> {
+    return this.request<EmployerCareerSource[]>(`/api/v1/recruitment/discovery/employers?enabled_only=${enabledOnly}`);
+  }
+
+  async addEmployerCareerSource(req: EmployerCareerPageCreateRequest): Promise<EmployerCareerSource> {
+    return this.request<EmployerCareerSource>('/api/v1/recruitment/discovery/employers', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteEmployerCareerSource(id: string): Promise<{ employer_id: string; deleted: boolean }> {
+    return this.request<{ employer_id: string; deleted: boolean }>(`/api/v1/recruitment/discovery/employers/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async importJobUrl(req: UrlImportRequest): Promise<JobSourceObservation> {
+    return this.request<JobSourceObservation>('/api/v1/recruitment/discovery/import/url', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async importJobManual(req: ManualImportRequest): Promise<JobSourceObservation> {
+    return this.request<JobSourceObservation>('/api/v1/recruitment/discovery/import/manual', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listJobObservations(params?: {
+    source_id?: string;
+    availability?: PostingAvailability;
+    prefilter?: PrefilterOutcome;
+    query?: string;
+    limit?: number;
+  }): Promise<JobSourceObservation[]> {
+    const q = new URLSearchParams();
+    if (params?.source_id) q.set('source_id', params.source_id);
+    if (params?.availability) q.set('availability', params.availability);
+    if (params?.prefilter) q.set('prefilter', params.prefilter);
+    if (params?.query) q.set('query', params.query);
+    if (params?.limit) q.set('limit', String(params.limit));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<JobSourceObservation[]>(`/api/v1/recruitment/discovery/postings${qs}`);
+  }
+
+  async getJobObservation(id: string): Promise<JobSourceObservation> {
+    return this.request<JobSourceObservation>(`/api/v1/recruitment/discovery/postings/${encodeURIComponent(id)}`);
+  }
+
+  async listDiscoveryTasks(limit: number = 50): Promise<DiscoveryTaskRecord[]> {
+    return this.request<DiscoveryTaskRecord[]>(`/api/v1/recruitment/discovery/tasks?limit=${limit}`);
+  }
+
+  async createDiscoveryTask(req: DiscoveryTaskCreateRequest): Promise<DiscoveryTaskRecord> {
+    return this.request<DiscoveryTaskRecord>('/api/v1/recruitment/discovery/tasks', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getDiscoveryTask(id: string): Promise<DiscoveryTaskRecord> {
+    return this.request<DiscoveryTaskRecord>(`/api/v1/recruitment/discovery/tasks/${encodeURIComponent(id)}`);
+  }
+
+  async cancelDiscoveryTask(id: string): Promise<{ task_id: string; cancelled: boolean }> {
+    return this.request<{ task_id: string; cancelled: boolean }>(`/api/v1/recruitment/discovery/tasks/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  async getDiscoverySettings(): Promise<DiscoverySettingsConfig> {
+    return this.request<DiscoverySettingsConfig>('/api/v1/recruitment/discovery/settings');
+  }
+
+  async updateDiscoverySettings(req: DiscoverySettingsConfig): Promise<DiscoverySettingsConfig> {
+    return this.request<DiscoverySettingsConfig>('/api/v1/recruitment/discovery/settings', {
+      method: 'PUT',
+      body: JSON.stringify(req),
+    });
   }
 }
 
