@@ -270,6 +270,15 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
               'Requirement extraction, logical semantics, NLP understanding, evidence provenance, and conflict review.',
           },
           {
+            id: 'job-matching',
+            title: 'Job Matching & Ranking',
+            path: '/recruitment/matching',
+            availability: 'implemented',
+            roadmapStage: 'Stage 29',
+            description:
+              'Evidence-based qualification evaluation, skill gap intelligence, career preference scoring, and explainable ranking.',
+          },
+          {
             id: 'jobs-recommended',
             title: 'Recommended Jobs',
             path: '/recruitment/recommended',

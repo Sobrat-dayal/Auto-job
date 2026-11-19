@@ -67,6 +67,9 @@ class ApplicantProfile(Base):
     resumes: Mapped[list["ResumeVersion"]] = relationship(
         "ResumeVersion", back_populates="profile", cascade="all, delete-orphan"
     )
+    match_evaluations: Mapped[list["JobMatchEvaluationModel"]] = relationship(
+        "JobMatchEvaluationModel", back_populates="profile", cascade="all, delete-orphan"
+    )
 
 
 class VerifiedSkill(Base):
@@ -168,6 +171,9 @@ class JobListing(Base):
     )
     intelligence_record: Mapped["JobIntelligenceRecordModel | None"] = relationship(
         "JobIntelligenceRecordModel", back_populates="job", uselist=False, cascade="all, delete-orphan"
+    )
+    match_evaluations: Mapped[list["JobMatchEvaluationModel"]] = relationship(
+        "JobMatchEvaluationModel", back_populates="job", cascade="all, delete-orphan"
     )
 
 
@@ -439,6 +445,184 @@ class JobIntelligenceVersionModel(Base):
     intelligence: Mapped["JobIntelligenceRecordModel"] = relationship(
         "JobIntelligenceRecordModel", back_populates="versions"
     )
+
+
+# ---------------------------------------------------------------------------
+# C3. Stage 29 Applicant-to-Job Matching, Eligibility & Ranking Models
+# ---------------------------------------------------------------------------
+class JobMatchEvaluationModel(Base):
+    __tablename__ = "job_match_evaluations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    profile_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("applicant_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    job_intelligence_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    career_strategy_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    rubric_id: Mapped[str] = mapped_column(String(64), default="rubric_default_v1", nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    is_current: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="completed", nullable=False, index=True)
+    eligibility_outcome: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    relevance_index: Mapped[float] = mapped_column(Float, default=0.0, nullable=False, index=True)
+    mandatory_coverage_ratio: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    preferred_coverage_ratio: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    evidence_completeness_ratio: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    ranking_uncertainty_ratio: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    application_readiness: Mapped[str] = mapped_column(String(64), default="not_ready", nullable=False)
+    hard_policy_passed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    hard_policy_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary_explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    score_components_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    input_snapshots_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    gaps_summary_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
+    recommendation_tags_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    profile: Mapped["ApplicantProfile"] = relationship("ApplicantProfile", back_populates="match_evaluations")
+    job: Mapped["JobListing"] = relationship("JobListing", back_populates="match_evaluations")
+    requirements: Mapped[list["JobMatchRequirementResultModel"]] = relationship(
+        "JobMatchRequirementResultModel", back_populates="evaluation", cascade="all, delete-orphan"
+    )
+    groups: Mapped[list["JobMatchLogicalGroupResultModel"]] = relationship(
+        "JobMatchLogicalGroupResultModel", back_populates="evaluation", cascade="all, delete-orphan"
+    )
+    gaps: Mapped[list["JobMatchGapModel"]] = relationship(
+        "JobMatchGapModel", back_populates="evaluation", cascade="all, delete-orphan"
+    )
+    review_requests: Mapped[list["JobMatchReviewRequestModel"]] = relationship(
+        "JobMatchReviewRequestModel", back_populates="evaluation", cascade="all, delete-orphan"
+    )
+
+
+class JobMatchRequirementResultModel(Base):
+    __tablename__ = "job_match_requirement_results"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    evaluation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_match_evaluations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    requirement_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    requirement_name: Mapped[str] = mapped_column(String(256), nullable=False)
+    requirement_category: Mapped[str] = mapped_column(String(32), nullable=False)
+    match_category: Mapped[str] = mapped_column(String(64), nullable=False)
+    applicant_claim_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    applicant_evidence_snippet: Mapped[str | None] = mapped_column(Text, nullable=True)
+    job_evidence_snippet: Mapped[str | None] = mapped_column(Text, nullable=True)
+    confidence: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
+    explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_satisfied: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    evaluation: Mapped["JobMatchEvaluationModel"] = relationship("JobMatchEvaluationModel", back_populates="requirements")
+
+
+class JobMatchLogicalGroupResultModel(Base):
+    __tablename__ = "job_match_logical_group_results"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    evaluation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_match_evaluations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    group_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    operator: Mapped[str] = mapped_column(String(32), nullable=False)
+    target_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    satisfied_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_satisfied: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_unknown: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    evaluation: Mapped["JobMatchEvaluationModel"] = relationship("JobMatchEvaluationModel", back_populates="groups")
+
+
+class JobMatchGapModel(Base):
+    __tablename__ = "job_match_gaps"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    evaluation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_match_evaluations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    requirement_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    gap_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(32), nullable=False)
+    skill_or_qualification: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    remediation_suggestion: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    evaluation: Mapped["JobMatchEvaluationModel"] = relationship("JobMatchEvaluationModel", back_populates="gaps")
+
+
+class JobMatchReviewRequestModel(Base):
+    __tablename__ = "job_match_review_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    evaluation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_match_evaluations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    review_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    trigger_reason: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    resolved_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    evaluation: Mapped["JobMatchEvaluationModel"] = relationship("JobMatchEvaluationModel", back_populates="review_requests")
+
+
+class JobMatchRubricModel(Base):
+    __tablename__ = "job_match_rubrics"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    weights_json: Mapped[dict[str, float]] = mapped_column(JSON, default=dict, nullable=False)
+    missing_data_policy: Mapped[str] = mapped_column(String(32), default="conservative", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class JobMatchRankingModel(Base):
+    __tablename__ = "job_match_rankings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    strategy_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    profile_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    rubric_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    total_jobs_evaluated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    ranked_items_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+
+
+class JobMatchSimulationModel(Base):
+    __tablename__ = "job_match_simulations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    evaluation_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    scenario_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    hypothetical_adjustments_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    original_relevance_index: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    simulated_relevance_index: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    original_eligibility: Mapped[str] = mapped_column(String(64), nullable=False)
+    simulated_eligibility: Mapped[str] = mapped_column(String(64), nullable=False)
+    diff_explanation: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class JobMatchAuditEventModel(Base):
+    __tablename__ = "job_match_audit_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    evaluation_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    payload_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict, nullable=True)
+    actor_id: Mapped[str] = mapped_column(String(64), default="system", nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
 
 
 # ---------------------------------------------------------------------------

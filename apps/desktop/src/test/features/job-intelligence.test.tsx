@@ -124,7 +124,7 @@ describe('Job Requirement Intelligence Desktop Workspace (Stage 28)', () => {
       office_days_per_week: null,
       travel_percentage: 0.0,
       working_hours: 'Flexible',
-      employment_type: 'FULL_TIME',
+      employment_type: 'full_time',
       contract_duration: null,
       is_relocation_offered: null,
       evidence: [],

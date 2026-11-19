@@ -256,6 +256,14 @@ import type {
   ConflictRecord,
   JobIntelligenceReviewItem,
   ReviewStatus,
+  JobMatchEvaluation,
+  MatchEvaluationRequest,
+  RankedOpportunityItem,
+  RankingOverview,
+  JobComparisonMatrix,
+  SimulationRequest,
+  SimulationResponse,
+  RubricConfig,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -2963,6 +2971,88 @@ export class ApiClient {
     return this.request<JobIntelligenceReviewItem>(`/api/v1/job-intelligence/reviews/${encodeURIComponent(id)}/resolve`, {
       method: 'POST',
       body: JSON.stringify({ decision, notes }),
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Stage 29 Applicant-to-Job Matching & Ranking API
+  // ---------------------------------------------------------------------------
+
+  async getMatchingStatus(): Promise<Record<string, any>> {
+    return this.request<Record<string, any>>('/api/v1/job-matching/status');
+  }
+
+  async listMatchResults(profileId?: string, isCurrentOnly: boolean = true): Promise<JobMatchEvaluation[]> {
+    const q = profileId ? `?profile_id=${encodeURIComponent(profileId)}&is_current_only=${isCurrentOnly}` : `?is_current_only=${isCurrentOnly}`;
+    return this.request<JobMatchEvaluation[]>(`/api/v1/job-matching/results${q}`);
+  }
+
+  async evaluateJobMatch(req: MatchEvaluationRequest): Promise<JobMatchEvaluation> {
+    return this.request<JobMatchEvaluation>('/api/v1/job-matching/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async evaluateJobBatch(jobIds: string[], profileId?: string, careerStrategyId?: string, rubricId?: string, force: boolean = false): Promise<JobMatchEvaluation[]> {
+    return this.request<JobMatchEvaluation[]>('/api/v1/job-matching/evaluate-batch', {
+      method: 'POST',
+      body: JSON.stringify({
+        job_ids: jobIds,
+        profile_id: profileId,
+        career_strategy_id: careerStrategyId,
+        rubric_id: rubricId,
+        force,
+      }),
+    });
+  }
+
+  async getMatchEvaluation(id: string): Promise<JobMatchEvaluation> {
+    return this.request<JobMatchEvaluation>(`/api/v1/job-matching/results/${encodeURIComponent(id)}`);
+  }
+
+  async getOpportunityRankings(profileId?: string, strategyId?: string, rubricId?: string): Promise<{ items: RankedOpportunityItem[]; overview: RankingOverview }> {
+    const params = new URLSearchParams();
+    if (profileId) params.append('profile_id', profileId);
+    if (strategyId) params.append('strategy_id', strategyId);
+    if (rubricId) params.append('rubric_id', rubricId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<{ items: RankedOpportunityItem[]; overview: RankingOverview }>(`/api/v1/job-matching/rankings${qs}`);
+  }
+
+  async generateRankings(profileId?: string): Promise<{ items: RankedOpportunityItem[]; overview: RankingOverview }> {
+    const q = profileId ? `?profile_id=${encodeURIComponent(profileId)}` : '';
+    return this.request<{ items: RankedOpportunityItem[]; overview: RankingOverview }>(`/api/v1/job-matching/rankings/generate${q}`, {
+      method: 'POST',
+    });
+  }
+
+  async listMatchingRubrics(): Promise<RubricConfig[]> {
+    return this.request<RubricConfig[]>('/api/v1/job-matching/rubrics');
+  }
+
+  async compareCandidateJobs(jobIds: string[], profileId?: string): Promise<JobComparisonMatrix> {
+    return this.request<JobComparisonMatrix>('/api/v1/job-matching/compare', {
+      method: 'POST',
+      body: JSON.stringify({ canonical_job_ids: jobIds, profile_id: profileId }),
+    });
+  }
+
+  async simulateMatchingScenario(req: SimulationRequest): Promise<SimulationResponse> {
+    return this.request<SimulationResponse>('/api/v1/job-matching/simulate', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getMatchingReviewQueue(): Promise<Array<Record<string, any>>> {
+    return this.request<Array<Record<string, any>>>('/api/v1/job-matching/review-queue');
+  }
+
+  async resolveMatchingReviewItem(id: string, notes: string, decision: string): Promise<Record<string, any>> {
+    return this.request<Record<string, any>>(`/api/v1/job-matching/reviews/${encodeURIComponent(id)}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ resolution_notes: notes, decision }),
     });
   }
 }
