@@ -261,6 +261,16 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
               'Official ATS connectors (Greenhouse, Lever, Ashby, USAJOBS), employer portals, and feeds.',
           },
           {
+            id: 'jobs-aggregation',
+            title: 'Job Aggregation & Canonical Database',
+            path: '/recruitment/aggregation',
+            availability: 'implemented',
+            roadmapStage: 'Stage 27',
+            description:
+              'Multi-source canonical job reconciliation, employer identity resolution, duplicate detection, and merge/split operations.',
+            badge: 'v1',
+          },
+          {
             id: 'job-intelligence',
             title: 'Job Intelligence',
             path: '/recruitment/intelligence',

@@ -1979,6 +1979,468 @@ class RecruitmentMonitoringSettingsModel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
 
+# =============================================================================
+# Stage 27: Multi-Source Job Aggregation & Canonical Database Models
+# =============================================================================
+
+class CanonicalEmployerModel(Base):
+    __tablename__ = "canonical_employers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    name: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
+    legal_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    organization_type: Mapped[str] = mapped_column(String(64), default="direct_employer", nullable=False)
+    identity_status: Mapped[str] = mapped_column(String(32), default="probable", nullable=False, index=True)
+    official_careers_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    primary_domain: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    confidence_score: Mapped[float] = mapped_column(Float, default=0.8, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    aliases: Mapped[list["EmployerAliasModel"]] = relationship(
+        "EmployerAliasModel", back_populates="employer", cascade="all, delete-orphan"
+    )
+    verified_domains: Mapped[list["EmployerVerifiedDomainModel"]] = relationship(
+        "EmployerVerifiedDomainModel", back_populates="employer", cascade="all, delete-orphan"
+    )
+    provider_boards: Mapped[list["EmployerProviderBoardModel"]] = relationship(
+        "EmployerProviderBoardModel", back_populates="employer", cascade="all, delete-orphan"
+    )
+    decisions: Mapped[list["EmployerIdentityDecisionModel"]] = relationship(
+        "EmployerIdentityDecisionModel", back_populates="employer", cascade="all, delete-orphan"
+    )
+    jobs: Mapped[list["CanonicalJobModel"]] = relationship(
+        "CanonicalJobModel", back_populates="employer"
+    )
+
+
+class EmployerAliasModel(Base):
+    __tablename__ = "employer_aliases"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    employer_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    alias: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
+    normalized_alias: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
+    category: Mapped[str] = mapped_column(String(32), default="trading_name", nullable=False)
+    source_evidence: Mapped[str] = mapped_column(String(256), default="discovery_observation", nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    employer: Mapped["CanonicalEmployerModel"] = relationship("CanonicalEmployerModel", back_populates="aliases")
+
+
+class EmployerVerifiedDomainModel(Base):
+    __tablename__ = "employer_verified_domains"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    employer_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    domain: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    verification_method: Mapped[str] = mapped_column(String(64), default="careers_url", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    employer: Mapped["CanonicalEmployerModel"] = relationship("CanonicalEmployerModel", back_populates="verified_domains")
+
+
+class EmployerProviderBoardModel(Base):
+    __tablename__ = "employer_provider_boards"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    employer_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    board_token: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    board_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    employer: Mapped["CanonicalEmployerModel"] = relationship("CanonicalEmployerModel", back_populates="provider_boards")
+
+
+class EmployerRelationshipModel(Base):
+    __tablename__ = "employer_relationships"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    parent_employer_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    child_employer_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    relationship_type: Mapped[str] = mapped_column(String(64), default="subsidiary", nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class EmployerIdentityDecisionModel(Base):
+    __tablename__ = "employer_identity_decisions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    employer_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    raw_name: Mapped[str] = mapped_column(String(256), nullable=False)
+    decision: Mapped[str] = mapped_column(String(32), nullable=False)
+    evidence_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    decided_by: Mapped[str] = mapped_column(String(64), default="system", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    employer: Mapped["CanonicalEmployerModel"] = relationship("CanonicalEmployerModel", back_populates="decisions")
+
+
+class CanonicalJobModel(Base):
+    __tablename__ = "canonical_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    employer_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("canonical_employers.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    display_title: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
+    normalized_title: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
+    requisition_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    employment_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    location_summary: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    work_arrangement: Mapped[str | None] = mapped_column(String(32), nullable=True)  # remote, hybrid, onsite, flexible
+    description_reference: Mapped[str | None] = mapped_column(Text, nullable=True)
+    compensation_summary: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="active", nullable=False, index=True)
+    first_observed_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    last_observed_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)
+    last_verified_active_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    source_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    identity_status: Mapped[str] = mapped_column(String(32), default="probable", nullable=False, index=True)
+    conflict_state: Mapped[str] = mapped_column(String(32), default="no_conflict", nullable=False)
+    primary_source_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    primary_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    is_evergreen: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_repost: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    employer: Mapped["CanonicalEmployerModel | None"] = relationship("CanonicalEmployerModel", back_populates="jobs")
+    source_links: Mapped[list["CanonicalJobSourceLinkModel"]] = relationship(
+        "CanonicalJobSourceLinkModel", back_populates="canonical_job", cascade="all, delete-orphan"
+    )
+    locations: Mapped[list["CanonicalJobLocationModel"]] = relationship(
+        "CanonicalJobLocationModel", back_populates="canonical_job", cascade="all, delete-orphan"
+    )
+    identifiers: Mapped[list["CanonicalJobIdentifierModel"]] = relationship(
+        "CanonicalJobIdentifierModel", back_populates="canonical_job", cascade="all, delete-orphan"
+    )
+    field_candidates: Mapped[list["CanonicalJobFieldCandidateModel"]] = relationship(
+        "CanonicalJobFieldCandidateModel", back_populates="canonical_job", cascade="all, delete-orphan"
+    )
+    conflicts: Mapped[list["CanonicalJobConflictModel"]] = relationship(
+        "CanonicalJobConflictModel", back_populates="canonical_job", cascade="all, delete-orphan"
+    )
+    versions: Mapped[list["CanonicalJobVersionModel"]] = relationship(
+        "CanonicalJobVersionModel", back_populates="canonical_job", cascade="all, delete-orphan"
+    )
+
+
+class CanonicalJobSourceLinkModel(Base):
+    __tablename__ = "canonical_job_source_links"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    listing_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_listings.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    source_observation_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    source_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    native_posting_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    original_url: Mapped[str] = mapped_column(String(512), nullable=False)
+    application_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    association_status: Mapped[str] = mapped_column(String(32), default="active", nullable=False)
+    decision_method: Mapped[str] = mapped_column(String(64), default="exact_rule", nullable=False)
+    evidence_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    canonical_job: Mapped["CanonicalJobModel"] = relationship("CanonicalJobModel", back_populates="source_links")
+
+
+class CanonicalJobLocationModel(Base):
+    __tablename__ = "canonical_job_locations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    country: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    region: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    office: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    is_remote: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    workplace_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    raw_text: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    source_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    canonical_job: Mapped["CanonicalJobModel"] = relationship("CanonicalJobModel", back_populates="locations")
+
+
+class CanonicalJobIdentifierModel(Base):
+    __tablename__ = "canonical_job_identifiers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    id_type: Mapped[str] = mapped_column(String(32), nullable=False)  # requisition_id, provider_posting_id, etc.
+    raw_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    normalized_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    namespace: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    canonical_job: Mapped["CanonicalJobModel"] = relationship("CanonicalJobModel", back_populates="identifiers")
+
+
+class CanonicalJobFieldCandidateModel(Base):
+    __tablename__ = "canonical_job_field_candidates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    source_link_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_job_source_links.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    field_name: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    candidate_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    candidate_value_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    retrieved_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    is_selected: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    canonical_job: Mapped["CanonicalJobModel"] = relationship("CanonicalJobModel", back_populates="field_candidates")
+
+
+class CanonicalJobConflictModel(Base):
+    __tablename__ = "canonical_job_conflicts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    field_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    conflict_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="unresolved", nullable=False, index=True)
+    source_values_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    resolved_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    canonical_job: Mapped["CanonicalJobModel"] = relationship("CanonicalJobModel", back_populates="conflicts")
+
+
+class CanonicalJobRelationshipModel(Base):
+    __tablename__ = "canonical_job_relationships"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    related_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    relationship_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, default=0.5, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class CanonicalJobVersionModel(Base):
+    __tablename__ = "canonical_job_versions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    canonical_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    change_summary: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    canonical_job: Mapped["CanonicalJobModel"] = relationship("CanonicalJobModel", back_populates="versions")
+
+
+class CanonicalJobAliasModel(Base):
+    __tablename__ = "canonical_job_aliases"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    alias_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    target_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class JobDuplicateCandidateModel(Base):
+    __tablename__ = "job_duplicate_candidates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    left_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    right_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    status: Mapped[str] = mapped_column(String(32), default="proposed", nullable=False, index=True)
+    similarity_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    matching_factors_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    contradictions_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    recommended_action: Mapped[str] = mapped_column(String(32), default="review", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    review_requests: Mapped[list["JobDuplicateReviewRequestModel"]] = relationship(
+        "JobDuplicateReviewRequestModel", back_populates="candidate", cascade="all, delete-orphan"
+    )
+
+
+class JobDuplicateDecisionModel(Base):
+    __tablename__ = "job_duplicate_decisions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    candidate_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_duplicate_candidates.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    left_job_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    right_job_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    decision: Mapped[str] = mapped_column(String(32), nullable=False)
+    decided_by: Mapped[str] = mapped_column(String(64), default="system", nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    decision_evidence_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    decided_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class JobDuplicateReviewRequestModel(Base):
+    __tablename__ = "job_duplicate_review_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    candidate_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("job_duplicate_candidates.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    priority: Mapped[str] = mapped_column(String(16), default="medium", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+    candidate: Mapped["JobDuplicateCandidateModel"] = relationship("JobDuplicateCandidateModel", back_populates="review_requests")
+
+
+class JobMergeOperationModel(Base):
+    __tablename__ = "job_merge_operations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    surviving_job_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("canonical_jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    superseded_job_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    actor: Mapped[str] = mapped_column(String(64), default="system_auto", nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    merge_plan_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(32), default="completed", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class JobSplitOperationModel(Base):
+    __tablename__ = "job_split_operations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    original_merge_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("job_merge_operations.id", ondelete="SET NULL"), nullable=True
+    )
+    source_job_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    resulting_job_ids_json: Mapped[list[str] | None] = mapped_column(JSON, default=list)
+    actor: Mapped[str] = mapped_column(String(64), default="user_manual", nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    affected_sources_json: Mapped[list[str] | None] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(32), default="completed", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class AggregationTaskModel(Base):
+    __tablename__ = "aggregation_tasks"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    task_type: Mapped[str] = mapped_column(String(32), default="incremental", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    observations_total: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    observations_processed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    canonical_jobs_created: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    canonical_jobs_updated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    duplicates_found: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    merges_performed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reviews_queued: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    conflicts_detected: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class AggregationCheckpointModel(Base):
+    __tablename__ = "aggregation_checkpoints"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    task_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("aggregation_tasks.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    last_processed_observation_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    processed_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    state_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class AggregationErrorModel(Base):
+    __tablename__ = "aggregation_errors"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    task_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("aggregation_tasks.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    observation_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    error_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    stack_trace: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class AggregationOutboxEventModel(Base):
+    __tablename__ = "aggregation_outbox_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    payload_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(32), default="pending", nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+
+
+class AggregationSettingsModel(Base):
+    __tablename__ = "aggregation_settings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default="default")
+    auto_merge_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    min_similarity_for_candidate: Mapped[float] = mapped_column(Float, default=0.75, nullable=False)
+    min_similarity_for_auto_merge: Mapped[float] = mapped_column(Float, default=0.92, nullable=False)
+    require_same_requisition: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    enable_ai_assisted_review: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    batch_size: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
+    worker_concurrency: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+
 
 
 

@@ -25,6 +25,7 @@ export * from './resume';
 export * from './writing';
 export * from './policy';
 export * from './discovery';
+export * from './aggregation';
 export * from './intelligence';
 export * from './matching';
 export * from './monitoring';

@@ -2132,7 +2132,98 @@ Stage 25 establishes AUTONOM's authoritative **Career Preferences, Job Eligibili
 
 ---
 
-## Stage 28 of 50: Advanced Job Requirement Intelligence Engine
+## Stage 27: Multi-Source Job Aggregation, Canonical Job Database, Intelligent Duplicate Detection, Employer Identity Resolution, Source Reconciliation, Conflict Management, Job History, and Reliable Job Data Infrastructure
+
+**Status:** COMPLETE  
+**Phase:** Phase 6 — Autonomous Job Discovery and Matching (Stage 2 of 5)  
+**Date:** March 2026  
+
+### 1. Architectural Highlights & Delivered Components
+
+1. **Relational SQLite Data Infrastructure (25 Models)**:
+   - Introduced 25 relational models in `app/db/models.py`: `CanonicalEmployerModel`, `EmployerAliasModel`, `EmployerVerifiedDomainModel`, `EmployerProviderBoardModel`, `EmployerRelationshipModel`, `EmployerIdentityDecisionModel`, `CanonicalJobModel`, `CanonicalJobSourceLinkModel`, `CanonicalJobLocationModel`, `CanonicalJobIdentifierModel`, `CanonicalJobFieldCandidateModel`, `CanonicalJobConflictModel`, `CanonicalJobRelationshipModel`, `CanonicalJobVersionModel`, `CanonicalJobAliasModel`, `JobDuplicateCandidateModel`, `JobDuplicateDecisionModel`, `JobDuplicateReviewRequestModel`, `JobMergeOperationModel`, `JobSplitOperationModel`, `AggregationTaskModel`, `AggregationCheckpointModel`, `AggregationErrorModel`, `AggregationOutboxEventModel`, `AggregationSettingsModel`.
+   - All tables enforce SQLite WAL mode, foreign keys, and busy timeout handlers.
+
+2. **Field Normalization Engine (`normalization/`)**:
+   - `identifiers.py`: Word-boundary regex tokenization for requisition codes (`REQ`, `REQUISITION`, `JOBID`, `JR`) with hyphenated identifier support (`[A-Z0-9_\-]{3,20}`).
+   - `urls.py`: Marketing query parameter stripping (`utm_*`, `ref`, `gh_src`) while strictly preserving posting identity parameters (`id`, `gh_jid`, `job_id`, `req_id`).
+   - `titles.py`: Normalizes corporate titles, extracts seniority (`junior` to `principal/distinguished`), and tests seniority compatibility.
+   - `locations.py`: Workplace type classification (`remote`, `hybrid`, `onsite`) and geographical compatibility checking.
+   - `employment.py`: Employment type canonicalization (`full_time`, `part_time`, `contract`, `internship`) enforcing strict separation between internships/contracts and permanent roles.
+   - `descriptions.py`: HTML stripping, whitespace normalization, token cosine similarity, character n-gram Jaccard, and token set ratio calculation.
+
+3. **5-Stage Employer Identity Resolution (`employers/`)**:
+   - Stage 1: ATS board token extraction (`greenhouse`, `lever`, `ashby`).
+   - Stage 2: Corporate legal suffix stripping (`Inc.`, `LLC`, `Corp.`, `Ltd.`, `Limited`, `Corporation`, `Technologies`, `Group`).
+   - Stage 3: Corporate domain verification (filtering third-party aggregator hostnames from direct corporate domains).
+   - Stage 4: Verified alias repository lookup (`Alphabet Inc.` $\to$ `Google`).
+   - Stage 5: Staffing agency classification (`Robert Half`, `TEKsystems`, `Apex Systems`) into `OrganizationType.STAFFING_AGENCY`.
+   - `EmployerRegistry`: High-performance asynchronous repository with `joinedload` eager-loading.
+
+4. **Intelligent Duplicate Detection & Negative Evidence (`matching/`)**:
+   - `candidate_generation.py`: Multi-key blocking on employer, requisition ID, or title tokens to prevent $O(N^2)$ cross-comparisons.
+   - `deterministic_rules.py`: Exact duplicate detection based on same employer + requisition ID, or same employer + title + URL.
+   - `negative_evidence.py`: Strict negative evidence evaluator enforcing hard contradictions (different requisitions under same company, conflicting seniority levels, conflicting employment types, non-remote location clashes with same-requisition multi-office exception).
+   - `similarity.py`: Multi-factor weighted composite scoring: Title Token Cosine (0.40) + Description N-Gram Jaccard (0.40) + Location (0.10) + Employment Type (0.10).
+   - Threshold Policy: $\ge 0.92$ (or deterministic exact rule) auto-merges; $0.75 - 0.91$ queues to human review; $< 0.75$ keeps separate.
+
+5. **Transactional Merge & Split Operations (`identity_operations/`)**:
+   - `supersession.py`: Manages `canonical_job_aliases` to automatically redirect queries for superseded IDs to active surviving IDs, with cycle prevention.
+   - `merge_preview.py` & `merge.py`: Previews conflict impact and atomically transfers source links and location records, closes superseded entity, creates alias redirects, and records `canonical_job_versions` revision.
+   - `split_preview.py` & `split.py`: Reverses erroneous merges by detaching specified source link IDs into a newly created canonical job identity.
+
+6. **Field Reconciliation & Conflict Management (`canonical/` & `reconciliation/`)**:
+   - `source_authority.py`: Ranks sources by authoritative hierarchy (`career_page`: 0.95, `greenhouse`/`lever`/`ashby`: 0.88, `usajobs`: 0.92, `rss_atom`: 0.65, `aggregator`: 0.50).
+   - `conflicts.py`: Automatically flags conflicting salary ranges or workplace policies into `canonical_job_conflicts` while selecting preferred authoritative fields.
+   - `status.py`: Conservative posting status reconciliation (`reconcile_canonical_status`). **Critical Invariant**: Incomplete, rate-limited, or partial discovery snapshots NEVER mark missing postings as closed!
+
+7. **Batch Aggregation & Idempotency Pipeline (`processing/`)**:
+   - `ingestion.py`: End-to-end single observation ingestion pipeline with strict idempotency (repeated processing of identical observation IDs returns the existing canonical entity with zero duplicate creation or version explosion).
+   - `incremental.py`: Batch processor with task state tracking (`aggregation_tasks`), error isolation (`aggregation_errors`), and incremental checkpoint persistence (`aggregation_checkpoints`).
+
+8. **Human Review Queue & Decisions (`review/queue.py`)**:
+   - Manages pending human duplicate candidates.
+   - Supports 4 decisions: `merge` (triggers atomic merge), `keep_separate` (marks distinct), `mark_related` (inserts `similar_role` relationship), and `defer`.
+
+9. **Security, Policy, & Agent Capabilities (`integrations/` & `capabilities.py`)**:
+   - `career_policy.py`: Evaluates incoming employer identities against the Stage 25 Employer Blocklist.
+   - `authorization.py`: Stage 14 scoped authorization for `recruitment.jobs.*` and `recruitment.employers.*`.
+   - `capabilities.py`: 13 registered recruitment agent capabilities under `job.aggregate.*`.
+   - `service.py`: Singleton `JobAggregationService` facade.
+
+10. **FastAPI REST API (24 Authenticated Endpoints)**:
+    - Mounted under `/api/v1/job-aggregation/*`: status, diagnostics, jobs CRUD, sources provenance, history, conflicts, relationships, process, process-batch, sync-from-discovery, tasks, duplicates review, merge-preview, merge, split-preview, split, employers directory, employer resolve, employer correct, and settings.
+
+11. **Desktop React Workspace (`JobAggregationWorkspace.tsx`)**:
+    - Mounted at `/recruitment/aggregation` and added to navigation configuration under `RECRUITMENT` $\to$ `Jobs & Applications`.
+    - Features 8 operational tabs: Overview & Telemetry, Canonical Jobs, Job Details Inspector, Canonical Employers & Interactive Resolver, Duplicate Review Queue, Merge & Split Ops, Field Conflicts Resolver, Tasks History, and Aggregation Policy Settings.
+
+### 2. Verification & Test Evidence
+
+- **Backend Pytest Suite (`services/api/tests/`)**:
+  - `test_job_aggregation_multi_source.py`: 3/3 passed (1.06s)
+  - `test_employer_identity_and_aliases.py`: 3/3 passed (0.80s)
+  - `test_multi_location_and_reposts.py`: 3/3 passed (1.00s)
+  - `test_field_conflicts_and_reconciliation.py`: 2/2 passed (0.89s)
+  - `test_merge_and_split_operations.py`: 2/2 passed (1.01s)
+  - `test_idempotency_and_partial_snapshots.py`: 3/3 passed (1.04s)
+  - `test_api_job_aggregation.py`: 5/5 passed (1.85s)
+  - **Total Backend Tests: 21 passed in 4.42s (100% pass rate)**.
+- **Frontend Vitest Suite (`apps/desktop/src/test/`)**:
+  - `JobAggregationWorkspace.test.tsx`: 4/4 passed (0.59s)
+  - `App.test.tsx`: 5/5 passed (2.80s)
+  - **Total Frontend Tests: 9 passed (100% pass rate)**.
+- **Desktop Typecheck (`pnpm.cmd --filter @autonom/desktop typecheck`)**:
+  - `tsc --noEmit`: **0 errors**.
+
+### 3. Stage 27 Sign-off & Scope Boundaries
+
+- **Stage 27 is 100% complete, fully tested, and verified.**
+- **Zero Job Applications Submitted**: Strictly reserved for Stage 31+.
+- **Zero Recruiter Outreach**: No automated recruiter messaging or contact.
+- **Scope boundary enforced: Complete Stage 27 and STOP. Do NOT begin Stage 28.**
+
+---
 
 ### 1. Implementation Summary
 - **Stage**: Stage 28 of 50 (Third stage of Phase 6: Autonomous Job Discovery & Matching)

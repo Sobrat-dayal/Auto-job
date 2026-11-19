@@ -286,6 +286,20 @@ import type {
   ComponentHealthData,
   DiagnosticsReport,
   SchedulePreviewResponse,
+  AggregationDiagnosticsReport,
+  AggregationOverviewStats,
+  AggregationSettingsConfig,
+  AggregationTaskRecord,
+  CanonicalEmployerRecord,
+  CanonicalJobConflictRecord,
+  CanonicalJobRecord,
+  CanonicalJobSourceLinkRecord,
+  DuplicateAction,
+  DuplicateCandidateRecord,
+  MergeExecuteResponse,
+  MergePreviewResponse,
+  SplitExecuteResponse,
+  SplitPreviewResponse,
 } from '@autonom/shared-types';
 import type {
   DashboardActivityEvent,
@@ -3319,6 +3333,212 @@ export class ApiClient {
     return this.request<MonitoringSettingsData>('/api/v1/recruitment-monitoring/settings', {
       method: 'PATCH',
       body: JSON.stringify(req),
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Stage 27: Multi-Source Job Aggregation & Canonical Database Engine
+  // ---------------------------------------------------------------------------
+  async getAggregationStatus(): Promise<AggregationOverviewStats> {
+    return this.request<AggregationOverviewStats>('/api/v1/job-aggregation/status');
+  }
+
+  async getAggregationDiagnostics(): Promise<AggregationDiagnosticsReport> {
+    return this.request<AggregationDiagnosticsReport>('/api/v1/job-aggregation/diagnostics');
+  }
+
+  async listCanonicalJobs(params?: {
+    query?: string;
+    status?: string;
+    employer_id?: string;
+    work_arrangement?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<CanonicalJobRecord[]> {
+    const q = new URLSearchParams();
+    if (params?.query) q.append('query', params.query);
+    if (params?.status) q.append('status', params.status);
+    if (params?.employer_id) q.append('employer_id', params.employer_id);
+    if (params?.work_arrangement) q.append('work_arrangement', params.work_arrangement);
+    if (params?.limit) q.append('limit', String(params.limit));
+    if (params?.offset) q.append('offset', String(params.offset));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<CanonicalJobRecord[]>(`/api/v1/job-aggregation/jobs${qs}`);
+  }
+
+  async getCanonicalJob(id: string): Promise<CanonicalJobRecord> {
+    return this.request<CanonicalJobRecord>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(id)}`);
+  }
+
+  async getCanonicalJobSources(id: string): Promise<CanonicalJobSourceLinkRecord[]> {
+    return this.request<CanonicalJobSourceLinkRecord[]>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(id)}/sources`);
+  }
+
+  async getCanonicalJobHistory(id: string): Promise<Array<Record<string, any>>> {
+    return this.request<Array<Record<string, any>>>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(id)}/history`);
+  }
+
+  async getCanonicalJobConflicts(id: string): Promise<CanonicalJobConflictRecord[]> {
+    return this.request<CanonicalJobConflictRecord[]>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(id)}/conflicts`);
+  }
+
+  async getCanonicalJobRelationships(id: string): Promise<Array<Record<string, any>>> {
+    return this.request<Array<Record<string, any>>>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(id)}/relationships`);
+  }
+
+  async processObservation(observation: Record<string, any>, autoMerge: boolean = true): Promise<CanonicalJobRecord> {
+    return this.request<CanonicalJobRecord>(`/api/v1/job-aggregation/process?auto_merge=${autoMerge}`, {
+      method: 'POST',
+      body: JSON.stringify(observation),
+    });
+  }
+
+  async processBatchObservations(observations: Array<Record<string, any>>, autoMerge: boolean = true): Promise<AggregationTaskRecord> {
+    return this.request<AggregationTaskRecord>(`/api/v1/job-aggregation/process-batch?auto_merge=${autoMerge}`, {
+      method: 'POST',
+      body: JSON.stringify(observations),
+    });
+  }
+
+  async syncFromDiscovery(limit: number = 100): Promise<AggregationTaskRecord> {
+    return this.request<AggregationTaskRecord>(`/api/v1/job-aggregation/sync-from-discovery?limit=${limit}`, {
+      method: 'POST',
+    });
+  }
+
+  async listAggregationTasks(limit: number = 50): Promise<Array<Record<string, any>>> {
+    return this.request<Array<Record<string, any>>>(`/api/v1/job-aggregation/tasks?limit=${limit}`);
+  }
+
+  async listDuplicateCandidates(status?: string, limit: number = 50, offset: number = 0): Promise<DuplicateCandidateRecord[]> {
+    const q = new URLSearchParams();
+    if (status) q.append('status', status);
+    if (limit) q.append('limit', String(limit));
+    if (offset) q.append('offset', String(offset));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<DuplicateCandidateRecord[]>(`/api/v1/job-aggregation/duplicates${qs}`);
+  }
+
+  async getDuplicateCandidate(id: string): Promise<DuplicateCandidateRecord> {
+    return this.request<DuplicateCandidateRecord>(`/api/v1/job-aggregation/duplicates/${encodeURIComponent(id)}`);
+  }
+
+  async submitDuplicateReview(
+    id: string,
+    decision: DuplicateAction,
+    reason: string = 'User reviewed duplicate candidate',
+    actor: string = 'desktop_user',
+  ): Promise<{ success: boolean; candidate_id: string; decision: string }> {
+    return this.request<{ success: boolean; candidate_id: string; decision: string }>(
+      `/api/v1/job-aggregation/duplicates/${encodeURIComponent(id)}/review`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ decision, reason, decided_by: actor }),
+      },
+    );
+  }
+
+  async previewMergeJobs(survivingJobId: string, supersededJobId: string): Promise<MergePreviewResponse> {
+    return this.request<MergePreviewResponse>('/api/v1/job-aggregation/jobs/merge-preview', {
+      method: 'POST',
+      body: JSON.stringify({ surviving_job_id: survivingJobId, superseded_job_id: supersededJobId }),
+    });
+  }
+
+  async executeMergeJobs(
+    survivingJobId: string,
+    supersededJobId: string,
+    actor: string = 'desktop_user',
+    reason: string = 'Manual duplicate merge',
+  ): Promise<MergeExecuteResponse> {
+    return this.request<MergeExecuteResponse>('/api/v1/job-aggregation/jobs/merge', {
+      method: 'POST',
+      body: JSON.stringify({ surviving_job_id: survivingJobId, superseded_job_id: supersededJobId, actor, reason }),
+    });
+  }
+
+  async previewSplitJob(jobId: string): Promise<SplitPreviewResponse> {
+    return this.request<SplitPreviewResponse>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(jobId)}/split-preview`, {
+      method: 'POST',
+    });
+  }
+
+  async executeSplitJob(
+    jobId: string,
+    sourceLinkIdsToDetach: string[],
+    actor: string = 'desktop_user',
+    reason: string = 'Manual source split',
+  ): Promise<SplitExecuteResponse> {
+    return this.request<SplitExecuteResponse>(`/api/v1/job-aggregation/jobs/${encodeURIComponent(jobId)}/split`, {
+      method: 'POST',
+      body: JSON.stringify({ source_link_ids_to_detach: sourceLinkIdsToDetach, actor, reason }),
+    });
+  }
+
+  async listCanonicalEmployers(params?: { query?: string; status?: string; limit?: number; offset?: number }): Promise<CanonicalEmployerRecord[]> {
+    const q = new URLSearchParams();
+    if (params?.query) q.append('query', params.query);
+    if (params?.status) q.append('status', params.status);
+    if (params?.limit) q.append('limit', String(params.limit));
+    if (params?.offset) q.append('offset', String(params.offset));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<CanonicalEmployerRecord[]>(`/api/v1/job-aggregation/employers${qs}`);
+  }
+
+  async getCanonicalEmployer(id: string): Promise<CanonicalEmployerRecord> {
+    return this.request<CanonicalEmployerRecord>(`/api/v1/job-aggregation/employers/${encodeURIComponent(id)}`);
+  }
+
+  async getEmployerEvidence(id: string): Promise<Array<Record<string, any>>> {
+    return this.request<Array<Record<string, any>>>(`/api/v1/job-aggregation/employers/${encodeURIComponent(id)}/evidence`);
+  }
+
+  async resolveEmployer(params: { raw_name: string; source_url?: string; provider?: string }): Promise<CanonicalEmployerRecord> {
+    const q = new URLSearchParams();
+    q.append('raw_name', params.raw_name);
+    if (params.source_url) q.append('source_url', params.source_url);
+    if (params.provider) q.append('provider', params.provider);
+    return this.request<CanonicalEmployerRecord>(`/api/v1/job-aggregation/employers/resolve?${q.toString()}`, {
+      method: 'POST',
+    });
+  }
+
+  async correctEmployer(id: string, req: Record<string, any>): Promise<CanonicalEmployerRecord> {
+    return this.request<CanonicalEmployerRecord>(`/api/v1/job-aggregation/employers/${encodeURIComponent(id)}/correct`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async listGlobalFieldConflicts(unresolvedOnly: boolean = true, limit: number = 50, offset: number = 0): Promise<Array<Record<string, any>>> {
+    return this.request<Array<Record<string, any>>>(
+      `/api/v1/job-aggregation/conflicts?unresolved_only=${unresolvedOnly}&limit=${limit}&offset=${offset}`,
+    );
+  }
+
+  async resolveFieldConflict(
+    conflictId: string,
+    chosenValue: any,
+    note: string = 'Resolved in desktop UI',
+    actor: string = 'desktop_user',
+  ): Promise<{ status: string; conflict_id: string }> {
+    return this.request<{ status: string; conflict_id: string }>(
+      `/api/v1/job-aggregation/conflicts/${encodeURIComponent(conflictId)}/resolve`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ chosen_value: chosenValue, resolution_note: note, resolved_by: actor }),
+      },
+    );
+  }
+
+  async getAggregationSettings(): Promise<AggregationSettingsConfig> {
+    return this.request<AggregationSettingsConfig>('/api/v1/job-aggregation/settings');
+  }
+
+  async updateAggregationSettings(settings: AggregationSettingsConfig): Promise<AggregationSettingsConfig> {
+    return this.request<AggregationSettingsConfig>('/api/v1/job-aggregation/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
     });
   }
 }
